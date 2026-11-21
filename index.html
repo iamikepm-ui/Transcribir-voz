@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#070a14">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdn.jsdelivr.net; connect-src 'self' blob: data: https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://*.hf.co; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdn.jsdelivr.net; connect-src 'self' blob: data: https://api.groq.com https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://*.hf.co; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'none'">
 <title>Dictado</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
@@ -156,7 +156,7 @@
   .opt .lbl { flex:1; font-size:15.5px; font-weight:600; }
   .opt .lbl small { display:block; color:var(--mut); font-weight:500; font-size:12.5px; margin-top:1px; }
   .opt select, .opt input[type=text], .opt input[type=tel] { max-width:56%; background:var(--glass2); border:1px solid var(--line); border-radius:10px; padding:8px 10px; font-size:14.5px; }
-  .opt input[type=text], .opt input[type=tel] { width:56%; }
+  .opt input[type=text], .opt input[type=tel], .opt input[type=password] { width:56%; background:var(--glass2); border:1px solid var(--line); border-radius:10px; padding:8px 10px; font-size:14.5px; }
   .switch { position:relative; width:52px; height:31px; flex:none; }
   .switch input { opacity:0; width:0; height:0; position:absolute; }
   .switch span { position:absolute; inset:0; border-radius:99px; background:var(--line); transition:.25s; }
@@ -318,7 +318,10 @@
           <option value="onnx-community/whisper-small">Whisper Small · ligero (~250 MB)</option>
           <option value="onnx-community/whisper-large-v3-turbo">Whisper Turbo · el mejor (~760 MB)</option>
           <option value="onnx-community/cohere-transcribe-03-2026-ONNX">Cohere · solo español, ordenador (~2 GB)</option>
+          <option value="groq">☁️ Whisper Large v3 en la nube (Groq) · el mejor, sin descargas</option>
         </select></div>
+      <label class="opt"><div class="lbl">Aceleración gráfica (GPU)<small>Más rápida, pero en algunos móviles cierra Chrome</small></div><span class="switch"><input type="checkbox" id="optGpu"><span></span></span></label>
+      <div class="opt" id="groqRow"><div class="lbl">Clave de Groq<small>Gratis en console.groq.com → API Keys. Se guarda solo en este móvil.</small></div><input type="password" id="optGroqKey" placeholder="gsk_…" autocomplete="off"></div>
       <div class="opt"><div class="lbl">Parar al dejar de hablar<small>Sin tocar la pantalla</small></div>
         <select id="optSilence"><option value="0">No</option><option value="2">Tras 2 s</option><option value="3">Tras 3 s</option><option value="5">Tras 5 s</option></select></div>
       <label class="opt"><div class="lbl">Saludo y despedida en su línea<small>«Hola Marta,» arriba, el mensaje debajo y «Un abrazo.» al final</small></div><span class="switch"><input type="checkbox" id="optFormat"><span></span></span></label>
@@ -371,7 +374,7 @@
   const isMobile = /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent);
   const isAndroid = /Android/i.test(navigator.userAgent);
   const BASE = 'onnx-community/whisper-base', SMALL = 'onnx-community/whisper-small', TURBO = 'onnx-community/whisper-large-v3-turbo', COHERE = 'onnx-community/cohere-transcribe-03-2026-ONNX';
-  const NAMES = { [BASE]: 'Whisper Base', [SMALL]: 'Whisper Small', [TURBO]: 'Whisper Turbo', [COHERE]: 'Cohere' };
+  const NAMES = { [BASE]: 'Whisper Base', [SMALL]: 'Whisper Small', [TURBO]: 'Whisper Turbo', [COHERE]: 'Cohere', groq: 'Whisper en la nube' };
   const SMALLER = { [COHERE]: TURBO, [TURBO]: SMALL, [SMALL]: BASE };
 
   let engine = store.get('engine', 'live'), lang = store.get('lang', 'es');
@@ -387,7 +390,7 @@
   window.addEventListener('resize', () => { segSet($('langSeg'), lang); segSet($('modeSeg'), engine); });
 
   // ---------- ajustes ----------
-  const CHECKS = { optFormat: true, optPunct: true, optBeep: true, optAwake: false, optAutoCopy: true, optReadBack: false, optAutoWa: false };
+  const CHECKS = { optGpu: !isMobile, optFormat: true, optPunct: true, optBeep: true, optAwake: false, optAutoCopy: true, optReadBack: false, optAutoWa: false };
   for (const [id, def] of Object.entries(CHECKS)) { $(id).checked = store.get(id, def); $(id).onchange = () => { store.set(id, $(id).checked); if (id === 'optAwake') keepAwake(); }; }
   const on = (id) => $(id).checked;
   $('optSilence').value = String(store.get('silence', 0));
@@ -422,14 +425,27 @@
 
   // ---------- modelo, con protección contra cierres por falta de memoria ----------
   const crashed = store.get('loading', null);
-  if (crashed && SMALLER[crashed]) {
+  if (crashed && store.get('loadingGpu', false)) {
+    store.set('optGpu', false); $('optGpu').checked = false; store.set('model', crashed);
+    setTimeout(() => toast(`Chrome se cerró con la aceleración gráfica: la he desactivado`, 6000), 1100);
+  } else if (crashed && SMALLER[crashed]) {
     store.set('model', SMALLER[crashed]);
-    setTimeout(() => setStatus(`${NAMES[crashed]} no cupo en la memoria de este móvil: he cambiado a ${NAMES[SMALLER[crashed]]}.`, true), 400);
+    setTimeout(() => toast(`${NAMES[crashed]} no cabe en este móvil: uso ${NAMES[SMALLER[crashed]]}`, 6000), 1100);
   }
   store.set('loading', null);
   $('optModel').value = store.get('model', isMobile ? SMALL : TURBO);
-  if (store.get('model', null) === null && navigator.gpu) navigator.gpu.requestAdapter().then(a => { if (a && store.get('model', null) === null) $('optModel').value = TURBO; }).catch(() => {});
-  $('optModel').onchange = () => { store.set('model', $('optModel').value); checkModelLang(); preloadAsr(); };
+
+  $('optModel').onchange = () => {
+    if (worker && !asrReady) { worker.terminate(); worker = null; }   // cancela la descarga del modelo anterior
+    store.set('model', $('optModel').value); showGroq(); checkModelLang();
+    if (isMobile && ($('optModel').value === TURBO || $('optModel').value === COHERE)) toast('Modelo grande: en móvil puede no caber en memoria');
+    preloadAsr();
+  };
+  $('optGroqKey').value = store.get('groqKey', '');
+  $('optGroqKey').oninput = () => store.set('groqKey', $('optGroqKey').value.trim());
+  const showGroq = () => { $('groqRow').style.display = $('optModel').value === 'groq' ? '' : 'none'; };
+  showGroq();
+  $('optGpu').addEventListener('change', () => { if (worker) { worker.terminate(); worker = null; asrReady = false; } preloadAsr(); });
   try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch {}
   const model = () => (lang === 'ca' && $('optModel').value === COHERE) ? TURBO : $('optModel').value;   // Cohere no tiene catalán
   function checkModelLang() { if (lang === 'ca' && $('optModel').value === COHERE && engine === 'whisper') setStatus('Cohere no tiene catalán: se usará Whisper Turbo.'); }
@@ -459,7 +475,7 @@
 
   // ---------- utilidades de interfaz ----------
   function setStatus(msg, err) { status.textContent = msg; status.classList.toggle('err', !!err); $('dstatus').textContent = msg; }
-  function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), 1700); }
+  function toast(msg, ms = 1700) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), ms); }
   function setMic(state) {
     $$('.mic-wrap').forEach(w => { w.classList.toggle('rec-on', state === 'rec'); w.classList.toggle('busy-on', state === 'busy'); });
     for (const m of [$('mic'), $('mic2')]) {
@@ -776,6 +792,7 @@
     if (worker) return worker;
     worker = new Worker('worker.js', { type: 'module' });
     worker.onmessage = ({ data }) => {
+      if (model() === 'groq' && /progress|ready|status/.test(data.type)) { bar.style.display = 'none'; return; }
       if (data.type === 'progress') { bar.style.display = 'block'; barFill.style.width = data.pct + '%'; setStatus(`${data.kind === 'tr' ? 'Descargando el traductor' : 'Descargando ' + NAMES[model()]} (solo la primera vez): ${data.pct}% de ${data.mb} MB`); }
       if (data.type === 'status') setStatus(data.text);
       if (data.type === 'ready') { asrReady = true; loadingModel = null; store.set('loading', null); bar.style.display = 'none'; if (!busy && !recording) setStatus(NAMES[model()] + ' listo' + (data.gpu ? ' (GPU)' : '') + '. Pulsa y habla.'); }
@@ -793,8 +810,32 @@
   // si sales de la app con normalidad, la marca se quita
   let loadingModel = null;
   document.addEventListener('visibilitychange', () => store.set('loading', document.visibilityState === 'visible' && loadingModel && !asrReady ? loadingModel : null));
-  function loadMsg(extra) { if (!asrReady) { loadingModel = model(); store.set('loading', loadingModel); } return { model: model(), mobile: isMobile, ...extra }; }
-  function preloadAsr() { if (engine === 'whisper') { asrReady = false; getWorker().postMessage({ type: 'load', ...loadMsg() }); } }
+  function loadMsg(extra) { if (!asrReady) { loadingModel = model(); store.set('loading', loadingModel); store.set('loadingGpu', on('optGpu')); } return { model: model(), mobile: isMobile, gpu: on('optGpu'), ...extra }; }
+  function preloadAsr() { if (engine === 'whisper' && model() !== 'groq') { asrReady = false; getWorker().postMessage({ type: 'load', ...loadMsg() }); } }
+
+  // Whisper Large v3 en Groq (gratis con clave). El audio va a Groq; la clave solo está en este móvil.
+  async function cloudTranscribe(blob, mime) {
+    const key = store.get('groqKey', '');
+    const done = (msg, err) => { busy = false; setMic('idle'); if (msg) setStatus(msg, err); };
+    if (!key) { done('Falta la clave de Groq: ponla en Ajustes.', true); openSheet(true); return; }
+    if (!navigator.onLine) { done('Sin conexión: la nube necesita internet. Usa un modelo del móvil.', true); return; }
+    setStatus('Transcribiendo en la nube…');
+    try {
+      const fd = new FormData();
+      fd.append('file', blob, 'audio.' + ((mime || '').includes('mp4') ? 'mp4' : (mime || '').includes('ogg') ? 'ogg' : 'webm'));
+      fd.append('model', 'whisper-large-v3');
+      fd.append('language', lang);
+      fd.append('response_format', 'json');
+      fd.append('temperature', '0');
+      const res = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', { method: 'POST', headers: { Authorization: 'Bearer ' + key }, body: fd });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) { done(res.status === 401 ? 'La clave de Groq no es válida.' : res.status === 429 ? 'Groq: límite gratuito alcanzado, prueba en un rato.' : 'Error de Groq: ' + ((data.error && data.error.message) || res.status), true); return; }
+      done();
+      const t = (data.text || '').trim();
+      if (t) { const before = text.value; finishChunk(t, true); setStatus('Listo ✓'); afterDictation(text.value.slice(before.length).trim()); }
+      else setStatus('No se ha entendido nada. Prueba otra vez.', true);
+    } catch (e) { done('No se pudo conectar con Groq: ' + e.message, true); }
+  }
 
   async function startAI() {
     let stream;
@@ -808,7 +849,9 @@
     mr.onstop = async () => {
       meterStop(true);
       const blob = new Blob(chunks, { type: mr.mimeType });
-      busy = true; setMic('busy'); setStatus(asrReady ? 'Transcribiendo…' : 'Preparando ' + NAMES[model()] + '…');
+      busy = true; setMic('busy');
+      if (model() === 'groq') { cloudTranscribe(blob, mr.mimeType); return; }
+      setStatus(asrReady ? 'Transcribiendo…' : 'Preparando ' + NAMES[model()] + '…');
       try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
         const buf = await ctx.decodeAudioData(await blob.arrayBuffer());

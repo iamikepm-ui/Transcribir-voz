@@ -10,4 +10,5 @@ App web para dictar por voz en **español o catalán**, pensada para usar en el 
 - **🚗 Modo conducción**: pantalla simple con un botón enorme.
 - **Formato de mensaje**: el saludo («Hola Marta,») en la primera línea, el mensaje debajo empezando en mayúscula y la despedida («Un abrazo.») en la última. En español y catalán.
 - Opciones: parar solo al dejar de hablar, leer el texto en voz alta, abrir WhatsApp al terminar, contacto favorito, compartir, tema claro/oscuro, 6 colores, tamaño de letra, historial.
-- En móvil, Whisper Turbo se carga comprimido (q4, ~760 MB); si aun así Chrome se queda sin memoria, la app pasa sola a un modelo más pequeño.
+- En móvil se usa por defecto Whisper Small sin aceleración gráfica. Si Chrome se cierra al cargar un modelo, la app desactiva la aceleración y después baja de modelo.
+- **☁️ Whisper Large v3 en la nube (Groq)**: la mejor calidad sin descargar nada; necesita una clave gratuita de console.groq.com, que se guarda solo en el móvil.

@@ -29,9 +29,9 @@ function progressReporter(kind) {
   };
 }
 
-async function loadAsr(model, mobile) {
+async function loadAsr(model, mobile, allowGpu = true) {
   const { pipeline } = await lib();
-  const gpu = await hasWebGPU();
+  const gpu = allowGpu && await hasWebGPU();
   const key = model + (gpu ? ':gpu' : ':wasm');
   if (asr && asrKey === key) return;
   const cohere = /cohere/.test(model), big = /large|turbo/.test(model);
@@ -79,9 +79,9 @@ async function translate(dir, text) {
 
 onmessage = async ({ data }) => {
   try {
-    if (data.type === 'load') await loadAsr(data.model, data.mobile);
+    if (data.type === 'load') await loadAsr(data.model, data.mobile, data.gpu !== false);
     if (data.type === 'transcribe') {
-      await loadAsr(data.model, data.mobile);
+      await loadAsr(data.model, data.mobile, data.gpu !== false);
       postMessage({ type: 'status', text: 'Transcribiendo…' });
       const out = /cohere/.test(data.model)
         ? await asr(data.audio, { language: data.lang, max_new_tokens: 1024 })
