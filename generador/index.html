@@ -52,6 +52,16 @@
   td .mini.danger { background:rgba(255,138,160,.14); color:var(--err); }
   tr.revoked td { opacity:.55; text-decoration:line-through; }
   tr.revoked td:last-child { opacity:1; text-decoration:none; }
+  .reqs { display:flex; flex-direction:column; gap:10px; }
+  .req { border:1px solid var(--line); background:rgba(255,255,255,.04); border-radius:16px; padding:12px 14px; }
+  .req.sel { border-color:var(--a1); box-shadow:inset 0 0 0 1px var(--a1); }
+  .req .top { display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+  .req .top b { font-size:16px; }
+  .req .meta { color:var(--mut); font-size:13.5px; margin-top:4px; display:flex; flex-wrap:wrap; gap:4px 14px; }
+  .req .meta a { color:var(--a1); text-decoration:none; font-weight:700; }
+  .req .row { margin-top:10px; }
+  .count { display:inline-block; min-width:24px; text-align:center; font-size:13px; font-weight:800; padding:2px 8px; border-radius:999px; background:linear-gradient(135deg,var(--a1),var(--a2)); color:#04210f; margin-left:6px; vertical-align:2px; }
+  .count:empty { display:none; }
   .tag { display:inline-block; font-size:11.5px; font-weight:800; padding:2px 8px; border-radius:999px; background:rgba(255,138,160,.18); color:var(--err); margin-left:6px; text-decoration:none; }
   .scroll { overflow-x:auto; }
   .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:0 12px; }
@@ -89,7 +99,15 @@
   <!-- 3. Generar -->
   <section id="gen" class="hidden">
     <div class="card">
-      <div id="appCheck" class="msg"></div>
+      <div id="appCheck" class="msg" style="margin:0 0 12px"></div>
+      <h2>Solicitudes de clave <span class="count" id="inboxN"></span></h2>
+      <p class="sub" id="inboxInfo" style="margin:0 0 10px">Las personas que piden su clave desde la app aparecen aquí.</p>
+      <div class="reqs" id="inbox"></div>
+      <div class="row"><button id="inboxRefresh">↻ Actualizar</button></div>
+      <div class="msg" id="inboxMsg"></div>
+    </div>
+
+    <div class="card" id="newCard">
       <h2>Nueva licencia</h2>
       <div class="grid2">
         <div><label>Nombre del cliente</label><input id="cName" maxlength="40" placeholder="Juan Pérez"></div>
@@ -246,6 +264,59 @@
     } catch (e) { msg('revMsg', e.message); }
   }
   $('revBtn').onclick = () => setRevoked($('revSerial').value, true, '');
+
+  // ---------- solicitudes de clave (llegan desde la pantalla de activación de la app) ----------
+  let reqSel = null;   // solicitud que se está atendiendo: al crear la licencia se envía a su WhatsApp
+  const phoneDigits = (p) => String(p || '').replace(/\D/g, '');
+  async function loadInbox() {
+    const box = $('inbox'); $('inboxMsg').textContent = '';
+    if (appApi === null) await appPublicKey();
+    if (!appApi) { $('inboxInfo').textContent = 'Las solicitudes llegarán aquí cuando el servidor de la app esté publicado. Mientras tanto, te las pedirán por WhatsApp.'; return; }
+    $('inboxInfo').textContent = 'Cargando…';
+    let d;
+    try { d = await adminCall('inbox', '-'); } catch (e) { $('inboxInfo').textContent = 'Las personas que piden su clave desde la app aparecen aquí.'; msg('inboxMsg', e.message); return; }
+    const list = d.requests || [];
+    $('inboxN').textContent = list.length || '';
+    $('inboxInfo').textContent = list.length ? 'Pulsa «Crear licencia»: se rellenan los datos y, al generarla, se la envías a su WhatsApp. Las solicitudes se borran solas a los 45 días.' : 'No hay solicitudes pendientes.';
+    box.textContent = '';
+    for (const q of list) {
+      const el = document.createElement('div'); el.className = 'req' + (reqSel && reqSel.id === q.id ? ' sel' : '');
+      const top = document.createElement('div'); top.className = 'top';
+      const nm = document.createElement('b'); nm.textContent = q.name || '(sin nombre)';
+      const when = document.createElement('span'); when.className = 'sub'; when.style.margin = '0';
+      when.textContent = q.ts ? new Date(q.ts).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
+      top.append(nm, when);
+      const meta = document.createElement('div'); meta.className = 'meta';
+      const wa = document.createElement('a'); wa.href = 'https://wa.me/' + phoneDigits(q.phone); wa.target = '_blank'; wa.rel = 'noopener'; wa.textContent = '💬 ' + (q.phone || '');
+      const pl = document.createElement('span'); pl.textContent = '💶 ' + (q.plan || 'sin tarifa');
+      const dv = document.createElement('span'); dv.className = 'mono'; dv.textContent = '📱 ' + (q.device || '');
+      meta.append(wa, pl, dv);
+      if (q.ref) { const rf = document.createElement('span'); rf.textContent = '👋 recomendado por ' + q.ref; meta.append(rf); }
+      if (q.lang && q.lang !== 'es') { const lg = document.createElement('span'); lg.textContent = '🌐 ' + q.lang.toUpperCase(); meta.append(lg); }
+      const row = document.createElement('div'); row.className = 'row';
+      const mk = document.createElement('button'); mk.className = 'primary'; mk.textContent = 'Crear licencia';
+      mk.onclick = () => takeRequest(q);
+      const del = document.createElement('button'); del.textContent = 'Descartar';
+      del.onclick = async () => {
+        if (!confirm('¿Descartar la solicitud de ' + (q.name || '') + '?')) return;
+        try { await adminCall('dismiss', q.id); if (reqSel && reqSel.id === q.id) reqSel = null; loadInbox(); } catch (e) { msg('inboxMsg', e.message); }
+      };
+      row.append(mk, del);
+      el.append(top, meta, row); box.append(el);
+    }
+  }
+  function takeRequest(q) {
+    reqSel = q; resetForm();
+    $('cName').value = q.name || ''; $('cDev').value = q.device || '';
+    const want = String(q.plan || '').split(' · ')[0].trim().toLowerCase();
+    const i = plans.findIndex((pl) => pl.n.toLowerCase() === want);
+    if (i >= 0) pickPlan(i);
+    for (const el of $('inbox').children) el.classList.remove('sel');
+    msg('genMsg', 'Atendiendo la solicitud de ' + (q.name || '') + '. Cuando te haya pagado, pulsa «Generar licencia» y después «Enviar por WhatsApp».', true);
+    $('newCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    loadInbox();
+  }
+  $('inboxRefresh').onclick = loadInbox;
   async function checkApp() {
     const box = $('appCheck'); box.className = 'msg'; box.textContent = 'Comprobando la app…';
     const k = await appPublicKey();
@@ -255,7 +326,7 @@
     box.className = 'msg err';
     box.textContent = '✗ La app usa OTRA clave pública (empieza por ' + k.slice(0, 8) + '…; la de aquí empieza por ' + vault.pub.slice(0, 8) + '…). Las licencias de aquí NO funcionarán. Usa el generador donde creaste las claves o importa su copia de seguridad. Si quieres usar las claves de ESTE generador, pulsa «Copiar clave pública» (abajo) y pásasela a Claude: no es secreta.';
   }
-  function enterGen() { show('gen'); $('pubKey').value = vault.pub; drawLog(); drawPlanRows(); resetForm(); $('cName').focus(); checkApp(); }
+  function enterGen() { show('gen'); $('pubKey').value = vault.pub; drawLog(); drawPlanRows(); resetForm(); checkApp().then(loadInbox); }
 
   // 3. generar
   // ---------- tarifas ----------
@@ -369,13 +440,18 @@
     const log = load('pzgen.log', []);
     log.unshift({ date: new Date().toISOString(), name, device: dc ? group(b32encode(dev), 4) : '', from: $('cFrom').value, until: until ? iso(until) : '', plan: planLabel || (until ? 'Personalizada' : 'De por vida'), paid: +$('cPaid').value || 0, serial: hex(serial), key });
     save('pzgen.log', log); drawLog();
+    if (reqSel) {
+      log[0].phone = reqSel.phone || ''; save('pzgen.log', log);
+      const done = reqSel; reqSel = null;
+      adminCall('dismiss', done.id).then(loadInbox).catch(() => {});
+    }
   };
   $('cpKey').onclick = () => navigator.clipboard.writeText($('outKey').value).then(() => msg('genMsg', '✓ Clave copiada', true));
   $('cpLink').onclick = () => navigator.clipboard.writeText($('outLink').value).then(() => msg('genMsg', '✓ Enlace copiado', true));
   $('sendWa').onclick = () => {
     const l = load('pzgen.log', [])[0] || {};
     const hasta = l.until ? '\nVálida hasta el ' + fmt(l.until) + '.' : '';
-    window.open('https://wa.me/?text=' + encodeURIComponent('¡Gracias por tu compra de PerezApp! 🦥' + hasta + '\nAbre este enlace en tu móvil para activarla:\n' + $('outLink').value), '_blank');
+    window.open('https://wa.me/' + phoneDigits(l.phone) + '?text=' + encodeURIComponent('¡Gracias por tu compra de PerezApp! 🦥' + hasta + '\nAbre este enlace en tu móvil para activarla:\n' + $('outLink').value), '_blank');
   };
   function drawLog() {
     const tb = $('log'); tb.textContent = '';

@@ -19,6 +19,8 @@
   const SELLER_WHATSAPP = '';
   // Servidor de PerezApp (Cloudflare Worker) que da la transcripción y la IA a los clientes con licencia.
   const API_BASE = '';
+  // Tarifas que ve quien pide su clave (las mismas que en el generador). m = meses (0 = de por vida).
+  const PLANS = [{ n: 'Mensual', p: 2.99, m: 1 }, { n: 'Trimestral', p: 7.99, m: 3 }, { n: 'Anual', p: 24.99, m: 12, best: true }, { n: 'De por vida', p: 49.99, m: 0 }];
 
   const ALPHA = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
   const EPOCH = Date.UTC(2025, 0, 1), DAY = 86400000;
@@ -145,11 +147,23 @@
     } catch { return null; } finally { clearTimeout(to); }
   }
 
+  // Solicitud de clave desde la pantalla de activación: le llega al titular en el generador.
+  async function requestKey(data) {
+    if (!API_BASE) return { ok: false, code: 'no_server' };
+    const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), 12000);
+    try {
+      const res = await fetch(API_BASE + '/v1/request', { method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: ctl.signal, body: JSON.stringify({ ...data, device: await deviceCode() }) });
+      const d = await res.json().catch(() => ({}));
+      if (res.ok && d.ok) return { ok: true };
+      return { ok: false, code: (d.error && d.error.code) || String(res.status) };
+    } catch { return { ok: false, code: 'network' }; } finally { clearTimeout(to); }
+  }
+
   // cabeceras para el servidor: la licencia guardada y el código de este móvil
   async function headers() {
     let key = ''; try { key = localStorage.getItem('perezapp.license') || ''; } catch {}
     return { 'X-Perezapp-License': key, 'X-Perezapp-Device': await deviceCode() };
   }
 
-  root.PerezappLicense = { enabled: !!PUBLIC_KEY, check, activate, deactivate, deviceCode, verify, headers, cleanKey, serverCheck, SELLER_WHATSAPP, API_BASE, _b32: { b32encode, b32decode } };
+  root.PerezappLicense = { enabled: !!PUBLIC_KEY, check, activate, deactivate, deviceCode, verify, headers, cleanKey, serverCheck, requestKey, PLANS, SELLER_WHATSAPP, API_BASE, _b32: { b32encode, b32decode } };
 })(typeof window !== 'undefined' ? window : globalThis);

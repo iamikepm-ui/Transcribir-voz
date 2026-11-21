@@ -4,7 +4,8 @@
 //   POST /v1/transcribe   (multipart: file, language?, prompt?)  → { text }
 //   POST /v1/chat         (JSON: task, lang, tgt?, text, vocab?)  → { text }
 //   POST /v1/license      (sin cuerpo)                            → { ok, serial, expires }   comprobación al abrir la app
-//   POST /v1/admin        (JSON firmado por el generador)         → anular / reactivar / consultar una licencia
+//   POST /v1/request      (JSON: name, phone, plan, device, ref?)  → { ok }   solicitud de clave desde la app (sin licencia)
+//   POST /v1/admin        (JSON firmado por el generador)         → anular / reactivar / consultar una licencia, ver y borrar solicitudes
 //   GET  /v1/health                                               → { ok: true, configured }
 //
 // Cabeceras de la app: X-Perezapp-License (clave PZ-…) y X-Perezapp-Device (código del móvil).
@@ -30,7 +31,8 @@ const EPOCH = Date.UTC(2025, 0, 1), DAY = 86400000;
 const LANGNAME = { es: 'español', ca: 'catalán', en: 'inglés', fr: 'francés', it: 'italiano', de: 'alemán', pt: 'portugués' };
 const LLMS = [['openai/gpt-oss-120b', 'low'], ['qwen/qwen3.8-27b', 'none']];
 const MAX_AUDIO = 24 * 1024 * 1024, MAX_JSON = 64 * 1024;
-const PER_MINUTE = { stt: 20, llm: 40, ip: 120, admin: 20 };   // por licencia (stt, llm) o por IP (ip, admin)
+const PER_MINUTE = { stt: 20, llm: 40, ip: 120, admin: 20, req: 3 };   // por licencia (stt, llm) o por IP (ip, admin, req)
+const REQ_PER_IP_DAY = 5, REQ_PER_DAY = 300, REQ_TTL = 45 * 86400;
 const groqBase = (env) => env.GROQ_BASE || 'https://api.groq.com';
 
 function b32decode(str) {
@@ -112,19 +114,27 @@ async function useQuota(env, serial, kind) {
 }
 
 // Órdenes del generador: firma ECDSA de «PZADMIN|acción|serie|hora» con la clave privada del titular
+const SERIAL = /^[0-9a-f]{8}$/, REQ_ID = /^r:\d{13}:[0-9a-f]{8}$/;
+const TARGET = { revoke: SERIAL, restore: SERIAL, status: SERIAL, inbox: /^-$/, dismiss: REQ_ID };
 async function admin(env, body) {
-  const action = String(body.action || ''), serial = String(body.serial || '').toLowerCase(), ts = +body.ts || 0, sig = String(body.sig || '');
-  if (!['revoke', 'restore', 'status'].includes(action) || !/^[0-9a-f]{8}$/.test(serial) || !/^[A-Za-z0-9_-]{80,90}$/.test(sig)) return { status: 400, body: { error: { code: 'bad_request' } } };
+  const action = String(body.action || ''), target = String(body.target ?? body.serial ?? ''), ts = +body.ts || 0, sig = String(body.sig || '');
+  if (!TARGET[action] || !TARGET[action].test(target) || !/^[A-Za-z0-9_-]{80,90}$/.test(sig)) return { status: 400, body: { error: { code: 'bad_request' } } };
   if (Math.abs(Date.now() - ts) > 5 * 60000) return { status: 401, body: { error: { code: 'clock', now: Date.now() } } };
   let good = false;
-  try { good = await crypto.subtle.verify({ name: 'ECDSA', hash: 'SHA-256' }, await publicKey(env), b64u(sig), new TextEncoder().encode(`PZADMIN|${action}|${serial}|${ts}`)); } catch {}
+  try { good = await crypto.subtle.verify({ name: 'ECDSA', hash: 'SHA-256' }, await publicKey(env), b64u(sig), new TextEncoder().encode(`PZADMIN|${action}|${target}|${ts}`)); } catch {}
   if (!good) return { status: 401, body: { error: { code: 'signature' } } };
   if (!env.PZ_KV) return { status: 503, body: { error: { code: 'no_storage' } } };
   const nonce = 'n:' + sig.slice(0, 32);
+  if (action === 'inbox') {
+    let list; try { list = await env.PZ_KV.list({ prefix: 'r:', limit: 200 }); } catch { return { status: 503, body: { error: { code: 'storage' } } }; }
+    return { status: 200, body: { ok: true, requests: list.keys.map((k) => ({ id: k.name, ...(k.metadata || {}) })) } };
+  }
   if (action !== 'status') {
     if (await kvGet(env, nonce)) return { status: 409, body: { error: { code: 'replay' } } };
     await kvPut(env, nonce, '1', { expirationTtl: 900 });
   }
+  if (action === 'dismiss') return (await kvDel(env, target)) ? { status: 200, body: { ok: true, id: target } } : { status: 503, body: { error: { code: 'storage' } } };
+  const serial = target;
   if (action === 'revoke' && !(await kvPut(env, 'revoked:' + serial, new Date().toISOString()))) return { status: 503, body: { error: { code: 'storage' } } };
   if (action === 'restore' && !(await kvDel(env, 'revoked:' + serial))) return { status: 503, body: { error: { code: 'storage' } } };
   const d = today();
@@ -135,6 +145,30 @@ async function admin(env, body) {
     today: { stt: +(await kvGet(env, `q:${serial}:stt:${d}`)) || 0, llm: +(await kvGet(env, `q:${serial}:llm:${d}`)) || 0 },
     devices: devices.length,
   } };
+}
+
+// Solicitud de clave desde la pantalla de activación de la app (sin licencia).
+// Se guarda 45 días para que el titular la vea en el generador. Límite por IP y por día para evitar spam.
+async function requestKey(env, body, ip) {
+  if (!env.PZ_KV) return { status: 503, body: { error: { code: 'no_storage' } } };
+  const clean = (v, n) => String(v || '').replace(/[\u0000-\u001f<>]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, n);
+  const name = clean(body.name, 60), plan = clean(body.plan, 40), ref = clean(body.ref, 30), lang = /^[a-z]{2}$/.test(body.lang || '') ? body.lang : '';
+  const phone = String(body.phone || '').replace(/[^\d+]/g, '').replace(/(?!^)\+/g, '');
+  if (name.length < 2 || !/^\+?\d{6,16}$/.test(phone)) return { status: 400, body: { error: { code: 'bad_request' } } };
+  // el código del móvil lleva un byte de control: así no se aceptan códigos inventados
+  let dev; try { dev = b32decode(body.device); } catch { dev = new Uint8Array(); }
+  if (dev.length !== 8 || new Uint8Array(await crypto.subtle.digest('SHA-256', dev.slice(0, 7)))[0] !== dev[7]) return { status: 400, body: { error: { code: 'device' } } };
+  const d = today(), kIp = `ri:${ip}:${d}`, kAll = `rg:${d}`;
+  const nIp = +(await kvGet(env, kIp)) || 0, nAll = +(await kvGet(env, kAll)) || 0;
+  if (nIp >= REQ_PER_IP_DAY || nAll >= REQ_PER_DAY) return { status: 429, body: { error: { code: 'too_many' } } };
+  const code = [...dev].reduce((a, b) => a + b.toString(2).padStart(8, '0'), '');
+  const devCode = (code.match(/.{1,5}/g) || []).map((x) => ALPHA[parseInt(x.padEnd(5, '0'), 2)]).join('').replace(/(.{4})(?=.)/g, '$1-');
+  const id = `r:${String(9999999999999 - Date.now()).padStart(13, '0')}:${hex(crypto.getRandomValues(new Uint8Array(4)))}`;   // las más nuevas primero
+  const meta = { ts: Date.now(), name, phone, plan, device: devCode, ref, lang };
+  if (!(await kvPut(env, id, '', { expirationTtl: REQ_TTL, metadata: meta }))) return { status: 503, body: { error: { code: 'storage' } } };
+  await kvPut(env, kIp, String(nIp + 1), { expirationTtl: 172800 });
+  await kvPut(env, kAll, String(nAll + 1), { expirationTtl: 172800 });
+  return { status: 200, body: { ok: true } };
 }
 
 const KEEP = 'Mantén el saludo, el mensaje y la despedida en líneas separadas si las hay. No respondas al mensaje: devuelve SOLO el texto, sin comillas ni explicaciones.';
@@ -191,7 +225,7 @@ export default {
     } });
     if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
     if (url.pathname === '/v1/health' && req.method === 'GET') return json({ ok: true, configured: !!(env.PUBLIC_KEY && env.GROQ_API_KEY), storage: !!env.PZ_KV });
-    const routes = ['/v1/transcribe', '/v1/chat', '/v1/license', '/v1/admin'];
+    const routes = ['/v1/transcribe', '/v1/chat', '/v1/license', '/v1/admin', '/v1/request'];
     if (req.method !== 'POST' || !routes.includes(url.pathname)) return json({ error: { code: 'not_found' } }, 404);
     // solo la web de la app (los navegadores siempre envían «Origin» en estas peticiones)
     if (!anyOrigin && !allowed.includes(origin)) return json({ error: { code: 'origin' } }, 403);
@@ -203,6 +237,14 @@ export default {
       if (+(req.headers.get('Content-Length') || 0) > MAX_JSON) return json({ error: { code: 'too_large' } }, 413);
       let body; try { body = await req.json(); } catch { return json({ error: { code: 'bad_request' } }, 400); }
       const r = await admin(env, body || {});
+      return json(r.body, r.status);
+    }
+
+    if (url.pathname === '/v1/request') {
+      if (tooFast(ip, 'req')) return json({ error: { code: 'slow_down' } }, 429);
+      if (+(req.headers.get('Content-Length') || 0) > 4096) return json({ error: { code: 'too_large' } }, 413);
+      let body; try { body = await req.json(); } catch { return json({ error: { code: 'bad_request' } }, 400); }
+      const r = await requestKey(env, body || {}, ip);
       return json(r.body, r.status);
     }
 
