@@ -96,6 +96,52 @@
     return m ? m[1] + '¿' + m[2] : '¿' + sentenceBody;
   }
 
-  root.DictadoFormat = { formatMessage, placeQuestionMark };
+  // «Mis palabras»: corrige nombres mal oídos comparándolos con la lista del usuario.
+  // Prudente para no estropear palabras normales: solo cambia (a) la misma palabra con otras mayúsculas o tildes
+  // («jordi» → «Jordi», «barca» → «Barça») o (b) palabras que ya vienen con mayúscula a mitad de frase (nombres propios)
+  // y se parecen mucho («Fordy» → «Jordi»), y (c) dos palabras con mayúscula que juntas son de la lista («Villa Franca» → «Vilafranca»).
+  const plain = (w) => w.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ç/g, 'c').replace(/[·'’]/g, '').toLowerCase();
+  function dist(a, b) {
+    const m = a.length, n = b.length, d = Array.from({ length: m + 1 }, (_, i) => [i]);
+    for (let j = 1; j <= n; j++) d[0][j] = j;
+    for (let i = 1; i <= m; i++) for (let j = 1; j <= n; j++)
+      d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    return d[m][n];
+  }
+  // y ↔ i, v ↔ b, s ↔ z/ç… cuentan como medio error (suenan igual)
+  const sound = (w) => plain(w).replace(/y/g, 'i').replace(/v/g, 'b').replace(/[zç]/g, 's').replace(/h/g, '').replace(/ll/g, 'l');
+  function fixVocab(text, list) {
+    const words = String(list || '').split(/[,;\n]+/).map((w) => w.trim()).filter((w) => w.length >= 3);
+    if (!words.length || !text) return text;
+    const exact = new Map(words.map((w) => [plain(w), w]));
+    const best = (cand) => {
+      let found = null, bd = 9;
+      for (const w of words) {
+        if (w.includes(' ')) continue;
+        const L = Math.max(w.length, cand.length);
+        if (L < 4 || Math.abs(w.length - cand.length) > 2) continue;
+        const dd = dist(sound(cand), sound(w));
+        if (dd <= (L >= 7 ? 2 : 1) && dd < bd) { bd = dd; found = w; }
+      }
+      return found;
+    };
+    // (c) dos palabras con mayúscula seguidas
+    text = text.replace(new RegExp('(\\p{Lu}' + W.replace(/\+$/, '*') + ')\\s+(\\p{Lu}' + W.replace(/\+$/, '*') + ')', 'gu'), (m, a, b) => {
+      const j = plain(a + b);
+      if (exact.has(j)) return exact.get(j);
+      const f = words.find((w) => !w.includes(' ') && w.length >= 6 && dist(sound(a + b), sound(w)) <= 1);
+      return f || m;
+    });
+    return text.replace(new RegExp(W, 'gu'), (w, off, all) => {
+      const p = plain(w);
+      if (exact.has(p)) return exact.get(p);                              // (a)
+      if (!/^\p{Lu}/u.test(w)) return w;
+      const before = all.slice(0, off);
+      if (!before.trim() || /[.!?¿¡\n:]\s*$/.test(before)) return w;       // inicio de frase: la mayúscula no indica nombre
+      return best(w) || w;                                               // (b)
+    });
+  }
+
+  root.DictadoFormat = { formatMessage, placeQuestionMark, fixVocab };
   if (typeof module !== 'undefined') module.exports = root.DictadoFormat;
 })(typeof window !== 'undefined' ? window : globalThis);
