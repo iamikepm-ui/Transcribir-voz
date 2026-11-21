@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0b1020">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdn.jsdelivr.net; connect-src 'self' blob: data: https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://*.hf.co; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'none'">
+<title>Dictado</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+  :root { --bg:#0b1020; --card:#151c33; --txt:#eef2ff; --mut:#8b95b8; --rec:#ef4444; --ok:#22c55e; --acc:#6366f1; --wa:#25d366; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { margin:0; height:100%; background:var(--bg); color:var(--txt); font:17px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+  body { display:flex; flex-direction:column; padding:calc(env(safe-area-inset-top) + 12px) 14px calc(env(safe-area-inset-bottom) + 14px); gap:12px; max-width:720px; margin:0 auto; }
+  header { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  h1 { font-size:20px; margin:0; font-weight:700; }
+  .seg { display:flex; background:var(--card); border-radius:12px; padding:3px; }
+  .seg button { border:0; background:none; color:var(--mut); padding:8px 12px; border-radius:9px; font:inherit; font-size:14px; font-weight:600; }
+  .seg button[aria-pressed="true"] { background:var(--acc); color:#fff; }
+  #status { color:var(--mut); font-size:15px; min-height:21px; text-align:center; }
+  #status.err { color:#fca5a5; }
+  .bar { height:6px; background:var(--card); border-radius:3px; overflow:hidden; display:none; }
+  .bar i { display:block; height:100%; width:0; background:var(--acc); transition:width .2s; }
+  textarea { flex:1; min-height:140px; width:100%; resize:none; background:var(--card); color:var(--txt); border:2px solid transparent; border-radius:16px; padding:14px; font:inherit; font-size:20px; line-height:1.45; outline:none; }
+  textarea:focus { border-color:var(--acc); }
+  #interim { color:var(--mut); font-style:italic; min-height:0; font-size:17px; padding:0 4px; }
+  .mic-wrap { display:flex; justify-content:center; padding:4px 0; }
+  #mic { width:min(46vw,190px); height:min(46vw,190px); border-radius:50%; border:0; background:var(--acc); color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; font:inherit; font-weight:700; font-size:18px; box-shadow:0 10px 40px rgba(99,102,241,.45); transition:transform .1s, background .2s; }
+  #mic:active { transform:scale(.96); }
+  #mic svg { width:40%; height:40%; }
+  #mic.rec { background:var(--rec); box-shadow:0 0 0 0 rgba(239,68,68,.7); animation:pulse 1.4s infinite; }
+  #mic.busy { background:#475569; box-shadow:none; }
+  @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(239,68,68,.6)} 70%{box-shadow:0 0 0 28px rgba(239,68,68,0)} 100%{box-shadow:0 0 0 0 rgba(239,68,68,0)} }
+  .actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .actions button, .actions a { border:0; border-radius:14px; padding:16px 10px; font:inherit; font-weight:700; font-size:18px; color:#fff; background:var(--card); text-align:center; text-decoration:none; display:flex; align-items:center; justify-content:center; gap:8px; }
+  #copy { background:var(--acc); }
+  #wa { background:var(--wa); color:#06290f; }
+  #undo, #clear { font-size:15px; padding:12px 8px; color:var(--mut); }
+  details { background:var(--card); border-radius:14px; padding:10px 14px; font-size:15px; color:var(--mut); }
+  summary { cursor:pointer; font-weight:600; color:var(--txt); }
+  details label { display:flex; gap:10px; align-items:center; margin:10px 0; }
+  details select { background:var(--bg); color:var(--txt); border:1px solid #334; border-radius:8px; padding:6px; font:inherit; font-size:15px; flex:1; }
+  details p { margin:8px 0; }
+  .toast { position:fixed; left:50%; bottom:calc(env(safe-area-inset-bottom) + 24px); transform:translateX(-50%) translateY(20px); background:var(--ok); color:#052e12; font-weight:700; padding:12px 20px; border-radius:999px; opacity:0; transition:.25s; pointer-events:none; }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<header>
+  <h1>🎙️ Dictado</h1>
+  <div class="seg" role="group" aria-label="Motor">
+    <button id="eng-live" aria-pressed="true">En directo</button>
+    <button id="eng-whisper" aria-pressed="false">IA precisa</button>
+  </div>
+</header>
+
+<div id="status">Pulsa el micrófono y habla</div>
+<div class="bar" id="bar"><i></i></div>
+
+<textarea id="text" placeholder="Aquí aparecerá lo que digas. Puedes editarlo antes de copiarlo."></textarea>
+<div id="interim"></div>
+
+<div class="mic-wrap">
+  <button id="mic" aria-label="Empezar a dictar">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-2.08A7 7 0 0 0 19 12h-2Z"/></svg>
+    <span id="micLabel">Hablar</span>
+  </button>
+</div>
+
+<div class="actions">
+  <button id="copy">📋 Copiar</button>
+  <a id="wa" href="https://wa.me/" target="_blank" rel="noopener">💬 WhatsApp</a>
+  <button id="undo">↩︎ Deshacer última frase</button>
+  <button id="clear">🗑️ Borrar todo</button>
+</div>
+
+<details>
+  <summary>Ajustes y ayuda</summary>
+  <label><input type="checkbox" id="optPunct" checked> Puntuación por voz (di «coma», «punto», «punto y aparte», «interrogación»…) — solo modo En directo</label>
+  <label><input type="checkbox" id="optAutoCopy" checked> Copiar automáticamente al parar</label>
+  <label><input type="checkbox" id="optBeep" checked> Pitido al empezar y al parar</label>
+  <label>Modelo de IA:
+    <select id="optModel">
+      <option value="onnx-community/whisper-base">Whisper Base — muy rápido, menos preciso (~80 MB)</option>
+      <option value="onnx-community/whisper-small">Whisper Small — para móviles modestos (~250 MB)</option>
+      <option value="onnx-community/whisper-large-v3-turbo">Whisper Large v3 Turbo — recomendado (~1 GB)</option>
+      <option value="onnx-community/cohere-transcribe-03-2026-ONNX">Cohere Transcribe — alternativa (~2 GB; con ruido a veces no pone comas)</option>
+    </select>
+  </label>
+  <p><b>En directo</b>: usa el reconocimiento de voz de Google que lleva Chrome. Ves el texto mientras hablas. Necesita conexión.</p>
+  <p><b>IA precisa</b>: modelos de transcripción gratuitos y de código abierto (Whisper de OpenAI o Cohere Transcribe, vía Hugging Face). Ponen tildes, comas y signos ¿? solos y aguantan bien el ruido del coche. Se ejecutan en tu propio móvil: la primera vez descargan el modelo (hazlo con wifi) y después funcionan incluso sin cobertura. Graba, y al parar transcribe.</p>
+  <p>Consejo: añade esta página a la pantalla de inicio (menú ⋮ → «Añadir a pantalla de inicio») para abrirla como una app.</p>
+</details>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const text = $('text'), interim = $('interim'), status = $('status'), mic = $('mic'), micLabel = $('micLabel');
+  const bar = $('bar'), barFill = bar.firstElementChild;
+  const store = { get(k, d) { try { const v = localStorage.getItem('dictado.' + k); return v === null ? d : JSON.parse(v); } catch { return d; } },
+                  set(k, v) { try { localStorage.setItem('dictado.' + k, JSON.stringify(v)); } catch {} } };
+
+  // ---------- estado y ajustes ----------
+  let engine = store.get('engine', 'live');
+  let recording = false, busy = false, history = [];
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const isAndroid = /Android/i.test(navigator.userAgent);
+  for (const id of ['optPunct', 'optAutoCopy', 'optBeep']) {
+    $(id).checked = store.get(id, $(id).checked);
+    $(id).onchange = () => store.set(id, $(id).checked);
+  }
+  $('optModel').value = store.get('model', 'onnx-community/whisper-small');
+  if (store.get('model', null) === null && navigator.gpu) navigator.gpu.requestAdapter().then(a => { if (a && store.get('model', null) === null) $('optModel').value = 'onnx-community/whisper-large-v3-turbo'; }).catch(() => {});
+  try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch {}   // que el móvil no borre el modelo descargado
+  $('optModel').onchange = () => { store.set('model', $('optModel').value); preloadWhisper(); };
+  text.value = store.get('draft', '');
+  text.addEventListener('input', () => { store.set('draft', text.value); updateWa(); });
+
+  function setEngine(e) {
+    if (recording) return;
+    engine = e; store.set('engine', e);
+    $('eng-live').setAttribute('aria-pressed', e === 'live');
+    $('eng-whisper').setAttribute('aria-pressed', e === 'whisper');
+    if (e === 'live' && !SR) setStatus('Este navegador no tiene reconocimiento en directo. Usa Chrome, o el modo IA precisa.', true);
+    else setStatus(e === 'live' ? 'Pulsa el micrófono y habla' : 'Modo IA precisa: pulsa, habla y vuelve a pulsar para transcribir');
+    if (e === 'whisper') preloadWhisper();
+  }
+  $('eng-live').onclick = () => setEngine('live');
+  $('eng-whisper').onclick = () => setEngine('whisper');
+
+  function setStatus(msg, err) { status.textContent = msg; status.classList.toggle('err', !!err); }
+  function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), 1600); }
+  function setMic(state) {
+    mic.classList.toggle('rec', state === 'rec'); mic.classList.toggle('busy', state === 'busy');
+    micLabel.textContent = state === 'rec' ? 'Parar' : state === 'busy' ? 'Espera…' : 'Hablar';
+    mic.setAttribute('aria-label', micLabel.textContent);
+  }
+  let actx;
+  function beep(freq) {
+    if (!$('optBeep').checked) return;
+    try {
+      actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.frequency.value = freq; o.connect(g); g.connect(actx.destination);
+      g.gain.setValueAtTime(0.15, actx.currentTime); g.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + 0.18);
+      o.start(); o.stop(actx.currentTime + 0.2);
+    } catch {}
+    if (navigator.vibrate) navigator.vibrate(60);
+  }
+  let wakeLock = null;
+  async function keepAwake(on) {
+    try { if (on && 'wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); else if (wakeLock) { await wakeLock.release(); wakeLock = null; } } catch {}
+  }
+
+  // ---------- limpieza del texto ----------
+  const CMDS = [
+    [/\s*\b(punto y aparte|nueva l[ií]nea|nuevo p[aá]rrafo)\b\s*/gi, '.\n'],
+    [/\s*\b(punto y seguido|punto final)\b\s*/gi, '. '],
+    [/\s*\bpuntos suspensivos\b\s*/gi, '... '],
+    [/\s*\bdos puntos\b\s*/gi, ': '],
+    [/\s*\bpunto y coma\b\s*/gi, '; '],
+    [/\s*\b(cierra |cerrar )?(signo de )?interrogaci[oó]n\b\s*/gi, '? '],
+    [/\s*\b(cierra |cerrar )?(signo de )?exclamaci[oó]n\b\s*/gi, '! '],
+    [/\s*\bpunto\b\s*/gi, '. '],
+    [/\s*\bcoma\b\s*/gi, ', '],
+  ];
+  function voiceCommands(s) { for (const [re, r] of CMDS) s = s.replace(re, r); return s; }
+  function tidy(s, live) {
+    s = s.replace(/[ \t]+/g, ' ').replace(/ +([,.;:?!…])/g, '$1').replace(/([,;:])(?=[a-záéíóúüñ¿¡])/gi, '$1 ')
+         .replace(/\.{2,}\s*\./g, '...').replace(/([.?!])\s*\./g, '$1').replace(/,\s*([.?!])/g, '$1')
+         .replace(/\n /g, '\n').replace(/^ +| +$/g, '');
+    // signos de apertura ¿ ¡ cuando falten (Whisper ya los pone)
+    if (live) s = s.replace(/(^|[.?!\n]\s*)([^.?!\n¿¡]+?)([?!])/g, (m, a, body, end) => {
+      const open = end === '?' ? '¿' : '¡';
+      return body.trim().startsWith(open) ? m : a + open + body.trim() + end;
+    });
+    // mayúscula después de . ? ! y salto de línea (y al principio, salvo en directo: ahí lo decide append)
+    s = s.replace(live ? /([.?!…]\s+|\n\s*)([¿¡]?)([a-záéíóúüñ])/g : /(^|[.?!…]\s+|\n\s*)([¿¡]?)([a-záéíóúüñ])/g,
+                  (m, a, o, b) => a + o + b.toUpperCase());
+    if (s && !live && !/[.?!…:;,]$/.test(s)) s += '.';
+    return s;
+  }
+  function append(chunk) {
+    chunk = chunk.replace(/^\s+| +$/g, ''); if (!chunk) return;
+    const before = text.value;
+    let sep = '';
+    if (before && !/\s$/.test(before)) sep = ' ';
+    // empieza frase (texto vacío o lo anterior acaba en . ? !): mayúscula
+    if (!before.trim() || /[.?!…]\s*$/.test(before)) chunk = chunk.replace(/^([¿¡]?)([a-záéíóúüñ])/, (m, a, b) => a + b.toUpperCase());
+    text.value = (before + sep + chunk);
+    history.push(before);
+    store.set('draft', text.value); updateWa();
+    text.scrollTop = text.scrollHeight;
+  }
+  function finishChunk(raw, isWhisper) {
+    let s = raw.trim(); if (!s) return;
+    if (!isWhisper && $('optPunct').checked) s = voiceCommands(s);
+    append(tidy(s, !isWhisper));
+  }
+
+  function endSentence() {
+    const v = text.value.replace(/\s+$/, '');
+    if (v && !/[.?!…:;,]$/.test(v)) { history.push(text.value); text.value = v + '.'; store.set('draft', text.value); updateWa(); }
+  }
+
+  // ---------- portapapeles y WhatsApp ----------
+  async function copy(silent) {
+    const v = text.value.trim(); if (!v) { if (!silent) toast('No hay texto'); return; }
+    try { await navigator.clipboard.writeText(v); toast('✓ Copiado'); }
+    catch { text.focus(); text.select(); try { document.execCommand('copy'); toast('✓ Copiado'); } catch { if (!silent) toast('Mantén pulsado el texto para copiar'); } }
+  }
+  function updateWa() { $('wa').href = 'https://wa.me/?text=' + encodeURIComponent(text.value.trim()); }
+  $('copy').onclick = () => copy(false);
+  $('undo').onclick = () => { if (history.length) { text.value = history.pop(); store.set('draft', text.value); updateWa(); } };
+  $('clear').onclick = () => { if (!text.value) return; history.push(text.value); text.value = ''; store.set('draft', ''); updateWa(); toast('Borrado (puedes deshacer)'); };
+  updateWa();
+
+  // ---------- motor 1: en directo (Web Speech API / Google) ----------
+  let rec = null;
+  function startLive() {
+    if (!SR) { setStatus('Este navegador no tiene reconocimiento en directo. Usa Chrome, o el modo IA precisa.', true); return; }
+    rec = new SR();
+    rec.lang = 'es-ES';
+    rec.interimResults = true;
+    rec.continuous = !isAndroid;   // en Android el modo continuo repite frases: mejor una frase por sesión y reiniciar
+    rec.maxAlternatives = 1;
+    let done = 0;
+    rec.onresult = (e) => {
+      let inter = '';
+      for (let i = done; i < e.results.length; i++) {
+        const r = e.results[i];
+        if (r.isFinal) { finishChunk(r[0].transcript, false); done = i + 1; }
+        else inter += r[0].transcript;
+      }
+      interim.textContent = inter;
+    };
+    rec.onerror = (e) => {
+      if (e.error === 'not-allowed' || e.error === 'service-not-allowed') { stop(); setStatus('Permite el micrófono para esta página (candado de la barra de direcciones).', true); }
+      else if (e.error === 'network') setStatus('Sin conexión: el modo En directo necesita internet. Prueba el modo IA precisa.', true);
+    };
+    rec.onend = () => {
+      interim.textContent = '';
+      if (recording && engine === 'live') { try { rec.start(); } catch { setTimeout(() => recording && rec && rec.start(), 250); } }
+    };
+    rec.start();
+    setStatus('Escuchando… habla con normalidad');
+  }
+  function stopLive() { const r = rec; rec = null; if (r) { r.onend = null; try { r.stop(); } catch {} } interim.textContent = ''; }
+
+  // ---------- motor 2: Whisper en el navegador ----------
+  let worker = null, mediaRec = null, chunks = [], stream = null, whisperReady = false;
+  function getWorker() {
+    if (worker) return worker;
+    worker = new Worker("worker.js", { type: 'module' });
+    worker.onmessage = ({ data }) => {
+      if (data.type === 'progress') { bar.style.display = 'block'; barFill.style.width = data.pct + '%'; setStatus(`Descargando el modelo (solo la primera vez): ${data.pct}% de ${data.mb} MB`); }
+      if (data.type === 'status') setStatus(data.text);
+      if (data.type === 'ready') { whisperReady = true; bar.style.display = 'none'; if (!busy && !recording) setStatus('Modelo listo' + (data.gpu ? ' (GPU)' : '') + '. Pulsa, habla y vuelve a pulsar.'); }
+      if (data.type === 'result') {
+        busy = false; setMic('idle');
+        if (data.text) { finishChunk(data.text, true); setStatus('Listo'); if ($('optAutoCopy').checked) copy(true); }
+        else setStatus('No se ha entendido nada. Prueba otra vez.', true);
+      }
+      if (data.type === 'error') { busy = false; setMic('idle'); bar.style.display = 'none'; setStatus('Error del modelo: ' + data.text, true); }
+    };
+    return worker;
+  }
+  function preloadWhisper() { if (engine === 'whisper') { whisperReady = false; getWorker().postMessage({ type: 'load', model: $('optModel').value }); } }
+
+  async function startWhisper() {
+    try { stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true } }); }
+    catch { setStatus('Permite el micrófono para esta página (candado de la barra de direcciones).', true); stop(); return; }
+    chunks = [];
+    mediaRec = new MediaRecorder(stream);
+    mediaRec.ondataavailable = (e) => e.data.size && chunks.push(e.data);
+    mediaRec.onstop = async () => {
+      stream.getTracks().forEach(t => t.stop());
+      const blob = new Blob(chunks, { type: mediaRec.mimeType });
+      busy = true; setMic('busy'); setStatus(whisperReady ? 'Transcribiendo…' : 'Preparando el modelo…');
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+        const buf = await ctx.decodeAudioData(await blob.arrayBuffer());
+        const audio = buf.getChannelData(0).slice();
+        ctx.close();
+        if (audio.length < 16000 * 0.4) { busy = false; setMic('idle'); setStatus('Grabación demasiado corta', true); return; }
+        getWorker().postMessage({ type: 'transcribe', audio, model: $('optModel').value }, [audio.buffer]);
+      } catch (e) { busy = false; setMic('idle'); setStatus('No se pudo leer el audio: ' + e.message, true); }
+    };
+    mediaRec.start(1000);
+    setStatus('Grabando… pulsa otra vez cuando acabes');
+  }
+  function stopWhisper() { if (mediaRec && mediaRec.state !== 'inactive') mediaRec.stop(); mediaRec = null; }
+
+  // ---------- botón principal ----------
+  function start() {
+    if (busy) return;
+    recording = true; setMic('rec'); beep(880); keepAwake(true);
+    engine === 'live' ? startLive() : startWhisper();
+  }
+  function stop() {
+    if (!recording) return;
+    recording = false; beep(440); keepAwake(false);
+    if (engine === 'live') { stopLive(); setMic('idle'); endSentence(); setStatus('Listo. Pulsa para seguir dictando.'); if ($('optAutoCopy').checked) copy(true); }
+    else { setMic('idle'); stopWhisper(); }
+  }
+  mic.onclick = () => recording ? stop() : start();
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && recording) keepAwake(true); });
+
+  setEngine(engine);
+})();
+</script>
+</body>
+</html>
