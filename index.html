@@ -442,6 +442,15 @@
     if (isMobile && ($('optModel').value === TURBO || $('optModel').value === COHERE)) toast('Modelo grande: en móvil puede no caber en memoria');
     preloadAsr();
   };
+  {
+    const m = /^#groq=(gsk_[\w-]{20,})$/.exec(location.hash);
+    if (m) {
+      store.set('groqKey', m[1]); store.set('model', 'groq'); store.set('engine', 'whisper'); engine = 'whisper';
+      $('optModel').value = 'groq';
+      window.history.replaceState(null, '', location.pathname + location.search);   // la clave no se queda en la dirección
+      setTimeout(() => toast('✓ Clave de Groq guardada. ¡Listo para dictar!', 5000), 1100);
+    }
+  }
   $('optGroqKey').value = store.get('groqKey', '');
   $('optGroqKey').oninput = () => store.set('groqKey', $('optGroqKey').value.trim());
   const showGroq = () => $$('.opt.groq').forEach(e => e.style.display = $('optModel').value === 'groq' ? '' : 'none');
@@ -658,7 +667,7 @@
         target = Math.min(1, rms / 30);
         an.getByteFrequencyData(fb);
         for (let i = 0; i < NB / 2; i++) { const a = 2 + Math.floor(Math.pow(i / (NB / 2), 1.6) * 120); specT[i] = Math.min(1, (fb[a] / 255) * 1.25); }
-        if (rms > 7) { lastVoice = Date.now(); heardVoice = true; }
+        if (rms > 5) { lastVoice = Date.now(); heardVoice = true; }
         checkSilence();
       }, 50);
     } catch {}
@@ -856,6 +865,7 @@
     mr.onstop = async () => {
       meterStop(true);
       const blob = new Blob(chunks, { type: mr.mimeType });
+      if (!heardVoice) { setStatus(lang === 'ca' ? 'No s\'ha sentit res. Torna-ho a provar.' : 'No se ha oído nada. Prueba otra vez.', true); return; }
       busy = true; setMic('busy');
       if (model() === 'groq') { cloudTranscribe(blob, mr.mimeType); return; }
       setStatus(asrReady ? 'Transcribiendo…' : 'Preparando ' + NAMES[model()] + '…');
