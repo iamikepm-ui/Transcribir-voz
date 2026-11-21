@@ -48,7 +48,7 @@
   @keyframes turn { to { --ang:360deg; } }
 
   /* estructura: todo en una pantalla */
-  .app { height:100dvh; max-width:560px; margin:0 auto; display:grid; grid-template-rows:auto auto minmax(0,1fr) auto auto auto; gap:8px;
+  .app { height:100dvh; max-width:560px; margin:0 auto; display:grid; grid-template-rows:auto auto minmax(0,1fr) auto auto auto auto; gap:8px;
          padding:calc(env(safe-area-inset-top) + 8px) 12px calc(env(safe-area-inset-bottom) + 10px); }
   .glass { background:var(--glass); border:1px solid var(--line); backdrop-filter:blur(18px) saturate(1.5); -webkit-backdrop-filter:blur(18px) saturate(1.5); }
 
@@ -282,7 +282,45 @@
   @media (prefers-reduced-motion: reduce) { .halo, .aurora i, #wa .ico::after, .app > *, .empty-hint img { animation:none !important; } }
   /* pantallas bajas: más compacto */
   @media (max-height:680px) { .mic-wrap { width:116px; } .side .ico { width:52px; height:52px; } .dest .d { height:34px; } .app { gap:6px; } .brand { font-size:19px; } .logo { width:36px; height:36px; } }
-  @media (max-height:600px) { .dest span { display:none; } .mic-wrap { width:104px; } }
+  @media (max-height:600px) { .dest span:not(.d) { display:none; } .mic-wrap { width:104px; } }
+  /* ===== tamaños táctiles: todo lo que se toca mide 48 px o más (dedos y guantes) ===== */
+  .round { width:48px; height:48px; border-radius:14px; }
+  .round svg { width:23px; height:23px; }
+  .badge { top:-6px; right:-6px; min-width:20px; height:20px; font-size:11.5px; }
+  .seg button { min-height:48px; font-size:15.5px; padding:8px 12px; }
+  .magic button { min-height:46px; padding:10px 16px; font-size:15px; }
+  .bubble { min-width:88%; }
+  .bmeta { gap:4px; margin-top:6px; }
+  .bmeta .chip { width:46px; height:46px; justify-content:center; padding:0; border-radius:12px; background:rgba(0,0,0,.1); }
+  [data-theme="light"] .bmeta .chip { background:rgba(0,0,0,.05); }
+  .bmeta .chip svg { width:23px; height:23px; }
+  @media (max-width:400px) { .bmeta #count { display:none; } .bmeta .ticks { margin-left:auto; } }
+  .side { font-size:13px; }
+  .side .ico { width:66px; height:66px; border-radius:22px; }
+  .side .ico svg { width:29px; height:29px; }
+  .dest a, .dest button { font-size:12px; }
+  .dest .d { height:52px; max-width:76px; border-radius:15px; }
+  .dest .d svg { width:25px; height:25px; }
+  .hist li .chip, .devbox .chip { min-height:46px; padding:0 14px; font-size:15px; }
+  .swatches button { width:40px; height:40px; }
+  .switch { width:58px; height:34px; } .switch span::after { width:28px; height:28px; } .switch input:checked + span::after { transform:translateX(24px); }
+  .drive .round { width:60px; height:60px; } .drive .round svg { width:28px; height:28px; }
+  @media (max-height:700px) { .side .ico { width:58px; height:58px; } .mic-wrap { width:124px; } .dest .d { height:48px; } .app { gap:6px; } }
+  @media (max-height:620px) { .dest span:not(.d) { display:none; } .mic-wrap { width:112px; } }
+  /* ===== modo guantes (moto): aún más grande ===== */
+  .gloves .round { width:58px; height:58px; } .gloves .round svg { width:27px; height:27px; }
+  .gloves .seg button { min-height:58px; font-size:17px; }
+  .gloves .magic button { min-height:56px; font-size:17px; padding:12px 20px; }
+  .gloves .bmeta .chip { width:56px; height:56px; } .gloves .bmeta .chip svg { width:27px; height:27px; }
+  .gloves .side { font-size:14.5px; } .gloves .side .ico { width:76px; height:76px; border-radius:26px; } .gloves .side .ico svg { width:34px; height:34px; }
+  .gloves .dest .d { height:62px; max-width:86px; } .gloves .dest .d svg { width:29px; height:29px; } .gloves .dest a, .gloves .dest button { font-size:13px; }
+  .gloves .mic-wrap { width:150px; }
+  .gloves .drive .round { width:72px; height:72px; } .gloves .drive .round svg { width:32px; height:32px; }
+  .gloves .opt { min-height:64px; }
+  .drive .mic-wrap, .gloves .drive .mic-wrap { width:min(84vw,400px,46dvh); }
+  .drive .waLabel { max-width:none; }
+  .gloves .drive .actions .btn { padding:26px 10px; font-size:23px; }
+  @media (max-height:700px) { .gloves .side .ico { width:66px; height:66px; } .gloves .mic-wrap { width:128px; } .gloves .dest .d { height:54px; } .gloves .dest span:not(.d) { display:none; } }
 </style>
 </head>
 <body>
@@ -381,7 +419,7 @@
     <button class="btn primary" id="licGo">Activar</button>
     <a class="btn ghost" id="licBuy" href="https://wa.me/" target="_blank" rel="noopener">💬 Pedir mi clave</a>
     <a class="wpriv" href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones</a>
-    <small class="wver">v2026.11.21-7</small>
+    <small class="wver">v2026.11.21-8</small>
   </div>
 </div>
 
@@ -489,6 +527,7 @@
     <h3>Manos libres · coche y moto</h3>
     <div class="group">
       <label class="opt"><div class="lbl">Órdenes por voz<small>Di «enviar», «borrar todo», «deshacer», «léelo» o «para»</small></div><span class="switch"><input type="checkbox" id="optVoiceCmd"><span></span></span></label>
+      <label class="opt"><div class="lbl">Modo guantes<small>Botones extra grandes para usar con guantes (moto)</small></div><span class="switch"><input type="checkbox" id="optGloves"><span></span></span></label>
       <label class="opt"><div class="lbl">Botón del casco o auriculares<small>El botón de reproducir/pausa del intercomunicador o los auriculares Bluetooth empieza y para el dictado (experimental)</small></div><span class="switch"><input type="checkbox" id="optHeadset"><span></span></span></label>
     </div>
 
@@ -523,16 +562,16 @@
       <p>⚠️ Con el vehículo en marcha no manipules el móvil: usa la voz o el botón del casco, o detente en un lugar seguro. Respeta siempre las normas de tráfico.</p>
       <p>Consejo: menú ⋮ de Chrome → «Añadir a pantalla de inicio».</p>
       <p><a href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones de uso</a></p>
-      <p style="opacity:.6">PerezApp v2026.11.21-7</p>
+      <p style="opacity:.6">PerezApp v2026.11.21-8</p>
     </div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
-<script src="i18n.js?v=2026.11.21-7"></script>
-<script src="licencia.js?v=2026.11.21-7"></script>
-<script src="format.js?v=2026.11.21-7"></script>
+<script src="i18n.js?v=2026.11.21-8"></script>
+<script src="licencia.js?v=2026.11.21-8"></script>
+<script src="format.js?v=2026.11.21-8"></script>
 <script>
 (() => {
   const $ = (id) => document.getElementById(id);
@@ -581,9 +620,11 @@
   window.addEventListener('resize', () => { segSet($('modeSeg'), engine); });
 
   // ---------- ajustes ----------
-  const CHECKS = { optVoiceCmd: true, optHeadset: false, optAiFix: true, optGpu: !isMobile, optFormat: true, optPunct: true, optBeep: true, optAwake: false, optAutoCopy: true, optReadBack: false, optAutoWa: false };
+  const CHECKS = { optGloves: false, optVoiceCmd: true, optHeadset: false, optAiFix: true, optGpu: !isMobile, optFormat: true, optPunct: true, optBeep: true, optAwake: false, optAutoCopy: true, optReadBack: false, optAutoWa: false };
   for (const [id, def] of Object.entries(CHECKS)) { $(id).checked = store.get(id, def); $(id).onchange = () => { store.set(id, $(id).checked); if (id === 'optAwake') keepAwake(); }; }
   const on = (id) => $(id).checked;
+  const applyGloves = () => { document.documentElement.classList.toggle('gloves', on('optGloves')); requestAnimationFrame(() => { segSet($('modeSeg'), engine); }); };
+  $('optGloves').addEventListener('change', applyGloves); applyGloves();
   $('optSilence').value = String(store.get('silence', 0));
   $('optSilence').onchange = () => store.set('silence', +$('optSilence').value);
 
@@ -1252,7 +1293,7 @@
   let worker = null, mediaRec = null, chunks = [], asrReady = false;
   function getWorker() {
     if (worker) return worker;
-    worker = new Worker('worker.js?v=2026.11.21-7', { type: 'module' });
+    worker = new Worker('worker.js?v=2026.11.21-8', { type: 'module' });
     worker.onmessage = ({ data }) => {
       if (model() === 'groq' && /progress|ready|status/.test(data.type)) { bar.style.display = 'none'; return; }
       if (data.type === 'progress') { bar.style.display = 'block'; barFill.style.width = data.pct + '%'; setStatus(data.kind === 'tr' ? t('Descargando el traductor (solo la primera vez): {0}% de {1} MB', data.pct, data.mb) : t('Descargando {0} (solo la primera vez): {1}% de {2} MB', NAMES[model()], data.pct, data.mb)); }
