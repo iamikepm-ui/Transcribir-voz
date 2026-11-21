@@ -1,0 +1,18 @@
+# Servidor de Perezapp en Cloudflare Workers.
+# La clave de Groq NO va aquí: se guarda como secreto (GROQ_API_KEY) en Cloudflare.
+name = "perezapp-api"
+main = "worker.js"
+compatibility_date = "2025-06-01"
+
+[vars]
+# Clave pública del generador de licencias (se rellena al activar las licencias)
+PUBLIC_KEY = ""
+ALLOWED_ORIGINS = "https://iamikepm-ui.github.io"
+LIMIT_STT_DAY = "300"
+LIMIT_LLM_DAY = "600"
+REVOKED = ""
+
+# Contador de usos y licencias anuladas (se crea al publicar)
+# [[kv_namespaces]]
+# binding = "PZ_KV"
+# id = ""

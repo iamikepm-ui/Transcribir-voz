@@ -17,6 +17,8 @@
   const REVOKED = [];
   // Contacto para comprar (opcional): número de WhatsApp con prefijo, p. ej. '34600000000'.
   const SELLER_WHATSAPP = '';
+  // Servidor de Perezapp (Cloudflare Worker) que da la transcripción y la IA a los clientes con licencia.
+  const API_BASE = '';
 
   const ALPHA = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
   const EPOCH = Date.UTC(2025, 0, 1), DAY = 86400000;
@@ -93,5 +95,11 @@
   }
   function deactivate() { try { localStorage.removeItem('perezapp.license'); } catch {} }
 
-  root.PerezappLicense = { enabled: !!PUBLIC_KEY, check, activate, deactivate, deviceCode, verify, SELLER_WHATSAPP, _b32: { b32encode, b32decode } };
+  // cabeceras para el servidor: la licencia guardada y el código de este móvil
+  async function headers() {
+    let key = ''; try { key = localStorage.getItem('perezapp.license') || ''; } catch {}
+    return { 'X-Perezapp-License': key, 'X-Perezapp-Device': await deviceCode() };
+  }
+
+  root.PerezappLicense = { enabled: !!PUBLIC_KEY, check, activate, deactivate, deviceCode, verify, headers, SELLER_WHATSAPP, API_BASE, _b32: { b32encode, b32decode } };
 })(typeof window !== 'undefined' ? window : globalThis);
