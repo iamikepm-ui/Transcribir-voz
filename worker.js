@@ -1,57 +1,96 @@
-// Whisper (OpenAI) o Cohere Transcribe (código abierto) ejecutándose en el propio navegador con Transformers.js (Hugging Face).
-// Los modelos se descargan la primera vez desde huggingface.co y quedan guardados en el móvil.
-import { pipeline, env } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.3.2';
+// Motor de IA de Dictado, en un Web Worker para no bloquear la pantalla.
+// - Voz a texto: Whisper (OpenAI) o Cohere Transcribe, modelos abiertos de Hugging Face, con Transformers.js.
+// - Traducción español <-> catalán: Opus-MT (Universidad de Helsinki), versión ONNX de Chortan.
+// Los modelos se descargan la primera vez y quedan guardados en el navegador.
 
-env.allowLocalModels = false;
-let asr = null, loadedKey = '';
+// A los modelos de traducción de Chortan les falta tokenizer_config.json: se lo damos nosotros.
+const realFetch = self.fetch.bind(self);
+const MARIAN_CFG = JSON.stringify({ tokenizer_class: 'MarianTokenizer', model_max_length: 512, pad_token: '<pad>', eos_token: '</s>', unk_token: '<unk>' });
+self.fetch = (url, opts) => /Chortan\/opus-mt-[a-z-]+\/resolve\/[^/]+\/tokenizer_config\.json/.test(String(url))
+  ? Promise.resolve(new Response(MARIAN_CFG, { headers: { 'content-type': 'application/json' } }))
+  : realFetch(url, opts);
 
-async function hasWebGPU() {
-  try { return !!(navigator.gpu && await navigator.gpu.requestAdapter()); } catch { return false; }
-}
+let T = null;
+const lib = async () => (T ??= await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.3.2'));
 
-async function load(model) {
-  const gpu = await hasWebGPU();
-  const key = model + (gpu ? ':gpu' : ':wasm');
-  if (asr && loadedKey === key) return;
+let asr = null, asrKey = '';
+const translators = {};
+let gpuPromise = null;
+const hasWebGPU = () => (gpuPromise ??= (async () => { try { return !!(navigator.gpu && await navigator.gpu.requestAdapter()); } catch { return false; } })());
+
+function progressReporter(kind) {
   const files = {};
-  const progress = (p) => {
+  return (p) => {
     if (p.status === 'progress' && p.total) {
       files[p.file] = [p.loaded, p.total];
       let l = 0, t = 0; for (const f in files) { l += files[f][0]; t += files[f][1]; }
-      postMessage({ type: 'progress', pct: Math.round(l / t * 100), mb: Math.round(t / 1048576) });
+      postMessage({ type: 'progress', kind, pct: Math.round(l / t * 100), mb: Math.round(t / 1048576) });
     }
   };
+}
+
+async function loadAsr(model) {
+  const { pipeline } = await lib();
+  const gpu = await hasWebGPU();
+  const key = model + (gpu ? ':gpu' : ':wasm');
+  if (asr && asrKey === key) return;
   const cohere = /cohere/.test(model), big = /large|turbo/.test(model);
-  const gpuOpts = { device: 'webgpu', progress_callback: progress,
-    dtype: cohere ? 'q4f16' : { encoder_model: big ? 'fp16' : 'fp32', decoder_model_merged: 'q4' } };
-  const cpuOpts = { device: 'wasm', dtype: cohere ? { encoder_model: 'q4', decoder_model_merged: 'fp16' } : 'q8', progress_callback: progress };
+  const progress_callback = progressReporter('asr');
   const name = cohere ? 'Cohere Transcribe' : 'Whisper';
   asr = null;
   if (gpu) {
     postMessage({ type: 'status', text: 'Cargando ' + name + ' (aceleración GPU)…' });
-    try { asr = await pipeline('automatic-speech-recognition', model, gpuOpts); }
-    catch (e) { asr = null; }
+    try {
+      asr = await pipeline('automatic-speech-recognition', model, {
+        device: 'webgpu', progress_callback,
+        dtype: cohere ? 'q4f16' : { encoder_model: big ? 'fp16' : 'fp32', decoder_model_merged: 'q4' },
+      });
+    } catch { asr = null; }
   }
   if (!asr) {
     postMessage({ type: 'status', text: 'Cargando ' + name + ' (CPU)…' });
-    asr = await pipeline('automatic-speech-recognition', model, cpuOpts);
+    asr = await pipeline('automatic-speech-recognition', model, {
+      device: 'wasm', progress_callback,
+      // en CPU el decodificador cuantizado de Cohere no funciona (GatherBlockQuantized): fp16
+      dtype: cohere ? { encoder_model: 'q4', decoder_model_merged: 'fp16' } : 'q8',
+    });
   }
-  loadedKey = key;
+  asrKey = key;
   postMessage({ type: 'ready', gpu });
+}
+
+async function translate(dir, text) {
+  const { pipeline } = await lib();
+  if (!translators[dir]) {
+    postMessage({ type: 'status', text: 'Cargando el traductor (solo la primera vez)…' });
+    translators[dir] = await pipeline('translation', 'Chortan/opus-mt-' + dir, { dtype: 'q8', progress_callback: progressReporter('tr') });
+  }
+  // frase a frase (de golpe, el modelo a veces se salta frases); se conservan los saltos de línea
+  const out = [];
+  for (const line of text.split('\n')) {
+    const parts = (line.match(/[^.!?…]+[.!?…]*/g) || []).map((s) => s.trim()).filter(Boolean);
+    if (!parts.length) { out.push(''); continue; }
+    const res = await translators[dir](parts, { max_new_tokens: 256 });
+    out.push(res.map((r) => r.translation_text).join(' '));
+  }
+  return out.join('\n');
 }
 
 onmessage = async ({ data }) => {
   try {
-    if (data.type === 'load') await load(data.model);
+    if (data.type === 'load') await loadAsr(data.model);
     if (data.type === 'transcribe') {
-      await load(data.model);
+      await loadAsr(data.model);
       postMessage({ type: 'status', text: 'Transcribiendo…' });
       const out = /cohere/.test(data.model)
-        ? await asr(data.audio, { language: 'es', max_new_tokens: 1024 })
-        : await asr(data.audio, { language: 'spanish', task: 'transcribe', chunk_length_s: 30, stride_length_s: 5 });
+        ? await asr(data.audio, { language: data.lang, max_new_tokens: 1024 })
+        : await asr(data.audio, { language: data.lang === 'ca' ? 'catalan' : 'spanish', task: 'transcribe', chunk_length_s: 30, stride_length_s: 5 });
       postMessage({ type: 'result', text: (out.text || '').trim() });
     }
+    if (data.type === 'translate') {
+      postMessage({ type: 'translated', text: await translate(data.dir, data.text) });
+    }
   } catch (e) {
-    postMessage({ type: 'error', text: String(e && e.message || e) });
+    postMessage({ type: 'error', text: String((e && e.message) || e) });
   }
 };
