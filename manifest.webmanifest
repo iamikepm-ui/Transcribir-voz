@@ -1,13 +1,15 @@
 {
-  "name": "Dictado",
-  "short_name": "Dictado",
+  "name": "Perezapp",
+  "short_name": "Perezapp",
+  "description": "Tú habla, que yo escribo: dicta tus mensajes de WhatsApp en español o catalán.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#0b1020",
-  "theme_color": "#0b1020",
+  "background_color": "#070a14",
+  "theme_color": "#070a14",
   "icons": [
-    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }

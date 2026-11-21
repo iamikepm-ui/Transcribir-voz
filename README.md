@@ -1,4 +1,6 @@
-# Dictado
+# Perezapp 🦥
+
+*Tú habla, que yo escribo.*
 
 App web para dictar por voz en **español o catalán**, pensada para usar en el coche: el texto sale bien escrito y listo para copiar o enviar por WhatsApp.
 
