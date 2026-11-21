@@ -244,6 +244,20 @@
   .app > *:nth-child(5) { animation-delay:.2s; } .app > *:nth-child(6) { animation-delay:.25s; }
   @keyframes rise { from { opacity:0; transform:translateY(14px); } }
 
+  .welcome { position:fixed; inset:0; z-index:60; display:grid; place-items:center; padding:16px; background:rgba(5,8,12,.6); backdrop-filter:blur(10px); }
+  .welcome[hidden] { display:none; }
+  .wcard { width:100%; max-width:420px; max-height:100%; overflow:auto; background:var(--bg2); border:1px solid var(--line); border-radius:28px; padding:22px 20px 16px; box-shadow:var(--shadow); text-align:center; animation:pop-in .5s cubic-bezier(.2,1.2,.4,1) both; }
+  .wlogo { width:76px; height:76px; border-radius:22px; box-shadow:0 12px 30px color-mix(in srgb,var(--a1) 40%,transparent); }
+  .wcard h2 { margin:12px 0 2px; font-size:23px; letter-spacing:-.02em; }
+  .wcard h2 span { background:linear-gradient(90deg,var(--a1),var(--a2)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .wsub { margin:0 0 12px; color:var(--mut); font-weight:600; }
+  .wlist { list-style:none; margin:0 0 12px; padding:0; text-align:left; display:flex; flex-direction:column; gap:8px; }
+  .wlist li { display:flex; gap:10px; align-items:flex-start; font-size:14.5px; }
+  .wlist b { width:32px; height:32px; flex:none; display:grid; place-items:center; border-radius:10px; background:var(--glass); border:1px solid var(--line); }
+  .wsafe { text-align:left; font-size:13.5px; color:var(--soft); background:color-mix(in srgb,#ffb547 12%,transparent); border:1px solid color-mix(in srgb,#ffb547 35%,transparent); border-radius:14px; padding:10px 12px; margin-bottom:14px; }
+  .wsafe b { display:block; color:#ffb547; margin-bottom:2px; }
+  .wcard .btn { width:100%; }
+  .wpriv { display:block; margin-top:10px; font-size:12.5px; color:var(--mut); }
   .toast { position:fixed; left:50%; top:calc(env(safe-area-inset-top) + 12px); transform:translate(-50%,-24px); z-index:40; max-width:calc(100% - 32px); text-align:center; background:var(--ok); color:#03301d; font-weight:800; padding:11px 20px; border-radius:999px; opacity:0; transition:.3s cubic-bezier(.3,1.3,.5,1); pointer-events:none; box-shadow:0 12px 30px rgba(0,0,0,.35); }
   .toast.show { opacity:1; transform:translate(-50%,0); }
   @media (prefers-reduced-motion: reduce) { .halo, .aurora i, #wa .ico::after, .app > *, .empty-hint img { animation:none !important; } }
@@ -340,6 +354,24 @@
   </div>
 </div>
 
+<!-- Bienvenida -->
+<div id="welcome" class="welcome" hidden>
+  <div class="wcard">
+    <img src="logo.svg" alt="" class="wlogo">
+    <h2>Bienvenido a <span>Perezapp</span></h2>
+    <p class="wsub">Tú habla, que yo escribo.</p>
+    <ul class="wlist">
+      <li><b>🎤</b><span>Dicta tus mensajes en español o catalán y salen bien escritos.</span></li>
+      <li><b>✨</b><span>La IA corrige, ordena el saludo y la despedida, y los retoca.</span></li>
+      <li><b>📤</b><span>Envíalos a WhatsApp, Telegram, SMS, correo o cualquier app.</span></li>
+      <li><b>🏍️</b><span>Manos libres: órdenes de voz y botón del casco o los auriculares.</span></li>
+    </ul>
+    <div class="wsafe"><b>⚠️ Seguridad al volante</b>Con el vehículo en marcha no toques el móvil: usa la voz («enviar», «borrar todo»…), el botón del casco o detente en un lugar seguro. Respeta siempre las normas de tráfico.</div>
+    <button class="btn primary" id="welcomeOk">Entendido, ¡a dictar!</button>
+    <a class="wpriv" href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones</a>
+  </div>
+</div>
+
 <!-- Historial -->
 <div id="histRoot">
   <div class="scrim" id="histScrim"></div>
@@ -353,7 +385,7 @@
 <!-- Modo conducción -->
 <div class="drive" id="drive" aria-hidden="true">
   <header>
-    <div class="brand"><img class="logo" src="logo.svg" alt=""><div>Modo conducción<small>Toca el círculo para hablar</small></div></div>
+    <div class="brand"><img class="logo" src="logo.svg" alt=""><div>Modo conducción<small>Coche o moto · también con la voz</small></div></div>
     <button class="round" id="driveExit" aria-label="Salir del modo conducción"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
   </header>
   <div class="dtext empty" id="dtext">Toca el círculo y habla</div>
@@ -410,6 +442,12 @@
       <label class="opt"><div class="lbl">Pantalla siempre encendida<small>Mientras la app está abierta</small></div><span class="switch"><input type="checkbox" id="optAwake"><span></span></span></label>
     </div>
 
+    <h3>Manos libres · coche y moto</h3>
+    <div class="group">
+      <label class="opt"><div class="lbl">Órdenes por voz<small>Di «enviar», «borrar todo», «deshacer», «léelo» o «para» (en catalán: «envia», «esborra-ho tot», «desfés», «llegeix», «atura»)</small></div><span class="switch"><input type="checkbox" id="optVoiceCmd"><span></span></span></label>
+      <label class="opt"><div class="lbl">Botón del casco o auriculares<small>El botón de reproducir/pausa del intercomunicador o los auriculares Bluetooth empieza y para el dictado (experimental)</small></div><span class="switch"><input type="checkbox" id="optHeadset"><span></span></span></label>
+    </div>
+
     <h3>Al terminar de hablar</h3>
     <div class="group">
       <label class="opt"><div class="lbl">Copiar automáticamente</div><span class="switch"><input type="checkbox" id="optAutoCopy"><span></span></span></label>
@@ -436,7 +474,10 @@
       <p><b>🌐 Traducir</b>: español ↔ catalán con el traductor integrado de Chrome o, si no lo hay, Opus-MT dentro del móvil. Revisa la traducción; puedes deshacerla.</p>
       <p><b>🚗 Modo conducción</b>: pantalla simple con un botón enorme. Combínalo con «Parar al dejar de hablar» y «Leer en voz alta» para no tener que mirar.</p>
       <p><b>📤 Enviar</b>: WhatsApp (botón verde), Telegram, SMS, correo, búsqueda en Google o «Más» para cualquier otra app del móvil. Los ✓✓ se ponen azules cuando lo copias o lo envías.</p>
+      <p><b>🏍️ Manos libres</b>: con «Órdenes por voz», «Parar al dejar de hablar» y «Leer el texto en voz alta» puedes dictar, revisar y mandar el mensaje sin mirar. Al decir «enviar» se abre WhatsApp con el mensaje escrito; el último toque en «Enviar» de WhatsApp es tuyo, porque WhatsApp no deja que ninguna app envíe por ti.</p>
+      <p>⚠️ Con el vehículo en marcha no manipules el móvil: usa la voz o el botón del casco, o detente en un lugar seguro. Respeta siempre las normas de tráfico.</p>
       <p>Consejo: menú ⋮ de Chrome → «Añadir a pantalla de inicio».</p>
+      <p><a href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones de uso</a></p>
     </div>
   </div>
 </div>
@@ -471,7 +512,7 @@
   window.addEventListener('resize', () => { segSet($('langSeg'), lang); segSet($('modeSeg'), engine); });
 
   // ---------- ajustes ----------
-  const CHECKS = { optAiFix: true, optGpu: !isMobile, optFormat: true, optPunct: true, optBeep: true, optAwake: false, optAutoCopy: true, optReadBack: false, optAutoWa: false };
+  const CHECKS = { optVoiceCmd: true, optHeadset: false, optAiFix: true, optGpu: !isMobile, optFormat: true, optPunct: true, optBeep: true, optAwake: false, optAutoCopy: true, optReadBack: false, optAutoWa: false };
   for (const [id, def] of Object.entries(CHECKS)) { $(id).checked = store.get(id, def); $(id).onchange = () => { store.set(id, $(id).checked); if (id === 'optAwake') keepAwake(); }; }
   const on = (id) => $(id).checked;
   $('optSilence').value = String(store.get('silence', 0));
@@ -869,10 +910,76 @@
     if (vocab()) { const v = DictadoFormat.fixVocab(text.value, vocab()); if (v !== text.value) setText(v); }
     const fixed = on('optAiFix') && hasKey() && navigator.onLine && await magic('fix', $('magic').querySelector('[data-act=fix]'), true);
     if (!fixed && on('optFormat')) { const f = DictadoFormat.formatMessage(text.value, lang); if (f !== text.value.trim()) setText(f); }
+    if (pendingSend) { doSend(); return; }
     if (on('optAutoCopy')) copy(true);
     if (on('optReadBack')) speak(text.value.trim());
     if (on('optAutoWa') && text.value.trim()) { saveHist(); const w = window.open(waUrl(), '_blank'); if (!w) toast('Pulsa WhatsApp para enviarlo'); }
   }
+
+  // ---------- órdenes por voz (manos libres) ----------
+  const CMDS_VOICE = {
+    es: { send: /^(enviar|env[ií]a(lo)?|env[ií]amelo|manda(lo)?|m[aá]ndalo|enviar mensaje|env[ií]a el mensaje)$/, clear: /^(borra(r)? todo|empieza de nuevo|empezar de nuevo)$/,
+          undo: /^(deshacer|deshaz|borra eso|borra lo [uú]ltimo)$/, read: /^(l[eé]e(lo)?|leer|l[eé]emelo)$/, stop: /^(para|parar|stop|terminar|termina|listo|ya est[aá])$/ },
+    ca: { send: /^(envia(-ho|'l|-l)?|enviar|envia el missatge)$/, clear: /^(esborra(-ho)? tot|esborrar tot|comença de nou)$/,
+          undo: /^(desf[eé]s|desfer|esborra aix[oò])$/, read: /^(llegeix(-ho|-m'ho)?|llegir)$/, stop: /^(para|atura|aturar|prou|llest|ja est[aà])$/ },
+  };
+  const normCmd = (x) => x.toLowerCase().replace(/[¿¡.,!?;:"«»]/g, '').replace(/\s+/g, ' ').trim();
+  function matchCmd(x) { const n = normCmd(x); for (const [k, re] of Object.entries(CMDS_VOICE[lang])) if (re.test(n)) return k; return null; }
+  // devuelve el texto sin la orden y la orden («… Un abrazo. Enviar.» → «… Un abrazo.» + enviar)
+  function splitCommand(raw) {
+    if (!on('optVoiceCmd') || !raw) return { text: raw, cmd: null };
+    const whole = matchCmd(raw); if (whole) return { text: '', cmd: whole };
+    const m = /^([\s\S]*[.!?…])\s*([^.!?…]+)[.!?…]?\s*$/.exec(raw.trim());
+    if (m) { const c = matchCmd(m[2]); if (c) return { text: m[1], cmd: c }; }
+    return { text: raw, cmd: null };
+  }
+  let pendingSend = false;
+  const SAY = { es: { clear: 'Borrado', undo: 'Deshecho', send: 'Abriendo WhatsApp', empty: 'No hay nada que enviar' }, ca: { clear: 'Esborrat', undo: 'Desfet', send: 'Obrint WhatsApp', empty: 'No hi ha res per enviar' } };
+  function runCmd(cmd) {
+    if (cmd === 'send') { pendingSend = true; if (recording) stop(); else doSend(); return; }
+    if (cmd === 'stop') { if (recording) stop(); return; }
+    if (cmd === 'clear') { if (text.value) { saveHist(); setText(''); } speak(SAY[lang].clear); toast('🗑️ ' + SAY[lang].clear); return; }
+    if (cmd === 'undo') { $('undo').click(); speak(SAY[lang].undo); return; }
+    if (cmd === 'read') { speak(text.value.trim()); }
+  }
+  function doSend() {
+    pendingSend = false;
+    if (!text.value.trim()) { speak(SAY[lang].empty); return; }
+    saveHist(); markSent(); speak(SAY[lang].send);
+    const url = waUrl();
+    setTimeout(() => { const w = window.open(url, '_blank'); if (!w) location.href = url; }, 700);
+  }
+
+  // ---------- botón del casco / auriculares (Media Session) ----------
+  let hsAudio = null;
+  function silentWav() {
+    const n = 8000, buf = new ArrayBuffer(44 + n * 2), v = new DataView(buf), w = (o, t) => { for (let i = 0; i < t.length; i++) v.setUint8(o + i, t.charCodeAt(i)); };
+    w(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); w(8, 'WAVE'); w(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+    v.setUint32(24, 8000, true); v.setUint32(28, 16000, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); w(36, 'data'); v.setUint32(40, n * 2, true);
+    return URL.createObjectURL(new Blob([buf], { type: 'audio/wav' }));
+  }
+  async function headset(want) {
+    if (!('mediaSession' in navigator)) { if (want) toast('Este navegador no permite usar el botón de los auriculares', 3000); return; }
+    const acts = ['play', 'pause', 'stop', 'nexttrack', 'previoustrack'];
+    if (want) {
+      if (!hsAudio) { hsAudio = new Audio(silentWav()); hsAudio.loop = true; }
+      try { await hsAudio.play(); } catch { return; }
+      navigator.mediaSession.metadata = new MediaMetadata({ title: 'Perezapp · pulsa el botón para dictar', artist: 'Tú habla, que yo escribo', artwork: [{ src: 'icon-512.png', sizes: '512x512', type: 'image/png' }] });
+      const tog = () => { hsAudio.play().catch(() => {}); navigator.mediaSession.playbackState = 'playing'; recording ? stop() : start(); };
+      for (const a of acts) try { navigator.mediaSession.setActionHandler(a, tog); } catch {}
+      navigator.mediaSession.playbackState = 'playing';
+    } else {
+      if (hsAudio) hsAudio.pause();
+      for (const a of acts) try { navigator.mediaSession.setActionHandler(a, null); } catch {}
+    }
+  }
+  $('optHeadset').addEventListener('change', () => { headset(on('optHeadset')); if (on('optHeadset')) toast('🎧 Pulsa el botón del casco o los auriculares para dictar', 3500); });
+  // el audio solo puede empezar tras un toque: se activa con el primero
+  document.addEventListener('pointerdown', () => { if (on('optHeadset') && (!hsAudio || hsAudio.paused)) headset(true); }, { capture: true });
+
+  // ---------- bienvenida ----------
+  if (!store.get('welcomed', false) && !location.hash) { $('welcome').hidden = false; }
+  $('welcomeOk').onclick = () => { store.set('welcomed', true); $('welcome').hidden = true; };
 
   // ---------- historial ----------
   let hist = store.get('hist', []);
@@ -947,7 +1054,11 @@
       let inter = ''; lastVoice = Date.now(); heardVoice = true;
       for (let i = done; i < e.results.length; i++) {
         const r = e.results[i];
-        if (r.isFinal) { const before = text.value; finishChunk(r[0].transcript, false); liveLast = text.value.slice(before.length).trim(); done = i + 1; } else inter += r[0].transcript;
+        if (r.isFinal) {
+          const { text: said, cmd } = splitCommand(r[0].transcript); done = i + 1;
+          if (said) { const before = text.value; finishChunk(said, false); liveLast = text.value.slice(before.length).trim(); }
+          if (cmd) { interim.textContent = ''; runCmd(cmd); return; }
+        } else inter += r[0].transcript;
       }
       interim.textContent = inter;
     };
@@ -980,8 +1091,12 @@
       if (data.type === 'ready') { asrReady = true; loadingModel = null; store.set('loading', null); bar.style.display = 'none'; if (!busy && !recording) setStatus(NAMES[model()] + ' listo' + (data.gpu ? ' (GPU)' : '') + '. Pulsa y habla.'); }
       if (data.type === 'result') {
         busy = false; setMic('idle'); loadingModel = null; store.set('loading', null);
-        if (data.text) { const before = text.value; finishChunk(data.text, true); setStatus('Listo ✓'); afterDictation(text.value.slice(before.length).trim()); }
-        else setStatus('No se ha entendido nada. Prueba otra vez.', true);
+        const { text: said, cmd } = splitCommand(data.text || '');
+        if (cmd === 'send') pendingSend = true;
+        if (said) { const before = text.value; finishChunk(said, true); setStatus('Listo ✓'); afterDictation(text.value.slice(before.length).trim()); }
+        else if (cmd === 'send') doSend();
+        else if (!cmd) setStatus('No se ha entendido nada. Prueba otra vez.', true);
+        if (cmd && cmd !== 'send' && cmd !== 'stop') runCmd(cmd);
       }
       if (data.type === 'translated') { busy = false; setMic('idle'); bar.style.display = 'none'; setText(data.text); setLang(lang === 'es' ? 'ca' : 'es'); setStatus('Traducido. «Deshacer» para volver al original.'); }
       if (data.type === 'error') { busy = false; setMic('idle'); bar.style.display = 'none'; loadingModel = null; store.set('loading', null); setStatus('Error: ' + data.text, true); }
@@ -1015,8 +1130,12 @@
       if (!res.ok) { done(res.status === 401 ? 'La clave de Groq no es válida.' : res.status === 429 ? 'Groq: límite gratuito alcanzado, prueba en un rato.' : 'Error de Groq: ' + ((data.error && data.error.message) || res.status), true); return; }
       done();
       const t = (data.text || '').trim();
-      if (t) { const before = text.value; finishChunk(t, true); setStatus('Listo ✓'); afterDictation(text.value.slice(before.length).trim()); }
-      else setStatus('No se ha entendido nada. Prueba otra vez.', true);
+      const { text: said, cmd } = splitCommand(t);
+      if (cmd === 'send') pendingSend = true;
+      if (said) { const before = text.value; finishChunk(said, true); setStatus('Listo ✓'); afterDictation(text.value.slice(before.length).trim()); }
+      else if (cmd === 'send') doSend();
+      else if (!cmd) setStatus('No se ha entendido nada. Prueba otra vez.', true);
+      if (cmd && cmd !== 'send' && cmd !== 'stop') runCmd(cmd);
     } catch (e) { done('No se pudo conectar con Groq: ' + e.message, true); }
   }
 
