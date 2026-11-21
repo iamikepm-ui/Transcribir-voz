@@ -16,7 +16,7 @@
   // Números de serie anulados (en hexadecimal), p. ej. ['a1b2c3d4'].
   const REVOKED = [];
   // Contacto para comprar (opcional): número de WhatsApp con prefijo, p. ej. '34600000000'.
-  const SELLER_WHATSAPP = '';
+  const SELLER_WHATSAPP = '34601902046';
   // Servidor de PerezApp (Cloudflare Worker) que da la transcripción y la IA a los clientes con licencia.
   const API_BASE = '';
   // Tarifas que ve quien pide su clave (las mismas que en el generador). m = meses (0 = de por vida).
