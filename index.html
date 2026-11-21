@@ -272,6 +272,7 @@
   #licMsg { min-height:20px; font-size:13.5px; font-weight:600; color:#ff8aa0; margin-bottom:8px; }
   #licMsg.ok { color:var(--a1); }
   .lock .btn { width:100%; margin-bottom:8px; }
+  .wver { display:block; margin-top:8px; font-size:11px; color:var(--mut); opacity:.7; }
   .btn.ghost { background:var(--glass); border:1px solid var(--line); color:var(--txt); }
   .toast { position:fixed; left:50%; top:calc(env(safe-area-inset-top) + 12px); transform:translate(-50%,-24px); z-index:40; max-width:calc(100% - 32px); text-align:center; background:var(--ok); color:#03301d; font-weight:800; padding:11px 20px; border-radius:18px; line-height:1.35; opacity:0; transition:.3s cubic-bezier(.3,1.3,.5,1); pointer-events:none; box-shadow:0 12px 30px rgba(0,0,0,.35); }
   .toast.show { opacity:1; transform:translate(-50%,0); }
@@ -376,6 +377,7 @@
     <button class="btn primary" id="licGo">Activar</button>
     <a class="btn ghost" id="licBuy" href="https://wa.me/" target="_blank" rel="noopener">💬 Pedir mi clave</a>
     <a class="wpriv" href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones</a>
+    <small class="wver">v2026.11.21-5</small>
   </div>
 </div>
 
@@ -516,15 +518,16 @@
       <p>⚠️ Con el vehículo en marcha no manipules el móvil: usa la voz o el botón del casco, o detente en un lugar seguro. Respeta siempre las normas de tráfico.</p>
       <p>Consejo: menú ⋮ de Chrome → «Añadir a pantalla de inicio».</p>
       <p><a href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones de uso</a></p>
+      <p style="opacity:.6">PerezApp v2026.11.21-5</p>
     </div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
-<script src="i18n.js"></script>
-<script src="licencia.js"></script>
-<script src="format.js"></script>
+<script src="i18n.js?v=2026.11.21-5"></script>
+<script src="licencia.js?v=2026.11.21-5"></script>
+<script src="format.js?v=2026.11.21-5"></script>
 <script>
 (() => {
   const $ = (id) => document.getElementById(id);
@@ -1228,7 +1231,7 @@
   let worker = null, mediaRec = null, chunks = [], asrReady = false;
   function getWorker() {
     if (worker) return worker;
-    worker = new Worker('worker.js', { type: 'module' });
+    worker = new Worker('worker.js?v=2026.11.21-5', { type: 'module' });
     worker.onmessage = ({ data }) => {
       if (model() === 'groq' && /progress|ready|status/.test(data.type)) { bar.style.display = 'none'; return; }
       if (data.type === 'progress') { bar.style.display = 'block'; barFill.style.width = data.pct + '%'; setStatus(data.kind === 'tr' ? t('Descargando el traductor (solo la primera vez): {0}% de {1} MB', data.pct, data.mb) : t('Descargando {0} (solo la primera vez): {1}% de {2} MB', NAMES[model()], data.pct, data.mb)); }

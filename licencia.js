@@ -33,7 +33,7 @@
     const clean = String(str).toUpperCase().replace(/^PZ-?/, '').replace(/[\s-]/g, '').replace(/O/g, '0').replace(/[IL]/g, '1');
     let bits = 0, val = 0; const out = [];
     for (const ch of clean) {
-      const i = ALPHA.indexOf(ch); if (i < 0) throw new Error('carácter no válido');
+      const i = ALPHA.indexOf(ch); if (i < 0) { const e = new Error('carácter no válido'); e.ch = ch; throw e; }
       val = ((val << 5) | i) & 0xffff; bits += 5;
       if (bits >= 8) { out.push((val >>> (bits - 8)) & 255); bits -= 8; }
     }
@@ -74,7 +74,7 @@
     if (c.error) return { ok: false, reason: c.error };
     const key = c.key;
     let raw;
-    try { raw = b32decode(key); } catch { return { ok: false, reason: 'La clave tiene caracteres que no son válidos.' }; }
+    try { raw = b32decode(key); } catch (e) { return { ok: false, reason: 'La clave tiene un carácter que no es válido: «{0}».', args: [e.ch || '?'] }; }
     if (raw.length < 17 + 64) return { ok: false, reason: 'La clave está incompleta.' };
     const payload = raw.slice(0, raw.length - 64), sig = raw.slice(raw.length - 64);
     let good = false;
