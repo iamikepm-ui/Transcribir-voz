@@ -12,7 +12,7 @@
 //   + 64 bytes de firma. Todo se escribe en base32 Crockford, en grupos de 5, con el prefijo «PZ-».
 (function (root) {
   // Clave pública del titular (65 bytes, base64url). Vacía = licencias desactivadas (la app funciona sin clave).
-  const PUBLIC_KEY = '';
+  const PUBLIC_KEY = 'BI6d7Tsc7Cn7uNwK5eaQlA3qsY3sWczwEKedbHGpMLwD2q6lZ15bB4rJ9H1Mruui9-tDQ697ec4tqszus-JmJFc';
   // Números de serie anulados (en hexadecimal), p. ej. ['a1b2c3d4'].
   const REVOKED = [];
   // Contacto para comprar (opcional): número de WhatsApp con prefijo, p. ej. '34600000000'.

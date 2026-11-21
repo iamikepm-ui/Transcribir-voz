@@ -6,7 +6,7 @@ compatibility_date = "2025-06-01"
 
 [vars]
 # Clave pública del generador de licencias (se rellena al activar las licencias)
-PUBLIC_KEY = ""
+PUBLIC_KEY = "BI6d7Tsc7Cn7uNwK5eaQlA3qsY3sWczwEKedbHGpMLwD2q6lZ15bB4rJ9H1Mruui9-tDQ697ec4tqszus-JmJFc"
 ALLOWED_ORIGINS = "https://iamikepm-ui.github.io"
 LIMIT_STT_DAY = "300"
 LIMIT_LLM_DAY = "600"
