@@ -2,6 +2,8 @@
 
 Da la transcripción (Whisper Large v3) y la IA de texto a las apps con licencia válida, con la clave de Groq del titular.
 
+**Publicado en:** https://perezapp-api.iamikepm.workers.dev (código en el repositorio `iamikepm-ui/perezapp-api`, que Cloudflare vuelve a publicar con cada cambio).
+
 ## Publicarlo
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/iamikepm-ui/Transcribir-voz/tree/main/servidor)

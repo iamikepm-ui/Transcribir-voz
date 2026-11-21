@@ -18,7 +18,7 @@
   // Contacto para comprar (opcional): número de WhatsApp con prefijo, p. ej. '34600000000'.
   const SELLER_WHATSAPP = '34601902046';
   // Servidor de PerezApp (Cloudflare Worker) que da la transcripción y la IA a los clientes con licencia.
-  const API_BASE = '';
+  const API_BASE = 'https://perezapp-api.iamikepm.workers.dev';
   // Tarifas que ve quien pide su clave (las mismas que en el generador). m = meses (0 = de por vida).
   const PLANS = [{ n: 'Mensual', p: 2.99, m: 1 }, { n: 'Trimestral', p: 7.99, m: 3 }, { n: 'Anual', p: 24.99, m: 12, best: true }, { n: 'De por vida', p: 49.99, m: 0 }];
 
