@@ -281,6 +281,7 @@
         </select></div>
       <div class="opt"><div class="lbl">Parar al dejar de hablar<small>Sin tocar la pantalla</small></div>
         <select id="optSilence"><option value="0">No</option><option value="2">Tras 2 s</option><option value="3">Tras 3 s</option><option value="5">Tras 5 s</option></select></div>
+      <label class="opt"><div class="lbl">Saludo y despedida en su línea<small>«Hola Marta,» arriba, el mensaje debajo y «Un abrazo.» al final</small></div><span class="switch"><input type="checkbox" id="optFormat"><span></span></span></label>
       <label class="opt"><div class="lbl">Puntuación por voz<small>«coma», «punto», «punto y aparte»… (modo Rápido)</small></div><span class="switch"><input type="checkbox" id="optPunct"><span></span></span></label>
       <label class="opt"><div class="lbl">Pitido y vibración<small>Al empezar y al parar</small></div><span class="switch"><input type="checkbox" id="optBeep"><span></span></span></label>
       <label class="opt"><div class="lbl">Pantalla siempre encendida<small>Mientras la app está abierta</small></div><span class="switch"><input type="checkbox" id="optAwake"><span></span></span></label>
@@ -318,6 +319,7 @@
 
 <div class="toast" id="toast"></div>
 
+<script src="format.js"></script>
 <script>
 (() => {
   const $ = (id) => document.getElementById(id);
@@ -345,7 +347,7 @@
   window.addEventListener('resize', () => { segSet($('langSeg'), lang); segSet($('modeSeg'), engine); });
 
   // ---------- ajustes ----------
-  const CHECKS = { optPunct: true, optBeep: true, optAwake: false, optAutoCopy: true, optReadBack: false, optAutoWa: false };
+  const CHECKS = { optFormat: true, optPunct: true, optBeep: true, optAwake: false, optAutoCopy: true, optReadBack: false, optAutoWa: false };
   for (const [id, def] of Object.entries(CHECKS)) { $(id).checked = store.get(id, def); $(id).onchange = () => { store.set(id, $(id).checked); if (id === 'optAwake') keepAwake(); }; }
   const on = (id) => $(id).checked;
   $('optSilence').value = String(store.get('silence', 0));
@@ -550,7 +552,7 @@
   function tidy(s, live) {
     s = s.replace(/[ \t]+/g, ' ').replace(/ +([,.;:?!…])/g, '$1').replace(/([,;:])(?=[a-zà-ÿ¿¡])/gi, '$1 ')
          .replace(/\.{2,}\s*\./g, '...').replace(/([.?!])\s*\./g, '$1').replace(/,\s*([.?!])/g, '$1').replace(/\n /g, '\n').replace(/^ +| +$/g, '');
-    if (live && lang === 'es') s = s.replace(/(^|[.?!\n]\s*)([^.?!\n¿¡]+?)([?!])/g, (m, a, body, end) => { const o = end === '?' ? '¿' : '¡'; return body.trim().startsWith(o) ? m : a + o + body.trim() + end; });
+    if (live && lang === 'es') s = s.replace(/(^|[.?!\n]\s*)([^.?!\n¿¡]+?)([?!])/g, (m, a, body, end) => { const o = end === '?' ? '¿' : '¡'; return body.includes(o) ? m : a + (o === '¿' ? DictadoFormat.placeQuestionMark(body.trim()) : o + body.trim()) + end; });
     s = s.replace(live ? /([.?!…]\s+|\n\s*)([¿¡]?)([a-zà-ÿ])/g : /(^|[.?!…]\s+|\n\s*)([¿¡]?)([a-zà-ÿ])/g, (m, a, o, b) => a + o + b.toUpperCase());
     if (s && !live && !/[.?!…:;,]$/.test(s)) s += '.';
     return s;
@@ -564,6 +566,7 @@
   function finishChunk(raw, fromAI) { let s = raw.trim(); if (!s) return; if (!fromAI && on('optPunct')) s = voiceCommands(s); append(tidy(s, !fromAI)); }
   function endSentence() { const v = text.value.replace(/\s+$/, ''); if (v && !/[.?!…:;,]$/.test(v)) setText(v + '.'); }
   function afterDictation(lastChunk) {
+    if (on('optFormat')) { const f = DictadoFormat.formatMessage(text.value, lang); if (f !== text.value.trim()) setText(f); }
     if (on('optAutoCopy')) copy(true);
     if (on('optReadBack')) speak(lastChunk || text.value.trim());
     if (on('optAutoWa') && text.value.trim()) { saveHist(); const w = window.open(waUrl(), '_blank'); if (!w) toast('Pulsa WhatsApp para enviarlo'); }
