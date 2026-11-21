@@ -1,4 +1,4 @@
-// Licencias de Perezapp.
+// Licencias de PerezApp.
 // Cada clave de activación está firmada con ECDSA P-256 (SHA-256) por el generador de licencias del titular,
 // que guarda la clave PRIVADA en su ordenador. Aquí solo está la clave PÚBLICA: sirve para comprobar firmas,
 // no para crearlas, así que no se pueden fabricar claves válidas a partir de este código.
@@ -17,7 +17,7 @@
   const REVOKED = [];
   // Contacto para comprar (opcional): número de WhatsApp con prefijo, p. ej. '34600000000'.
   const SELLER_WHATSAPP = '';
-  // Servidor de Perezapp (Cloudflare Worker) que da la transcripción y la IA a los clientes con licencia.
+  // Servidor de PerezApp (Cloudflare Worker) que da la transcripción y la IA a los clientes con licencia.
   const API_BASE = '';
 
   const ALPHA = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';

@@ -1,4 +1,4 @@
-# Servidor de Perezapp en Cloudflare Workers.
+# Servidor de PerezApp en Cloudflare Workers.
 # La clave de Groq NO va aquí: se guarda como secreto (GROQ_API_KEY) en Cloudflare.
 name = "perezapp-api"
 main = "worker.js"

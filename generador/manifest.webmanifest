@@ -1,8 +1,8 @@
 {
   "id": "./",
-  "name": "Perezapp · Generador de licencias",
+  "name": "PerezApp · Generador de licencias",
   "short_name": "Licencias",
-  "description": "Crea las claves de activación de Perezapp.",
+  "description": "Crea las claves de activación de PerezApp.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

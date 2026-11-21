@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>Perezapp · Generador de licencias</title>
+<title>PerezApp · Generador de licencias</title>
 <meta name="theme-color" content="#0b141a">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
@@ -35,13 +35,26 @@
   th, td { text-align:left; padding:7px 6px; border-bottom:1px solid var(--line); vertical-align:top; }
   th { color:var(--mut); font-weight:600; }
   .hidden { display:none; }
+  .full { grid-column:1 / -1; }
+  .plans { display:flex; flex-wrap:wrap; gap:8px; }
+  .plans button { display:flex; flex-direction:column; align-items:flex-start; gap:1px; padding:10px 14px; border:1px solid var(--line); background:rgba(255,255,255,.05); border-radius:14px; min-width:120px; }
+  .plans button b { font-size:15px; }
+  .plans button span { color:var(--mut); font-size:12.5px; font-weight:600; }
+  .plans button[aria-pressed="true"] { border-color:transparent; background:linear-gradient(135deg,rgba(37,211,102,.3),rgba(0,168,132,.2)); box-shadow:inset 0 0 0 1.5px var(--a1); }
+  .summary { margin-top:14px; padding:12px 14px; border-radius:14px; background:rgba(37,211,102,.08); border:1px solid rgba(37,211,102,.3); font-weight:600; }
+  .summary b { color:var(--a1); }
+  .chk { display:flex; align-items:center; gap:8px; font-weight:600; margin-top:14px; }
+  .chk input { width:auto; }
+  table.plansT input { padding:7px 8px; }
+  td .mini { padding:6px 10px; font-size:13px; }
+  .scroll { overflow-x:auto; }
   .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:0 12px; }
   @media (max-width:560px) { .grid2 { grid-template-columns:1fr; } }
 </style>
 </head>
 <body>
 <main>
-  <h1><img src="logo.svg" alt="" style="width:44px;height:44px;border-radius:12px;vertical-align:-12px;margin-right:6px"> <span>Perezapp</span> · Generador de licencias</h1>
+  <h1><img src="logo.svg" alt="" style="width:44px;height:44px;border-radius:12px;vertical-align:-12px;margin-right:6px"> <span>PerezApp</span> · Generador de licencias</h1>
   <p class="sub">Solo para el titular. Tus claves se crean y se guardan cifradas en este dispositivo; nunca salen de aquí.</p>
 
   <!-- 1. Crear claves -->
@@ -73,10 +86,13 @@
       <div class="grid2">
         <div><label>Nombre del cliente</label><input id="cName" maxlength="40" placeholder="Juan Pérez"></div>
         <div><label>Código del móvil <small>(vacío = cualquier móvil)</small></label><input id="cDev" class="mono" placeholder="XXXX-XXXX-XXXX-X"></div>
-        <div><label>Duración</label>
-          <select id="cDur"><option value="0">Sin caducidad</option><option value="1">1 mes</option><option value="3">3 meses</option><option value="6">6 meses</option><option value="12">1 año</option><option value="d">Hasta una fecha…</option></select></div>
-        <div id="dateBox" class="hidden"><label>Válida hasta (incluido)</label><input type="date" id="cDate"></div>
+        <div class="full"><label>Tarifa</label><div class="plans" id="plans"></div></div>
+        <div><label>Importe pagado (€) <small>(calcula el tiempo en proporción)</small></label><input id="cPaid" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00"></div>
+        <div><label>Válida desde</label><input type="date" id="cFrom"></div>
+        <div><label>Válida hasta (incluido) <small>(se calcula; puedes cambiarla)</small></label><input type="date" id="cDate"></div>
+        <div><label class="chk"><input type="checkbox" id="cForever"> Sin caducidad (de por vida)</label></div>
       </div>
+      <div class="summary" id="cSummary"></div>
       <div class="row"><button class="primary" id="make">Generar licencia</button></div>
       <div class="msg" id="genMsg"></div>
       <div id="out" class="hidden">
@@ -90,9 +106,18 @@
 
     <div class="card">
       <h2>Licencias emitidas</h2>
-      <table><thead><tr><th>Fecha</th><th>Cliente</th><th>Móvil</th><th>Caduca</th><th>Serie</th></tr></thead><tbody id="log"></tbody></table>
+      <div class="scroll"><table><thead><tr><th>Fecha</th><th>Cliente</th><th>Móvil</th><th>Tarifa</th><th>Caduca</th><th>Serie</th><th></th></tr></thead><tbody id="log"></tbody></table></div>
       <div class="row"><button id="csv">Descargar lista (CSV)</button></div>
       <p class="sub" style="margin:10px 0 0">Para anular una licencia, dile a Claude su número de serie y se añadirá a la lista de anuladas de la app.</p>
+    </div>
+
+    <div class="card">
+      <h2>Tus tarifas</h2>
+      <p class="sub" style="margin:0 0 10px">Meses = 0 significa «de por vida». El precio por mes sirve para calcular el tiempo cuando el cliente paga otro importe.</p>
+      <div class="scroll"><table class="plansT"><thead><tr><th>Nombre</th><th>Precio (€)</th><th>Meses</th><th></th></tr></thead><tbody id="planRows"></tbody></table></div>
+      <label>Precio por mes para importes libres (€)</label><input id="perMonth" type="number" min="0.01" step="0.01" inputmode="decimal">
+      <div class="row"><button id="addPlan">+ Añadir tarifa</button><button class="primary" id="savePlans">Guardar tarifas</button></div>
+      <div class="msg" id="planMsg"></div>
     </div>
 
     <div class="card">
@@ -175,10 +200,84 @@
   $('backup').onclick = backup;
   $('cpPub').onclick = () => navigator.clipboard.writeText(vault.pub).then(() => alert('Clave pública copiada.'));
 
-  function enterGen() { show('gen'); $('pubKey').value = vault.pub; drawLog(); $('cName').focus(); }
+  function enterGen() { show('gen'); $('pubKey').value = vault.pub; drawLog(); drawPlanRows(); resetForm(); $('cName').focus(); }
 
   // 3. generar
-  $('cDur').onchange = () => $('dateBox').classList.toggle('hidden', $('cDur').value !== 'd');
+  // ---------- tarifas ----------
+  const DEF_PLANS = [{ n: 'Mensual', p: 2.99, m: 1 }, { n: 'Trimestral', p: 7.99, m: 3 }, { n: 'Anual', p: 24.99, m: 12 }, { n: 'De por vida', p: 49.99, m: 0 }];
+  let plans = load('pzgen.plans', DEF_PLANS), perMonth = load('pzgen.perMonth', 2.99), planSel = null, planLabel = '';
+  const eur = (v) => (+v || 0).toLocaleString('es-ES', { style: 'currency', currency: 'EUR' });
+  const iso = (d) => d.toISOString().slice(0, 10);
+  const utcToday = () => { const n = new Date(); return new Date(Date.UTC(n.getFullYear(), n.getMonth(), n.getDate())); };
+  const fmt = (isoStr) => new Date(isoStr + 'T00:00:00Z').toLocaleDateString('es-ES', { timeZone: 'UTC', day: 'numeric', month: 'long', year: 'numeric' });
+  function addMonths(fromIso, m) {
+    const d = new Date(fromIso + 'T00:00:00Z'), day = d.getUTCDate();
+    d.setUTCMonth(d.getUTCMonth() + m); if (d.getUTCDate() < day) d.setUTCDate(0);   // 31 ene + 1 mes → 28/29 feb
+    d.setUTCDate(d.getUTCDate() - 1);                                                  // incluido: del 21/11 al 20/12
+    return iso(d);
+  }
+  function addDays(fromIso, n) { const d = new Date(fromIso + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + n - 1); return iso(d); }
+  function drawPlans() {
+    const box = $('plans'); box.textContent = '';
+    plans.forEach((pl, i) => {
+      const b = document.createElement('button'); b.type = 'button'; b.setAttribute('aria-pressed', planSel === i);
+      const t1 = document.createElement('b'); t1.textContent = pl.n;
+      const t2 = document.createElement('span'); t2.textContent = eur(pl.p) + ' · ' + (pl.m ? (pl.m === 1 ? '1 mes' : pl.m + ' meses') : 'para siempre');
+      b.append(t1, t2); b.onclick = () => pickPlan(i); box.append(b);
+    });
+  }
+  function pickPlan(i) {
+    planSel = i; const pl = plans[i]; planLabel = pl.n;
+    $('cPaid').value = pl.p;
+    $('cForever').checked = !pl.m;
+    if (pl.m) $('cDate').value = addMonths($('cFrom').value, pl.m);
+    drawPlans(); summary();
+  }
+  $('cPaid').oninput = () => {
+    const paid = +$('cPaid').value;
+    const same = plans.findIndex((pl) => Math.abs(pl.p - paid) < 0.005);
+    if (same >= 0) return pickPlan(same);
+    planSel = null; planLabel = paid ? 'Importe libre' : ''; drawPlans();
+    if (paid > 0 && perMonth > 0) { $('cForever').checked = false; $('cDate').value = addDays($('cFrom').value, Math.max(1, Math.round(paid / perMonth * 30.44))); }
+    summary();
+  };
+  $('cFrom').onchange = () => { if (planSel !== null) pickPlan(planSel); else $('cPaid').oninput(); };
+  $('cDate').onchange = () => { $('cForever').checked = false; if (planSel !== null) { planSel = null; planLabel = 'Personalizada'; drawPlans(); } summary(); };
+  $('cForever').onchange = () => summary();
+  function summary() {
+    const from = $('cFrom').value, until = $('cDate').value, forever = $('cForever').checked, paid = +$('cPaid').value;
+    $('cDate').disabled = forever;
+    let txt;
+    if (forever) txt = 'Sin caducidad (de por vida)';
+    else if (until) {
+      const n = Math.round((new Date(until + 'T00:00:00Z') - new Date(from + 'T00:00:00Z')) / DAY) + 1;
+      txt = 'Válida del <b>' + fmt(from) + '</b> al <b>' + fmt(until) + '</b> (' + n + (n === 1 ? ' día' : ' días') + ')';
+    } else txt = 'Elige una tarifa, escribe el importe o la fecha de fin';
+    $('cSummary').innerHTML = txt + (planLabel ? ' · ' + planLabel : '') + (paid ? ' · ' + eur(paid) : '');
+  }
+  function resetForm(keepClient) {
+    if (!keepClient) { $('cName').value = ''; $('cDev').value = ''; }
+    $('cFrom').value = iso(utcToday()); $('cDate').value = ''; $('cPaid').value = ''; $('cForever').checked = false; planSel = null; planLabel = '';
+    drawPlans(); summary();
+  }
+  // tabla de tarifas editable
+  function drawPlanRows() {
+    const tb = $('planRows'); tb.textContent = '';
+    plans.forEach((pl, i) => {
+      const tr = document.createElement('tr');
+      const mk = (val, type, w) => { const td = document.createElement('td'), inp = document.createElement('input'); inp.type = type; inp.value = val; if (type === 'number') { inp.step = w === 'm' ? '1' : '0.01'; inp.min = '0'; } td.append(inp); tr.append(td); return inp; };
+      const a = mk(pl.n, 'text'), b = mk(pl.p, 'number', 'p'), c = mk(pl.m, 'number', 'm');
+      a.oninput = () => { pl.n = a.value; }; b.oninput = () => { pl.p = +b.value; }; c.oninput = () => { pl.m = Math.max(0, Math.round(+c.value)); };
+      const td = document.createElement('td'), del = document.createElement('button'); del.textContent = '✕'; del.className = 'mini';
+      del.onclick = () => { plans.splice(i, 1); drawPlanRows(); }; td.append(del); tr.append(td); tb.append(tr);
+    });
+    $('perMonth').value = perMonth;
+  }
+  $('addPlan').onclick = () => { plans.push({ n: 'Nueva', p: 0, m: 1 }); drawPlanRows(); };
+  $('savePlans').onclick = () => {
+    plans = plans.filter((pl) => pl.n.trim()); perMonth = +$('perMonth').value || perMonth;
+    save('pzgen.plans', plans); save('pzgen.perMonth', perMonth); drawPlanRows(); resetForm(true); msg('planMsg', '✓ Tarifas guardadas', true);
+  };
   async function checkByte(u) { return new Uint8Array(await crypto.subtle.digest('SHA-256', u.slice(0, 7)))[0]; }
   $('make').onclick = async () => {
     const name = $('cName').value.trim();
@@ -193,10 +292,10 @@
       flags |= 1;
     }
     let days = 0, until = null;
-    const dur = $('cDur').value;
-    if (dur !== '0') {
-      if (dur === 'd') { if (!$('cDate').value) return msg('genMsg', 'Elige la fecha.'); until = new Date($('cDate').value + 'T00:00:00Z'); }
-      else { until = new Date(); until.setUTCMonth(until.getUTCMonth() + +dur); until = new Date(Date.UTC(until.getUTCFullYear(), until.getUTCMonth(), until.getUTCDate())); }
+    if (!$('cForever').checked) {
+      if (!$('cDate').value) return msg('genMsg', 'Elige una tarifa, escribe el importe pagado o pon la fecha de fin.');
+      until = new Date($('cDate').value + 'T00:00:00Z');
+      if ($('cDate').value < $('cFrom').value) return msg('genMsg', 'La fecha de fin es anterior a la de inicio.');
       days = Math.floor((until.getTime() - EPOCH) / DAY);
       if (days < 1 || days > 65535) return msg('genMsg', 'Fecha no válida.');
       flags |= 2;
@@ -209,26 +308,44 @@
     const key = 'PZ-' + group(b32encode(all));
     const link = APP_URL + '#lic=' + key;
     $('outKey').value = key; $('outLink').value = link; $('out').classList.remove('hidden');
-    msg('genMsg', '✓ Licencia creada para ' + name + (dc ? ' (solo para su móvil)' : ' (cualquier móvil)') + (until ? ', válida hasta el ' + until.toLocaleDateString('es-ES', { timeZone: 'UTC' }) : ', sin caducidad') + '.', true);
+    msg('genMsg', '✓ Licencia creada para ' + name + (dc ? ' (solo para su móvil)' : ' (cualquier móvil)') + (until ? ', válida hasta el ' + fmt(iso(until)) : ', sin caducidad') + '.', true);
     const log = load('pzgen.log', []);
-    log.unshift({ date: new Date().toISOString(), name, device: dc ? group(b32encode(dev), 4) : '', until: until ? until.toISOString().slice(0, 10) : '', serial: hex(serial), key });
+    log.unshift({ date: new Date().toISOString(), name, device: dc ? group(b32encode(dev), 4) : '', from: $('cFrom').value, until: until ? iso(until) : '', plan: planLabel || (until ? 'Personalizada' : 'De por vida'), paid: +$('cPaid').value || 0, serial: hex(serial), key });
     save('pzgen.log', log); drawLog();
   };
   $('cpKey').onclick = () => navigator.clipboard.writeText($('outKey').value).then(() => msg('genMsg', '✓ Clave copiada', true));
   $('cpLink').onclick = () => navigator.clipboard.writeText($('outLink').value).then(() => msg('genMsg', '✓ Enlace copiado', true));
-  $('sendWa').onclick = () => window.open('https://wa.me/?text=' + encodeURIComponent('¡Gracias por comprar Perezapp! 🦥\nAbre este enlace en tu móvil para activarla:\n' + $('outLink').value), '_blank');
+  $('sendWa').onclick = () => {
+    const l = load('pzgen.log', [])[0] || {};
+    const hasta = l.until ? '\nVálida hasta el ' + fmt(l.until) + '.' : '';
+    window.open('https://wa.me/?text=' + encodeURIComponent('¡Gracias por tu compra de PerezApp! 🦥' + hasta + '\nAbre este enlace en tu móvil para activarla:\n' + $('outLink').value), '_blank');
+  };
   function drawLog() {
     const tb = $('log'); tb.textContent = '';
     for (const l of load('pzgen.log', [])) {
       const tr = document.createElement('tr');
-      for (const v of [new Date(l.date).toLocaleDateString('es-ES'), l.name, l.device || 'cualquiera', l.until ? new Date(l.until + 'T00:00:00Z').toLocaleDateString('es-ES', { timeZone: 'UTC' }) : 'nunca', l.serial]) {
+      for (const v of [new Date(l.date).toLocaleDateString('es-ES'), l.name, l.device || 'cualquiera', (l.plan || '') + (l.paid ? ' · ' + eur(l.paid) : ''), l.until ? new Date(l.until + 'T00:00:00Z').toLocaleDateString('es-ES', { timeZone: 'UTC' }) : 'nunca', l.serial]) {
         const td = document.createElement('td'); td.textContent = v; tr.append(td);
       }
+      // renovar: misma persona y móvil; empieza el día después de que caduque la actual (o hoy, si ya caducó)
+      const td = document.createElement('td');
+      if (l.until) {
+        const bt = document.createElement('button'); bt.className = 'mini'; bt.textContent = 'Renovar';
+        bt.onclick = () => {
+          resetForm(); $('cName').value = l.name; $('cDev').value = l.device || '';
+          const next = new Date(l.until + 'T00:00:00Z'); next.setUTCDate(next.getUTCDate() + 1);
+          $('cFrom').value = iso(next > utcToday() ? next : utcToday()); summary();
+          msg('genMsg', 'Renovando a ' + l.name + ': elige la tarifa o el importe.', true);
+          scrollTo({ top: 0, behavior: 'smooth' });
+        };
+        td.append(bt);
+      }
+      tr.append(td);
       tb.append(tr);
     }
   }
   $('csv').onclick = () => {
-    const rows = [['fecha', 'cliente', 'movil', 'caduca', 'serie', 'clave'], ...load('pzgen.log', []).map((l) => [l.date, l.name, l.device, l.until, l.serial, l.key])];
+    const rows = [['fecha', 'cliente', 'movil', 'tarifa', 'importe', 'desde', 'caduca', 'serie', 'clave'], ...load('pzgen.log', []).map((l) => [l.date, l.name, l.device, l.plan || '', l.paid ? String(l.paid).replace('.', ',') : '', l.from || '', l.until, l.serial, l.key])];
     download('perezapp-licencias.csv', rows.map((r) => r.map((x) => '"' + String(x ?? '').replace(/"/g, '""') + '"').join(';')).join('\n'), 'text/csv');
   };
 

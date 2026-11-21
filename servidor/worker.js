@@ -1,4 +1,4 @@
-// Servidor de Perezapp (Cloudflare Worker).
+// Servidor de PerezApp (Cloudflare Worker).
 // Guarda la clave de Groq del titular y solo atiende a apps con una licencia válida (firma ECDSA P-256).
 //
 //   POST /v1/transcribe   (multipart: file, language?, prompt?)  → { text }

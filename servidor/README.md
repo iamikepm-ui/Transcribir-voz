@@ -1,4 +1,4 @@
-# Servidor de Perezapp (Cloudflare Worker)
+# Servidor de PerezApp (Cloudflare Worker)
 
 Da la transcripción (Whisper Large v3) y la IA de texto a las apps con licencia válida, con la clave de Groq del titular.
 

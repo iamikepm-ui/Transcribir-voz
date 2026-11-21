@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#0b141a">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.jsdelivr.net; worker-src 'self' blob: https://cdn.jsdelivr.net; connect-src 'self' blob: data: https://*.workers.dev https://api.groq.com https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://*.hf.co; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'none'">
-<title>Perezapp</title>
+<title>PerezApp</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -273,7 +273,7 @@
   #licMsg.ok { color:var(--a1); }
   .lock .btn { width:100%; margin-bottom:8px; }
   .btn.ghost { background:var(--glass); border:1px solid var(--line); color:var(--txt); }
-  .toast { position:fixed; left:50%; top:calc(env(safe-area-inset-top) + 12px); transform:translate(-50%,-24px); z-index:40; max-width:calc(100% - 32px); text-align:center; background:var(--ok); color:#03301d; font-weight:800; padding:11px 20px; border-radius:999px; opacity:0; transition:.3s cubic-bezier(.3,1.3,.5,1); pointer-events:none; box-shadow:0 12px 30px rgba(0,0,0,.35); }
+  .toast { position:fixed; left:50%; top:calc(env(safe-area-inset-top) + 12px); transform:translate(-50%,-24px); z-index:40; max-width:calc(100% - 32px); text-align:center; background:var(--ok); color:#03301d; font-weight:800; padding:11px 20px; border-radius:18px; line-height:1.35; opacity:0; transition:.3s cubic-bezier(.3,1.3,.5,1); pointer-events:none; box-shadow:0 12px 30px rgba(0,0,0,.35); }
   .toast.show { opacity:1; transform:translate(-50%,0); }
   @media (prefers-reduced-motion: reduce) { .halo, .aurora i, #wa .ico::after, .app > *, .empty-hint img { animation:none !important; } }
   /* pantallas bajas: más compacto */
@@ -285,13 +285,13 @@
 <div class="aurora"><i></i><i></i><i></i></div>
 <canvas id="stars"></canvas>
 <canvas id="fx"></canvas>
-<div id="splash"><div class="in"><div class="ring"><img class="logo" src="logo.svg" alt=""></div><b>Perezapp</b><small>Tú habla, que yo escribo</small></div></div>
+<div id="splash"><div class="in"><div class="ring"><img class="logo" src="logo.svg" alt=""></div><b>PerezApp</b><small>Tú habla, que yo escribo</small></div></div>
 
 <div class="app">
   <header>
     <div class="brand">
       <img class="logo" src="logo.svg" alt="">
-      <div><div class="name">Pereza<span>pp</span></div><small id="slogan">Tú habla, que yo escribo</small></div>
+      <div><div class="name">Perez<span>App</span></div><small id="slogan">Tú habla, que yo escribo</small></div>
     </div>
     <button class="round" id="histBtn" aria-label="Mensajes recientes" title="Mensajes recientes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg><span class="badge" id="histN"></span></button>
     <button class="round" id="driveBtn" aria-label="Modo conducción" title="Modo conducción"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h14M6 17l1.5-6.5A2 2 0 0 1 9.4 9h5.2a2 2 0 0 1 1.9 1.5L18 17"/><circle cx="7.5" cy="17.5" r="1.8"/><circle cx="16.5" cy="17.5" r="1.8"/><path d="M4 12h2M18 12h2"/></svg></button>
@@ -368,7 +368,7 @@
 <div id="lock" class="welcome lock" hidden>
   <div class="wcard">
     <img src="logo.svg" alt="" class="wlogo">
-    <h2>Activa <span>Perezapp</span></h2>
+    <h2>Activa <span>PerezApp</span></h2>
     <p class="wsub">Para usar la app necesitas tu clave de activación.</p>
     <div class="devbox"><small>Código de este móvil</small><b id="devCode">…</b><button class="chip" id="copyDev">Copiar</button></div>
     <textarea id="licInput" rows="3" placeholder="Pega aquí tu clave (empieza por PZ-)" autocomplete="off" spellcheck="false"></textarea>
@@ -383,7 +383,7 @@
 <div id="welcome" class="welcome" hidden>
   <div class="wcard">
     <img src="logo.svg" alt="" class="wlogo">
-    <h2>Bienvenido a <span>Perezapp</span></h2>
+    <h2>Bienvenido a <span>PerezApp</span></h2>
     <p class="wsub">Tú habla, que yo escribo.</p>
     <ul class="wlist">
       <li><b>🎤</b><span>Dicta tus mensajes en 7 idiomas y salen bien escritos.</span></li>
@@ -500,7 +500,7 @@
 
     <h3>Datos</h3>
     <div class="group">
-      <div class="opt" id="licRow" hidden><div class="lbl">Licencia<small id="licInfo"></small></div></div>
+      <div class="opt" id="licRow" hidden><div class="lbl">Licencia<small id="licInfo"></small></div><a class="danger" id="licRenew" href="https://wa.me/" target="_blank" rel="noopener" style="color:var(--a1);text-decoration:none">Renovar</a></div>
       <div class="opt"><div class="lbl">Historial de mensajes</div><button class="danger" id="delHist">Borrar</button></div>
       <div class="opt"><div class="lbl">Modelos de IA descargados<small id="storeInfo">Ocupan espacio en el móvil</small></div><button class="danger" id="delModels">Borrar</button></div>
     </div>
@@ -536,11 +536,11 @@
   const isMobile = /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent);
   const isAndroid = /Android/i.test(navigator.userAgent);
   const BASE = 'onnx-community/whisper-base', SMALL = 'onnx-community/whisper-small', TURBO = 'onnx-community/whisper-large-v3-turbo', COHERE = 'onnx-community/cohere-transcribe-03-2026-ONNX';
-  const NAMES = { [BASE]: 'Whisper Base', [SMALL]: 'Whisper Small', [TURBO]: 'Whisper Turbo', [COHERE]: 'Cohere', groq: 'Whisper en la nube', pzcloud: 'Nube Perezapp' };
-  // Nube Perezapp: el servidor del titular hace la transcripción y la IA para quien tiene licencia
+  const NAMES = { [BASE]: 'Whisper Base', [SMALL]: 'Whisper Small', [TURBO]: 'Whisper Turbo', [COHERE]: 'Cohere', groq: 'Whisper en la nube', pzcloud: 'Nube PerezApp' };
+  // Nube PerezApp: el servidor del titular hace la transcripción y la IA para quien tiene licencia
   const PZ = window.PerezappLicense, API = PZ && PZ.API_BASE;
   if (API) {
-    const o = document.createElement('option'); o.value = 'pzcloud'; o.textContent = '☁️ Nube Perezapp · la mejor, incluida';
+    const o = document.createElement('option'); o.value = 'pzcloud'; o.textContent = '☁️ Nube PerezApp · la mejor, incluida';
     document.getElementById('optModel').prepend(o);
   }
   const SMALLER = { [COHERE]: TURBO, [TURBO]: SMALL, [SMALL]: BASE };
@@ -909,7 +909,7 @@
   // ---------- IA de texto en Groq: corregir, retocar y traducir ----------
   const cloud = () => !!(API && PZ.enabled && licensed);
   const hasKey = () => cloud() || !!store.get('groqKey', '');
-  // errores del servidor de Perezapp
+  // errores del servidor de PerezApp
   const LIC_REASON = { invalid: 'La clave no es válida.', device: 'Esta clave es para otro móvil.', expired: 'La licencia caducó el {0}.', revoked: 'Esta licencia ha sido anulada.' };
   async function apiFetch(path, init) {
     let res;
@@ -1051,7 +1051,7 @@
     if (want) {
       if (!hsAudio) { hsAudio = new Audio(silentWav()); hsAudio.loop = true; }
       try { await hsAudio.play(); } catch { return; }
-      navigator.mediaSession.metadata = new MediaMetadata({ title: 'Perezapp · pulsa el botón para dictar', artist: 'Tú habla, que yo escribo', artwork: [{ src: 'icon-512.png', sizes: '512x512', type: 'image/png' }] });
+      navigator.mediaSession.metadata = new MediaMetadata({ title: 'PerezApp · pulsa el botón para dictar', artist: 'Tú habla, que yo escribo', artwork: [{ src: 'icon-512.png', sizes: '512x512', type: 'image/png' }] });
       const tog = () => { hsAudio.play().catch(() => {}); navigator.mediaSession.playbackState = 'playing'; recording ? stop() : start(); };
       for (const a of acts) try { navigator.mediaSession.setActionHandler(a, tog); } catch {}
       navigator.mediaSession.playbackState = 'playing';
@@ -1072,6 +1072,16 @@
     $('licRow').hidden = false;
     LIC.deviceCode().then(c => {
       $('licInfo').textContent = (r.name ? r.name + ' · ' : '') + (r.expires ? t('válida hasta el {0}', r.expires.toLocaleDateString(I.locale())) : t('sin caducidad')) + ' · ' + t('móvil {0}', c);
+      $('licRenew').hidden = !r.expires;
+      $('licRenew').href = 'https://wa.me/' + (LIC.SELLER_WHATSAPP || '') + '?text=' + encodeURIComponent(t('Hola, quiero renovar PerezApp. El código de mi móvil es: {0}', c));
+      // aviso una vez al día cuando quedan 7 días o menos
+      if (r.expires) {
+        const left = Math.ceil((r.expires.getTime() + 86400000 - Date.now()) / 86400000), today = new Date().toDateString();
+        if (left <= 7 && store.get('licWarn', '') !== today) {
+          store.set('licWarn', today);
+          setTimeout(() => toast(t('Tu licencia caduca el {0}. Pide la renovación en Ajustes.', r.expires.toLocaleDateString(I.locale())), 6000), 1500);
+        }
+      }
     });
   }
   async function showLock(reason) {
@@ -1080,11 +1090,11 @@
     const code = await LIC.deviceCode();
     $('devCode').textContent = code;
     $('licMsg').textContent = !reason ? '' : typeof reason === 'object' ? (reason.reason ? t(reason.reason, ...(reason.args || [])) : '') : t(reason); $('licMsg').className = '';
-    $('licBuy').href = 'https://wa.me/' + (LIC.SELLER_WHATSAPP || '') + '?text=' + encodeURIComponent(t('Hola, quiero activar Perezapp. El código de mi móvil es: {0}', code));
+    $('licBuy').href = 'https://wa.me/' + (LIC.SELLER_WHATSAPP || '') + '?text=' + encodeURIComponent(t('Hola, quiero activar PerezApp. El código de mi móvil es: {0}', code));
   }
   function unlocked(r, fromUser) {
     licensed = true; $('lock').hidden = true; licInfo(r);
-    if (fromUser) { toast(t('✓ Perezapp activada') + (r.name ? ' · ' + r.name : ''), 4000); confetti($('mic')); }
+    if (fromUser) { toast(t('✓ PerezApp activada') + (r.name ? ' · ' + r.name : ''), 4000); confetti($('mic')); }
     if (!store.get('welcomed', false)) $('welcome').hidden = false;
   }
   $('copyDev').onclick = async () => { try { await navigator.clipboard.writeText($('devCode').textContent); toast('✓ Código copiado'); } catch { toast('Mantén pulsado el código para copiarlo', 2500); } };
@@ -1246,7 +1256,7 @@
   function loadMsg(extra) { if (!asrReady) { loadingModel = model(); store.set('loading', loadingModel); store.set('loadingGpu', on('optGpu')); } return { model: model(), mobile: isMobile, gpu: on('optGpu'), ...extra }; }
   function preloadAsr() { if (engine === 'whisper' && model() !== 'groq' && model() !== 'pzcloud') { asrReady = false; getWorker().postMessage({ type: 'load', ...loadMsg() }); } }
 
-  // transcripción con el servidor de Perezapp
+  // transcripción con el servidor de PerezApp
   async function pzTranscribe(blob, mime, done) {
     if (!navigator.onLine) { done('Sin conexión: la nube necesita internet. Usa un modelo del móvil.', true); return; }
     setStatus('Transcribiendo en la nube…');

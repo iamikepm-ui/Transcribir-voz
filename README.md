@@ -1,4 +1,4 @@
-# Perezapp 🦥
+# PerezApp 🦥
 
 *Tú habla, que yo escribo.*
 

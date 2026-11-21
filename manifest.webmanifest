@@ -1,6 +1,6 @@
 {
-  "name": "Perezapp",
-  "short_name": "Perezapp",
+  "name": "PerezApp",
+  "short_name": "PerezApp",
   "description": "Tú habla, que yo escribo: dicta tus mensajes de WhatsApp en español o catalán.",
   "start_url": "./",
   "scope": "./",
