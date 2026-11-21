@@ -321,7 +321,8 @@
           <option value="groq">☁️ Whisper Large v3 en la nube (Groq) · el mejor, sin descargas</option>
         </select></div>
       <label class="opt"><div class="lbl">Aceleración gráfica (GPU)<small>Más rápida, pero en algunos móviles cierra Chrome</small></div><span class="switch"><input type="checkbox" id="optGpu"><span></span></span></label>
-      <div class="opt" id="groqRow"><div class="lbl">Clave de Groq<small>Gratis en console.groq.com → API Keys. Se guarda solo en este móvil.</small></div><input type="password" id="optGroqKey" placeholder="gsk_…" autocomplete="off"></div>
+      <div class="opt groq"><div class="lbl">Clave de Groq<small>Se guarda solo en este móvil</small></div><input type="password" id="optGroqKey" placeholder="gsk_…" autocomplete="off"></div>
+      <div class="opt groq"><a class="btn small glass" style="flex:1;font-size:14px;padding:11px 6px" href="https://console.groq.com/keys" target="_blank" rel="noopener">🔑 Conseguir clave gratis</a><button class="btn small primary" style="flex:1;font-size:14px;padding:11px 6px" id="pasteKey">📋 Pegar clave</button></div>
       <div class="opt"><div class="lbl">Parar al dejar de hablar<small>Sin tocar la pantalla</small></div>
         <select id="optSilence"><option value="0">No</option><option value="2">Tras 2 s</option><option value="3">Tras 3 s</option><option value="5">Tras 5 s</option></select></div>
       <label class="opt"><div class="lbl">Saludo y despedida en su línea<small>«Hola Marta,» arriba, el mensaje debajo y «Un abrazo.» al final</small></div><span class="switch"><input type="checkbox" id="optFormat"><span></span></span></label>
@@ -443,7 +444,13 @@
   };
   $('optGroqKey').value = store.get('groqKey', '');
   $('optGroqKey').oninput = () => store.set('groqKey', $('optGroqKey').value.trim());
-  const showGroq = () => { $('groqRow').style.display = $('optModel').value === 'groq' ? '' : 'none'; };
+  const showGroq = () => $$('.opt.groq').forEach(e => e.style.display = $('optModel').value === 'groq' ? '' : 'none');
+  $('pasteKey').onclick = async () => {
+    try { const k = (await navigator.clipboard.readText()).trim();
+      if (!/^gsk_\S{20,}$/.test(k)) { toast('Lo copiado no parece una clave de Groq (empieza por gsk_)', 3000); return; }
+      $('optGroqKey').value = k; store.set('groqKey', k); toast('✓ Clave guardada'); }
+    catch { toast('Mantén pulsado el campo y elige «Pegar»', 3000); $('optGroqKey').focus(); }
+  };
   showGroq();
   $('optGpu').addEventListener('change', () => { if (worker) { worker.terminate(); worker = null; asrReady = false; } preloadAsr(); });
   try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch {}
