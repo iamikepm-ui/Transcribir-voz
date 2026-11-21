@@ -55,8 +55,24 @@
   async function checkByte(u) { return new Uint8Array(await crypto.subtle.digest('SHA-256', u.slice(0, 7)))[0]; }
   async function deviceCode() { return group(b32encode(await deviceId()), 4); }
 
-  async function verify(key) {
+  // Saca la licencia «PZ-…» de lo que se pegue: la clave sola, el enlace de activación o el mensaje de WhatsApp entero.
+  // Acepta minúsculas, espacios y los guiones «raros» que ponen algunos teclados (‐ – —).
+  function cleanKey(input) {
+    let s = String(input || '');
+    try { s = decodeURIComponent(s); } catch {}
+    s = s.replace(/[\u2010-\u2015\u2212\u00ad]/g, '-').toUpperCase();
+    const m = s.match(/PZ-?[0-9A-Z]{5}(?:-?[0-9A-Z]{1,5})+/);
+    if (m) return { key: m[0] };
+    // la clave pública del generador (87 caracteres con _ o -) no es una licencia
+    if (/^[A-Za-z0-9_-]{80,95}$/.test(String(input || '').trim())) return { error: 'Eso es la clave pública del generador, no una licencia. Pega la licencia, que empieza por PZ-.' };
+    return { error: 'No encuentro ninguna licencia (PZ-…) en lo que has pegado.' };
+  }
+
+  async function verify(input) {
     if (!PUBLIC_KEY) return { ok: true, disabled: true };
+    const c = cleanKey(input);
+    if (c.error) return { ok: false, reason: c.error };
+    const key = c.key;
     let raw;
     try { raw = b32decode(key); } catch { return { ok: false, reason: 'La clave tiene caracteres que no son válidos.' }; }
     if (raw.length < 17 + 64) return { ok: false, reason: 'La clave está incompleta.' };
@@ -77,7 +93,7 @@
     }
     const expires = (flags & 2) && days ? new Date(EPOCH + (days + 1) * DAY) : null;
     if (expires && Date.now() > expires.getTime()) return { ok: false, reason: 'La licencia caducó el {0}.', args: [new Date(expires - DAY).toLocaleDateString((root.I18N && root.I18N.locale()) || 'es-ES')], name };
-    return { ok: true, name, expires: expires ? new Date(expires - DAY) : null, device: !!(flags & 1), serial };
+    return { ok: true, name, expires: expires ? new Date(expires - DAY) : null, device: !!(flags & 1), serial, key };
   }
 
   // Comprueba la licencia guardada (se vuelve a verificar la firma cada vez que se abre la app).
@@ -88,9 +104,9 @@
     if (!key) return { ok: false, reason: '' };
     return verify(key);
   }
-  async function activate(key) {
-    const r = await verify(key);
-    if (r.ok) try { localStorage.setItem('perezapp.license', String(key).trim().toUpperCase()); } catch {}
+  async function activate(input) {
+    const r = await verify(input);
+    if (r.ok && r.key) try { localStorage.setItem('perezapp.license', r.key); } catch {}
     return r;
   }
   function deactivate() { try { localStorage.removeItem('perezapp.license'); } catch {} }
@@ -101,5 +117,5 @@
     return { 'X-Perezapp-License': key, 'X-Perezapp-Device': await deviceCode() };
   }
 
-  root.PerezappLicense = { enabled: !!PUBLIC_KEY, check, activate, deactivate, deviceCode, verify, headers, SELLER_WHATSAPP, API_BASE, _b32: { b32encode, b32decode } };
+  root.PerezappLicense = { enabled: !!PUBLIC_KEY, check, activate, deactivate, deviceCode, verify, headers, cleanKey, SELLER_WHATSAPP, API_BASE, _b32: { b32encode, b32decode } };
 })(typeof window !== 'undefined' ? window : globalThis);

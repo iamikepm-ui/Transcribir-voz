@@ -1108,7 +1108,7 @@
   };
   async function licenseGate() {
     if (licensed) return;
-    const m = /^#lic=([0-9A-Za-z-]+)$/.exec(location.hash);
+    const m = /^#lic=(.+)$/.exec(location.hash);
     if (m) {
       window.history.replaceState(null, '', location.pathname + location.search);
       const r = await LIC.activate(m[1]);
