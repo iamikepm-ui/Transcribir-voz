@@ -39,7 +39,7 @@ async function loadAsr(model, mobile, allowGpu = true) {
   const name = cohere ? 'Cohere Transcribe' : 'Whisper';
   asr = null;
   if (gpu) {
-    postMessage({ type: 'status', text: 'Cargando ' + name + ' (aceleración GPU)…' });
+    postMessage({ type: 'status', key: 'Cargando {0} (aceleración GPU)…', args: [name] });
     try {
       asr = await pipeline('automatic-speech-recognition', model, {
         device: 'webgpu', progress_callback,
@@ -49,7 +49,7 @@ async function loadAsr(model, mobile, allowGpu = true) {
     } catch { asr = null; }
   }
   if (!asr) {
-    postMessage({ type: 'status', text: 'Cargando ' + name + ' (CPU)…' });
+    postMessage({ type: 'status', key: 'Cargando {0} (CPU)…', args: [name] });
     asr = await pipeline('automatic-speech-recognition', model, {
       device: 'wasm', progress_callback,
       // en CPU el decodificador cuantizado de Cohere no funciona (GatherBlockQuantized): fp16
@@ -63,7 +63,7 @@ async function loadAsr(model, mobile, allowGpu = true) {
 async function translate(dir, text) {
   const { pipeline } = await lib();
   if (!translators[dir]) {
-    postMessage({ type: 'status', text: 'Cargando el traductor (solo la primera vez)…' });
+    postMessage({ type: 'status', key: 'Cargando el traductor (solo la primera vez)…' });
     translators[dir] = await pipeline('translation', 'Chortan/opus-mt-' + dir, { dtype: 'q8', progress_callback: progressReporter('tr') });
   }
   // frase a frase (de golpe, el modelo a veces se salta frases); se conservan los saltos de línea
@@ -82,10 +82,10 @@ onmessage = async ({ data }) => {
     if (data.type === 'load') await loadAsr(data.model, data.mobile, data.gpu !== false);
     if (data.type === 'transcribe') {
       await loadAsr(data.model, data.mobile, data.gpu !== false);
-      postMessage({ type: 'status', text: 'Transcribiendo…' });
+      postMessage({ type: 'status', key: 'Transcribiendo…' });
       const out = /cohere/.test(data.model)
-        ? await asr(data.audio, { language: data.lang, max_new_tokens: 1024 })
-        : await asr(data.audio, { language: data.lang === 'ca' ? 'catalan' : 'spanish', task: 'transcribe', chunk_length_s: 30, stride_length_s: 5 });
+        ? await asr(data.audio, { language: data.clang || 'es', max_new_tokens: 1024 })
+        : await asr(data.audio, { ...(data.wlang ? { language: data.wlang } : {}), task: 'transcribe', chunk_length_s: 30, stride_length_s: 5 });
       postMessage({ type: 'result', text: (out.text || '').trim() });
     }
     if (data.type === 'translate') {

@@ -74,7 +74,7 @@
       if (hex(mine) !== hex(dev)) return { ok: false, reason: 'Esta clave es para otro móvil.' };
     }
     const expires = (flags & 2) && days ? new Date(EPOCH + (days + 1) * DAY) : null;
-    if (expires && Date.now() > expires.getTime()) return { ok: false, reason: 'La licencia caducó el ' + new Date(expires - DAY).toLocaleDateString('es-ES') + '.', name };
+    if (expires && Date.now() > expires.getTime()) return { ok: false, reason: 'La licencia caducó el {0}.', args: [new Date(expires - DAY).toLocaleDateString((root.I18N && root.I18N.locale()) || 'es-ES')], name };
     return { ok: true, name, expires: expires ? new Date(expires - DAY) : null, device: !!(flags & 1), serial };
   }
 

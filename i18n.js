@@ -1,0 +1,300 @@
+// Traducciones de la interfaz de Perezapp.
+// Clave = texto en español; valor = [català, English, français, italiano, Deutsch, português].
+(function (root) {
+  const ORDER = ['ca', 'en', 'fr', 'it', 'de', 'pt'];
+  const T = {
+    // ---------- pantalla principal ----------
+    "Tú habla, que yo escribo": ["Tu parla, que jo escric", "You talk, I'll type", "Tu parles, j'écris", "Tu parla, io scrivo", "Du sprichst, ich schreibe", "Tu falas, eu escrevo"],
+    "Tú habla, que yo escribo.": ["Tu parla, que jo escric.", "You talk, I'll type.", "Tu parles, j'écris.", "Tu parla, io scrivo.", "Du sprichst, ich schreibe.", "Tu falas, eu escrevo."],
+    "⚡ Rápido": ["⚡ Ràpid", "⚡ Fast", "⚡ Rapide", "⚡ Veloce", "⚡ Schnell", "⚡ Rápido"],
+    "🎯 Preciso": ["🎯 Precís", "🎯 Precise", "🎯 Précis", "🎯 Preciso", "🎯 Präzise", "🎯 Preciso"],
+    "Pulsa el micro y habla": ["Prem el micro i parla", "Tap the mic and talk", "Touche le micro et parle", "Tocca il microfono e parla", "Tippe aufs Mikro und sprich", "Toca no micro e fala"],
+    "Tu mensaje aparecerá aquí, bien escrito y listo para enviar.": ["El teu missatge apareixerà aquí, ben escrit i a punt per enviar.", "Your message will appear here, well written and ready to send.", "Ton message apparaîtra ici, bien écrit et prêt à envoyer.", "Il tuo messaggio apparirà qui, scritto bene e pronto da inviare.", "Deine Nachricht erscheint hier, sauber geschrieben und bereit zum Senden.", "A tua mensagem aparece aqui, bem escrita e pronta a enviar."],
+    "Escribe o dicta…": ["Escriu o dicta…", "Type or dictate…", "Écris ou dicte…", "Scrivi o detta…", "Schreib oder diktiere…", "Escreve ou dita…"],
+    "✨ Activa la IA gratis": ["✨ Activa la IA gratis", "✨ Turn on free AI", "✨ Active l'IA gratuite", "✨ Attiva l'IA gratis", "✨ Gratis-KI aktivieren", "✨ Ativa a IA grátis"],
+    "✨ Corregir": ["✨ Corregir", "✨ Fix", "✨ Corriger", "✨ Correggi", "✨ Korrigieren", "✨ Corrigir"],
+    "Traducir": ["Traduir", "Translate", "Traduire", "Traduci", "Übersetzen", "Traduzir"],
+    "Traducir a…": ["Traduir a…", "Translate to…", "Traduire en…", "Traduci in…", "Übersetzen in…", "Traduzir para…"],
+    "👔 Formal": ["👔 Formal", "👔 Formal", "👔 Formel", "👔 Formale", "👔 Förmlich", "👔 Formal"],
+    "🤗 Cercano": ["🤗 Proper", "🤗 Friendly", "🤗 Chaleureux", "🤗 Amichevole", "🤗 Herzlich", "🤗 Próximo"],
+    "✂️ Corto": ["✂️ Curt", "✂️ Shorter", "✂️ Court", "✂️ Breve", "✂️ Kürzer", "✂️ Curto"],
+    "😊 Emojis": ["😊 Emojis", "😊 Emojis", "😊 Émojis", "😊 Emoji", "😊 Emojis", "😊 Emojis"],
+    "🧹 Más claro": ["🧹 Més clar", "🧹 Clearer", "🧹 Plus clair", "🧹 Più chiaro", "🧹 Klarer", "🧹 Mais claro"],
+    "Pulsa el micrófono y habla": ["Prem el micròfon i parla", "Tap the microphone and talk", "Touche le micro et parle", "Tocca il microfono e parla", "Tippe aufs Mikrofon und sprich", "Toca no microfone e fala"],
+    "Copiar": ["Copiar", "Copy", "Copier", "Copia", "Kopieren", "Copiar"],
+    "Hablar": ["Parlar", "Talk", "Parler", "Parla", "Sprechen", "Falar"],
+    "Parar": ["Aturar", "Stop", "Arrêter", "Ferma", "Stopp", "Parar"],
+    "Un momento": ["Un moment", "One moment", "Un instant", "Un attimo", "Moment", "Um momento"],
+    "Correo": ["Correu", "Email", "E-mail", "Email", "E-Mail", "Email"],
+    "Más": ["Més", "More", "Plus", "Altro", "Mehr", "Mais"],
+    "Leer en voz alta": ["Llegir en veu alta", "Read aloud", "Lire à voix haute", "Leggi ad alta voce", "Vorlesen", "Ler em voz alta"],
+    "Deshacer": ["Desfer", "Undo", "Annuler", "Annulla", "Rückgängig", "Desfazer"],
+    "Borrar": ["Esborrar", "Delete", "Effacer", "Cancella", "Löschen", "Apagar"],
+    "Retocar con IA": ["Retocar amb IA", "Touch up with AI", "Retoucher avec l'IA", "Ritocca con l'IA", "Mit KI überarbeiten", "Retocar com IA"],
+    "Empezar a dictar": ["Començar a dictar", "Start dictating", "Commencer à dicter", "Inizia a dettare", "Diktat starten", "Começar a ditar"],
+    "Mensajes recientes": ["Missatges recents", "Recent messages", "Messages récents", "Messaggi recenti", "Letzte Nachrichten", "Mensagens recentes"],
+    "🕘 Mensajes recientes": ["🕘 Missatges recents", "🕘 Recent messages", "🕘 Messages récents", "🕘 Messaggi recenti", "🕘 Letzte Nachrichten", "🕘 Mensagens recentes"],
+    "Modo": ["Mode", "Mode", "Mode", "Modalità", "Modus", "Modo"],
+    "Modo conducción": ["Mode conducció", "Driving mode", "Mode conduite", "Modalità guida", "Fahrmodus", "Modo condução"],
+    "Ajustes": ["Configuració", "Settings", "Réglages", "Impostazioni", "Einstellungen", "Definições"],
+    "Cerrar": ["Tancar", "Close", "Fermer", "Chiudi", "Schließen", "Fechar"],
+    "Aquí aparecerán los mensajes que copies o envíes.": ["Aquí apareixeran els missatges que copiïs o enviïs.", "Messages you copy or send will appear here.", "Les messages que tu copies ou envoies apparaîtront ici.", "Qui compariranno i messaggi che copi o invii.", "Hier erscheinen die Nachrichten, die du kopierst oder sendest.", "Aqui aparecem as mensagens que copiares ou enviares."],
+    "Usar": ["Fer servir", "Use", "Utiliser", "Usa", "Verwenden", "Usar"],
+    "{0} palabra": ["{0} paraula", "{0} word", "{0} mot", "{0} parola", "{0} Wort", "{0} palavra"],
+    "{0} palabras": ["{0} paraules", "{0} words", "{0} mots", "{0} parole", "{0} Wörter", "{0} palavras"],
+    "A {0}": ["A {0}", "To {0}", "À {0}", "A {0}", "An {0}", "Para {0}"],
+    "A favorito": ["A preferit", "To favourite", "Au favori", "Al preferito", "An Favorit", "Ao favorito"],
+    "Buenos días ☀️": ["Bon dia ☀️", "Good morning ☀️", "Bonjour ☀️", "Buongiorno ☀️", "Guten Morgen ☀️", "Bom dia ☀️"],
+    "Buenas tardes 🌤️": ["Bona tarda 🌤️", "Good afternoon 🌤️", "Bon après-midi 🌤️", "Buon pomeriggio 🌤️", "Guten Tag 🌤️", "Boa tarde 🌤️"],
+    "Buenas noches 🌙": ["Bona nit 🌙", "Good evening 🌙", "Bonsoir 🌙", "Buonasera 🌙", "Guten Abend 🌙", "Boa noite 🌙"],
+
+    // ---------- activación ----------
+    "Activa": ["Activa", "Activate", "Active", "Attiva", "Aktiviere", "Ativa"],
+    "Para usar la app necesitas tu clave de activación.": ["Per fer servir l'app necessites la teva clau d'activació.", "You need your activation key to use the app.", "Pour utiliser l'app, il te faut ta clé d'activation.", "Per usare l'app ti serve la tua chiave di attivazione.", "Zum Nutzen der App brauchst du deinen Aktivierungsschlüssel.", "Para usar a app precisas da tua chave de ativação."],
+    "Código de este móvil": ["Codi d'aquest mòbil", "This phone's code", "Code de ce téléphone", "Codice di questo telefono", "Code dieses Handys", "Código deste telemóvel"],
+    "Activar": ["Activar", "Activate", "Activer", "Attiva", "Aktivieren", "Ativar"],
+    "💬 Pedir mi clave": ["💬 Demanar la meva clau", "💬 Get my key", "💬 Demander ma clé", "💬 Richiedi la mia chiave", "💬 Schlüssel anfordern", "💬 Pedir a minha chave"],
+    "Pega aquí tu clave (empieza por PZ-)": ["Enganxa aquí la teva clau (comença per PZ-)", "Paste your key here (starts with PZ-)", "Colle ta clé ici (elle commence par PZ-)", "Incolla qui la chiave (inizia con PZ-)", "Schlüssel hier einfügen (beginnt mit PZ-)", "Cola aqui a tua chave (começa por PZ-)"],
+    "Pega primero tu clave.": ["Primer enganxa la clau.", "Paste your key first.", "Colle d'abord ta clé.", "Prima incolla la chiave.", "Füge zuerst deinen Schlüssel ein.", "Primeiro cola a tua chave."],
+    "Privacidad y condiciones": ["Privacitat i condicions", "Privacy and terms", "Confidentialité et conditions", "Privacy e condizioni", "Datenschutz und Bedingungen", "Privacidade e condições"],
+    "Privacidad y condiciones de uso": ["Privacitat i condicions d'ús", "Privacy and terms of use", "Confidentialité et conditions d'utilisation", "Privacy e condizioni d'uso", "Datenschutz und Nutzungsbedingungen", "Privacidade e condições de utilização"],
+    "✓ Perezapp activada": ["✓ Perezapp activada", "✓ Perezapp activated", "✓ Perezapp activée", "✓ Perezapp attivata", "✓ Perezapp aktiviert", "✓ Perezapp ativada"],
+    "✓ Código copiado": ["✓ Codi copiat", "✓ Code copied", "✓ Code copié", "✓ Codice copiato", "✓ Code kopiert", "✓ Código copiado"],
+    "Mantén pulsado el código para copiarlo": ["Mantén premut el codi per copiar-lo", "Press and hold the code to copy it", "Appuie longuement sur le code pour le copier", "Tieni premuto il codice per copiarlo", "Code gedrückt halten zum Kopieren", "Mantém premido o código para o copiar"],
+    "Hola, quiero activar Perezapp. El código de mi móvil es: {0}": ["Hola, vull activar Perezapp. El codi del meu mòbil és: {0}", "Hi, I'd like to activate Perezapp. My phone code is: {0}", "Bonjour, je voudrais activer Perezapp. Le code de mon téléphone est : {0}", "Ciao, vorrei attivare Perezapp. Il codice del mio telefono è: {0}", "Hallo, ich möchte Perezapp aktivieren. Mein Handy-Code ist: {0}", "Olá, quero ativar a Perezapp. O código do meu telemóvel é: {0}"],
+    "La clave tiene caracteres que no son válidos.": ["La clau té caràcters que no són vàlids.", "The key has invalid characters.", "La clé contient des caractères non valides.", "La chiave contiene caratteri non validi.", "Der Schlüssel enthält ungültige Zeichen.", "A chave tem caracteres inválidos."],
+    "La clave está incompleta.": ["La clau està incompleta.", "The key is incomplete.", "La clé est incomplète.", "La chiave è incompleta.", "Der Schlüssel ist unvollständig.", "A chave está incompleta."],
+    "La clave no es válida.": ["La clau no és vàlida.", "The key is not valid.", "La clé n'est pas valide.", "La chiave non è valida.", "Der Schlüssel ist ungültig.", "A chave não é válida."],
+    "Versión de clave no compatible.": ["Versió de clau no compatible.", "Unsupported key version.", "Version de clé non compatible.", "Versione della chiave non compatibile.", "Schlüsselversion nicht unterstützt.", "Versão de chave não compatível."],
+    "Esta licencia ha sido anulada.": ["Aquesta llicència ha estat anul·lada.", "This licence has been revoked.", "Cette licence a été annulée.", "Questa licenza è stata revocata.", "Diese Lizenz wurde widerrufen.", "Esta licença foi anulada."],
+    "Esta clave es para otro móvil.": ["Aquesta clau és per a un altre mòbil.", "This key is for another phone.", "Cette clé est pour un autre téléphone.", "Questa chiave è per un altro telefono.", "Dieser Schlüssel gehört zu einem anderen Handy.", "Esta chave é para outro telemóvel."],
+    "La licencia caducó el {0}.": ["La llicència va caducar el {0}.", "The licence expired on {0}.", "La licence a expiré le {0}.", "La licenza è scaduta il {0}.", "Die Lizenz ist am {0} abgelaufen.", "A licença expirou em {0}."],
+    "Licencia": ["Llicència", "Licence", "Licence", "Licenza", "Lizenz", "Licença"],
+    "válida hasta el {0}": ["vàlida fins al {0}", "valid until {0}", "valable jusqu'au {0}", "valida fino al {0}", "gültig bis {0}", "válida até {0}"],
+    "sin caducidad": ["sense caducitat", "no expiry", "sans expiration", "senza scadenza", "unbefristet", "sem validade"],
+    "móvil {0}": ["mòbil {0}", "phone {0}", "téléphone {0}", "telefono {0}", "Handy {0}", "telemóvel {0}"],
+
+    // ---------- bienvenida ----------
+    "Bienvenido a": ["Benvingut a", "Welcome to", "Bienvenue sur", "Benvenuto in", "Willkommen bei", "Bem-vindo à"],
+    "Dicta tus mensajes en 7 idiomas y salen bien escritos.": ["Dicta els teus missatges en 7 idiomes i surten ben escrits.", "Dictate your messages in 7 languages and they come out well written.", "Dicte tes messages en 7 langues, ils sortent bien écrits.", "Detta i tuoi messaggi in 7 lingue ed escono scritti bene.", "Diktiere deine Nachrichten in 7 Sprachen – sauber geschrieben.", "Dita as tuas mensagens em 7 línguas e saem bem escritas."],
+    "La IA corrige, ordena el saludo y la despedida, y los retoca.": ["La IA corregeix, ordena la salutació i el comiat, i els retoca.", "AI fixes them, lays out the greeting and sign-off, and polishes them.", "L'IA corrige, place la salutation et la formule finale, et peaufine.", "L'IA corregge, ordina saluto e congedo e li rifinisce.", "Die KI korrigiert, ordnet Gruß und Abschied und feilt nach.", "A IA corrige, arruma a saudação e a despedida e dá-lhes um toque."],
+    "Envíalos a WhatsApp, Telegram, SMS, correo o cualquier app.": ["Envia'ls a WhatsApp, Telegram, SMS, correu o qualsevol app.", "Send them to WhatsApp, Telegram, SMS, email or any app.", "Envoie-les sur WhatsApp, Telegram, SMS, e-mail ou toute autre app.", "Inviali su WhatsApp, Telegram, SMS, email o qualsiasi app.", "Sende sie per WhatsApp, Telegram, SMS, E-Mail oder jede App.", "Envia-as para WhatsApp, Telegram, SMS, email ou qualquer app."],
+    "Manos libres: órdenes de voz y botón del casco o los auriculares.": ["Mans lliures: ordres de veu i botó del casc o dels auriculars.", "Hands-free: voice commands and your helmet or headset button.", "Mains libres : commandes vocales et bouton du casque ou des écouteurs.", "Mani libere: comandi vocali e tasto del casco o delle cuffie.", "Freihändig: Sprachbefehle und Taste am Helm oder Headset.", "Mãos livres: comandos de voz e botão do capacete ou dos auriculares."],
+    "⚠️ Seguridad al volante": ["⚠️ Seguretat al volant", "⚠️ Safety on the road", "⚠️ Sécurité au volant", "⚠️ Sicurezza alla guida", "⚠️ Sicherheit am Steuer", "⚠️ Segurança ao volante"],
+    "Con el vehículo en marcha no toques el móvil: usa la voz («enviar», «borrar todo»…), el botón del casco o detente en un lugar seguro. Respeta siempre las normas de tráfico.": [
+      "Amb el vehicle en marxa no toquis el mòbil: fes servir la veu («envia», «esborra-ho tot»…), el botó del casc o atura't en un lloc segur. Respecta sempre les normes de trànsit.",
+      "While the vehicle is moving, don't touch your phone: use your voice («send», «delete all»…), your helmet button, or stop somewhere safe. Always follow traffic laws.",
+      "Véhicule en marche, ne touche pas ton téléphone : utilise la voix (« envoie », « efface tout »…), le bouton du casque, ou arrête-toi dans un endroit sûr. Respecte toujours le code de la route.",
+      "Con il veicolo in movimento non toccare il telefono: usa la voce («invia», «cancella tutto»…), il tasto del casco o fermati in un posto sicuro. Rispetta sempre il codice della strada.",
+      "Fass das Handy während der Fahrt nicht an: nutze die Stimme („senden“, „alles löschen“…), die Helmtaste oder halte an einem sicheren Ort. Halte dich immer an die Verkehrsregeln.",
+      "Com o veículo em andamento não toques no telemóvel: usa a voz («enviar», «apagar tudo»…), o botão do capacete ou para num local seguro. Respeita sempre as regras de trânsito."],
+    "Entendido, ¡a dictar!": ["Entesos, a dictar!", "Got it, let's dictate!", "Compris, on dicte !", "Capito, si detta!", "Verstanden, los geht's!", "Entendido, vamos ditar!"],
+    "Coche o moto · también con la voz": ["Cotxe o moto · també amb la veu", "Car or motorbike · voice too", "Voiture ou moto · aussi à la voix", "Auto o moto · anche con la voce", "Auto oder Motorrad · auch per Stimme", "Carro ou mota · também com a voz"],
+    "Toca el círculo y habla": ["Toca el cercle i parla", "Tap the circle and talk", "Touche le cercle et parle", "Tocca il cerchio e parla", "Tippe auf den Kreis und sprich", "Toca no círculo e fala"],
+    "Salir del modo conducción": ["Sortir del mode conducció", "Exit driving mode", "Quitter le mode conduite", "Esci dalla modalità guida", "Fahrmodus beenden", "Sair do modo condução"],
+
+    // ---------- ajustes ----------
+    "Apariencia": ["Aparença", "Appearance", "Apparence", "Aspetto", "Darstellung", "Aparência"],
+    "Tema": ["Tema", "Theme", "Thème", "Tema", "Design", "Tema"],
+    "Automático": ["Automàtic", "Automatic", "Automatique", "Automatico", "Automatisch", "Automático"],
+    "Oscuro": ["Fosc", "Dark", "Sombre", "Scuro", "Dunkel", "Escuro"],
+    "Claro": ["Clar", "Light", "Clair", "Chiaro", "Hell", "Claro"],
+    "Color": ["Color", "Colour", "Couleur", "Colore", "Farbe", "Cor"],
+    "Tamaño del texto": ["Mida del text", "Text size", "Taille du texte", "Dimensione testo", "Textgröße", "Tamanho do texto"],
+    "Idioma de la app": ["Idioma de l'app", "App language", "Langue de l'app", "Lingua dell'app", "App-Sprache", "Idioma da app"],
+    "Idioma al dictar": ["Idioma en dictar", "Dictation language", "Langue de dictée", "Lingua di dettatura", "Diktiersprache", "Idioma ao ditar"],
+    "Automático (el del móvil)": ["Automàtic (el del mòbil)", "Automatic (phone's)", "Automatique (celle du téléphone)", "Automatica (quella del telefono)", "Automatisch (wie das Handy)", "Automático (o do telemóvel)"],
+    "Automático: en el modo Preciso detecta el idioma; en el Rápido usa el del móvil": ["Automàtic: en el mode Precís detecta l'idioma; en el Ràpid fa servir el del mòbil", "Automatic: Precise mode detects the language; Fast mode uses the phone's", "Automatique : le mode Précis détecte la langue ; le mode Rapide utilise celle du téléphone", "Automatica: la modalità Precisa rileva la lingua; la Veloce usa quella del telefono", "Automatisch: Präzise erkennt die Sprache; Schnell nutzt die des Handys", "Automático: no modo Preciso deteta o idioma; no Rápido usa o do telemóvel"],
+    "Dictado": ["Dictat", "Dictation", "Dictée", "Dettatura", "Diktat", "Ditado"],
+    "Modelo de IA": ["Model d'IA", "AI model", "Modèle d'IA", "Modello di IA", "KI-Modell", "Modelo de IA"],
+    "Para el modo Preciso": ["Per al mode Precís", "For Precise mode", "Pour le mode Précis", "Per la modalità Precisa", "Für den Präzise-Modus", "Para o modo Preciso"],
+    "Whisper Base · rápido (~80 MB)": ["Whisper Base · ràpid (~80 MB)", "Whisper Base · fast (~80 MB)", "Whisper Base · rapide (~80 Mo)", "Whisper Base · veloce (~80 MB)", "Whisper Base · schnell (~80 MB)", "Whisper Base · rápido (~80 MB)"],
+    "Whisper Small · ligero (~250 MB)": ["Whisper Small · lleuger (~250 MB)", "Whisper Small · light (~250 MB)", "Whisper Small · léger (~250 Mo)", "Whisper Small · leggero (~250 MB)", "Whisper Small · leicht (~250 MB)", "Whisper Small · leve (~250 MB)"],
+    "Whisper Turbo · el mejor (~760 MB)": ["Whisper Turbo · el millor (~760 MB)", "Whisper Turbo · the best (~760 MB)", "Whisper Turbo · le meilleur (~760 Mo)", "Whisper Turbo · il migliore (~760 MB)", "Whisper Turbo · das beste (~760 MB)", "Whisper Turbo · o melhor (~760 MB)"],
+    "Cohere · ordenador, sin catalán (~2 GB)": ["Cohere · ordinador, sense català (~2 GB)", "Cohere · computer, no Catalan (~2 GB)", "Cohere · ordinateur, sans catalan (~2 Go)", "Cohere · computer, senza catalano (~2 GB)", "Cohere · Computer, ohne Katalanisch (~2 GB)", "Cohere · computador, sem catalão (~2 GB)"],
+    "☁️ Whisper Large v3 en la nube (Groq) · el mejor, sin descargas": ["☁️ Whisper Large v3 al núvol (Groq) · el millor, sense baixades", "☁️ Whisper Large v3 in the cloud (Groq) · the best, no downloads", "☁️ Whisper Large v3 dans le cloud (Groq) · le meilleur, sans téléchargement", "☁️ Whisper Large v3 nel cloud (Groq) · il migliore, senza download", "☁️ Whisper Large v3 in der Cloud (Groq) · das beste, ohne Download", "☁️ Whisper Large v3 na nuvem (Groq) · o melhor, sem transferências"],
+    "Aceleración gráfica (GPU)": ["Acceleració gràfica (GPU)", "Graphics acceleration (GPU)", "Accélération graphique (GPU)", "Accelerazione grafica (GPU)", "Grafikbeschleunigung (GPU)", "Aceleração gráfica (GPU)"],
+    "Más rápida, pero en algunos móviles cierra Chrome": ["Més ràpida, però en alguns mòbils tanca Chrome", "Faster, but closes Chrome on some phones", "Plus rapide, mais ferme Chrome sur certains téléphones", "Più veloce, ma su alcuni telefoni chiude Chrome", "Schneller, schließt aber auf manchen Handys Chrome", "Mais rápida, mas em alguns telemóveis fecha o Chrome"],
+    "Clave de Groq": ["Clau de Groq", "Groq key", "Clé Groq", "Chiave Groq", "Groq-Schlüssel", "Chave do Groq"],
+    "Se guarda solo en este móvil": ["Només es desa en aquest mòbil", "Stored only on this phone", "Enregistrée seulement sur ce téléphone", "Salvata solo su questo telefono", "Nur auf diesem Handy gespeichert", "Guardada só neste telemóvel"],
+    "🔑 Conseguir clave gratis": ["🔑 Aconseguir clau gratis", "🔑 Get a free key", "🔑 Obtenir une clé gratuite", "🔑 Ottieni chiave gratis", "🔑 Gratis-Schlüssel holen", "🔑 Obter chave grátis"],
+    "📋 Pegar clave": ["📋 Enganxar clau", "📋 Paste key", "📋 Coller la clé", "📋 Incolla chiave", "📋 Schlüssel einfügen", "📋 Colar chave"],
+    "Mis palabras": ["Les meves paraules", "My words", "Mes mots", "Le mie parole", "Meine Wörter", "As minhas palavras"],
+    "Nombres y lugares que debe escribir bien": ["Noms i llocs que ha d'escriure bé", "Names and places it should spell right", "Noms et lieux à bien écrire", "Nomi e luoghi da scrivere bene", "Namen und Orte, die richtig geschrieben werden sollen", "Nomes e lugares que deve escrever bem"],
+    "Corregir con IA al terminar": ["Corregir amb IA en acabar", "Fix with AI when done", "Corriger avec l'IA à la fin", "Correggi con l'IA alla fine", "Am Ende mit KI korrigieren", "Corrigir com IA no fim"],
+    "Ortografía, tildes y palabras mal oídas (con clave de Groq)": ["Ortografia, accents i paraules mal sentides (amb clau de Groq)", "Spelling, accents and misheard words (with a Groq key)", "Orthographe, accents et mots mal entendus (avec une clé Groq)", "Ortografia, accenti e parole capite male (con chiave Groq)", "Rechtschreibung, Akzente und falsch verstandene Wörter (mit Groq-Schlüssel)", "Ortografia, acentos e palavras mal ouvidas (com chave do Groq)"],
+    "Parar al dejar de hablar": ["Aturar en deixar de parlar", "Stop when I stop talking", "Arrêter quand je me tais", "Ferma quando smetto di parlare", "Stoppen, wenn ich aufhöre zu sprechen", "Parar quando deixo de falar"],
+    "Sin tocar la pantalla": ["Sense tocar la pantalla", "Without touching the screen", "Sans toucher l'écran", "Senza toccare lo schermo", "Ohne den Bildschirm zu berühren", "Sem tocar no ecrã"],
+    "No": ["No", "No", "Non", "No", "Nein", "Não"],
+    "Tras 2 s": ["Després de 2 s", "After 2 s", "Après 2 s", "Dopo 2 s", "Nach 2 s", "Após 2 s"],
+    "Tras 3 s": ["Després de 3 s", "After 3 s", "Après 3 s", "Dopo 3 s", "Nach 3 s", "Após 3 s"],
+    "Tras 5 s": ["Després de 5 s", "After 5 s", "Après 5 s", "Dopo 5 s", "Nach 5 s", "Após 5 s"],
+    "Saludo y despedida en su línea": ["Salutació i comiat a la seva línia", "Greeting and sign-off on their own line", "Salutation et formule finale sur leur ligne", "Saluto e congedo su righe proprie", "Gruß und Abschied in eigener Zeile", "Saudação e despedida na sua linha"],
+    "«Hola Marta,» arriba, el mensaje debajo y «Un abrazo.» al final": ["«Hola Marta,» a dalt, el missatge a sota i «Una abraçada.» al final", "«Hi Marta,» on top, the message below and «See you soon.» at the end", "« Salut Marie, » en haut, le message dessous et « Bisous. » à la fin", "«Ciao Marta,» in alto, il messaggio sotto e «Un abbraccio.» alla fine", "„Hallo Marta,“ oben, die Nachricht darunter und „Liebe Grüße.“ am Ende", "«Olá Marta,» em cima, a mensagem por baixo e «Um abraço.» no fim"],
+    "Puntuación por voz": ["Puntuació per veu", "Voice punctuation", "Ponctuation vocale", "Punteggiatura vocale", "Satzzeichen per Stimme", "Pontuação por voz"],
+    "«coma», «punto», «punto y aparte»… (modo Rápido, español y catalán)": ["«coma», «punt», «punt i a part»… (mode Ràpid, castellà i català)", "Say comma, full stop… (Fast mode, Spanish and Catalan only)", "Dire virgule, point… (mode Rapide, espagnol et catalan seulement)", "Dire virgola, punto… (modalità Veloce, solo spagnolo e catalano)", "Komma, Punkt sagen… (Schnell-Modus, nur Spanisch und Katalanisch)", "Dizer vírgula, ponto… (modo Rápido, só espanhol e catalão)"],
+    "Pitido y vibración": ["Xiulet i vibració", "Beep and vibration", "Bip et vibration", "Bip e vibrazione", "Piepton und Vibration", "Bip e vibração"],
+    "Al empezar y al parar": ["En començar i en aturar", "When starting and stopping", "Au début et à l'arrêt", "All'inizio e alla fine", "Beim Starten und Stoppen", "Ao começar e ao parar"],
+    "Pantalla siempre encendida": ["Pantalla sempre encesa", "Keep screen on", "Écran toujours allumé", "Schermo sempre acceso", "Bildschirm immer an", "Ecrã sempre ligado"],
+    "Mientras la app está abierta": ["Mentre l'app és oberta", "While the app is open", "Tant que l'app est ouverte", "Mentre l'app è aperta", "Solange die App offen ist", "Enquanto a app está aberta"],
+    "Manos libres · coche y moto": ["Mans lliures · cotxe i moto", "Hands-free · car and motorbike", "Mains libres · voiture et moto", "Mani libere · auto e moto", "Freihändig · Auto und Motorrad", "Mãos livres · carro e mota"],
+    "Órdenes por voz": ["Ordres de veu", "Voice commands", "Commandes vocales", "Comandi vocali", "Sprachbefehle", "Comandos de voz"],
+    "Di «enviar», «borrar todo», «deshacer», «léelo» o «para»": ["Digues «envia», «esborra-ho tot», «desfés», «llegeix» o «atura»", "Say «send», «delete all», «undo», «read it» or «stop»", "Dis « envoie », « efface tout », « annule », « lis-le » ou « stop »", "Di' «invia», «cancella tutto», «annulla», «leggilo» o «basta»", "Sag „senden“, „alles löschen“, „rückgängig“, „vorlesen“ oder „stopp“", "Diz «enviar», «apagar tudo», «desfazer», «lê» ou «parar»"],
+    "Botón del casco o auriculares": ["Botó del casc o auriculars", "Helmet or headset button", "Bouton du casque ou des écouteurs", "Tasto del casco o delle cuffie", "Taste am Helm oder Headset", "Botão do capacete ou auriculares"],
+    "El botón de reproducir/pausa del intercomunicador o los auriculares Bluetooth empieza y para el dictado (experimental)": ["El botó de reproduir/pausa de l'intercomunicador o dels auriculars Bluetooth comença i atura el dictat (experimental)", "The play/pause button on your intercom or Bluetooth headset starts and stops dictation (experimental)", "Le bouton lecture/pause de l'intercom ou des écouteurs Bluetooth lance et arrête la dictée (expérimental)", "Il tasto play/pausa dell'interfono o delle cuffie Bluetooth avvia e ferma la dettatura (sperimentale)", "Die Play/Pause-Taste der Gegensprechanlage oder des Bluetooth-Headsets startet und stoppt das Diktat (experimentell)", "O botão reproduzir/pausa do intercomunicador ou dos auriculares Bluetooth começa e para o ditado (experimental)"],
+    "Al terminar de hablar": ["En acabar de parlar", "When you finish talking", "Quand tu as fini de parler", "Quando finisci di parlare", "Wenn du fertig bist", "Quando acabas de falar"],
+    "Copiar automáticamente": ["Copiar automàticament", "Copy automatically", "Copier automatiquement", "Copia automaticamente", "Automatisch kopieren", "Copiar automaticamente"],
+    "Leer el texto en voz alta": ["Llegir el text en veu alta", "Read the text aloud", "Lire le texte à voix haute", "Leggi il testo ad alta voce", "Text vorlesen", "Ler o texto em voz alta"],
+    "Para comprobarlo sin mirar": ["Per comprovar-lo sense mirar", "To check it without looking", "Pour le vérifier sans regarder", "Per controllarlo senza guardare", "Zum Prüfen ohne hinzusehen", "Para o verificar sem olhar"],
+    "Abrir WhatsApp": ["Obrir WhatsApp", "Open WhatsApp", "Ouvrir WhatsApp", "Apri WhatsApp", "WhatsApp öffnen", "Abrir o WhatsApp"],
+    "Con el mensaje ya escrito": ["Amb el missatge ja escrit", "With the message already typed", "Avec le message déjà écrit", "Con il messaggio già scritto", "Mit der fertigen Nachricht", "Com a mensagem já escrita"],
+    "Contacto favorito": ["Contacte preferit", "Favourite contact", "Contact favori", "Contatto preferito", "Lieblingskontakt", "Contacto favorito"],
+    "Nombre (opcional)": ["Nom (opcional)", "Name (optional)", "Nom (facultatif)", "Nome (facoltativo)", "Name (optional)", "Nome (opcional)"],
+    "Teléfono": ["Telèfon", "Phone", "Téléphone", "Telefono", "Telefon", "Telefone"],
+    "Vacío = elegir contacto cada vez": ["Buit = triar contacte cada vegada", "Empty = choose a contact each time", "Vide = choisir le contact à chaque fois", "Vuoto = scegli il contatto ogni volta", "Leer = jedes Mal Kontakt wählen", "Vazio = escolher contacto de cada vez"],
+    "Datos": ["Dades", "Data", "Données", "Dati", "Daten", "Dados"],
+    "Historial de mensajes": ["Historial de missatges", "Message history", "Historique des messages", "Cronologia messaggi", "Nachrichtenverlauf", "Histórico de mensagens"],
+    "Modelos de IA descargados": ["Models d'IA baixats", "Downloaded AI models", "Modèles d'IA téléchargés", "Modelli di IA scaricati", "Heruntergeladene KI-Modelle", "Modelos de IA transferidos"],
+    "Ocupan espacio en el móvil": ["Ocupen espai al mòbil", "They take up space on the phone", "Ils prennent de la place sur le téléphone", "Occupano spazio sul telefono", "Sie belegen Speicher auf dem Handy", "Ocupam espaço no telemóvel"],
+    "Ocupan unos {0} MB en el móvil": ["Ocupen uns {0} MB al mòbil", "About {0} MB on the phone", "Environ {0} Mo sur le téléphone", "Circa {0} MB sul telefono", "Etwa {0} MB auf dem Handy", "Cerca de {0} MB no telemóvel"],
+    "Ayuda": ["Ajuda", "Help", "Aide", "Aiuto", "Hilfe", "Ajuda"],
+    ": reconocimiento de voz de Google (Chrome). Ves el texto mientras hablas; necesita conexión.": [": reconeixement de veu de Google (Chrome). Veus el text mentre parles; necessita connexió.", ": Google speech recognition (Chrome). You see the text as you talk; needs a connection.", " : reconnaissance vocale de Google (Chrome). Tu vois le texte pendant que tu parles ; connexion requise.", ": riconoscimento vocale di Google (Chrome). Vedi il testo mentre parli; serve la connessione.", ": Spracherkennung von Google (Chrome). Du siehst den Text beim Sprechen; braucht Internet.", ": reconhecimento de voz da Google (Chrome). Vês o texto enquanto falas; precisa de ligação."],
+    ": Whisper (OpenAI) o Cohere Transcribe, modelos abiertos de Hugging Face, en el móvil o en la nube. Detectan el idioma solos, ponen tildes y signos y aguantan bien el ruido del coche. En el móvil, la primera vez descargan el modelo (con wifi) y después funcionan sin cobertura.": [
+      ": Whisper (OpenAI) o Cohere Transcribe, models oberts de Hugging Face, al mòbil o al núvol. Detecten l'idioma sols, posen accents i signes i aguanten bé el soroll del cotxe. Al mòbil, la primera vegada baixen el model (amb wifi) i després funcionen sense cobertura.",
+      ": Whisper (OpenAI) or Cohere Transcribe, open models from Hugging Face, on the phone or in the cloud. They detect the language, add accents and punctuation, and cope well with car noise. On the phone they download the model the first time (use Wi-Fi) and then work offline.",
+      " : Whisper (OpenAI) ou Cohere Transcribe, modèles ouverts de Hugging Face, sur le téléphone ou dans le cloud. Ils détectent la langue, mettent accents et ponctuation et résistent bien au bruit de la voiture. Sur le téléphone, ils téléchargent le modèle la première fois (en Wi-Fi) puis fonctionnent hors ligne.",
+      ": Whisper (OpenAI) o Cohere Transcribe, modelli aperti di Hugging Face, sul telefono o nel cloud. Rilevano la lingua, mettono accenti e punteggiatura e reggono bene il rumore dell'auto. Sul telefono scaricano il modello la prima volta (con Wi-Fi) e poi funzionano offline.",
+      ": Whisper (OpenAI) oder Cohere Transcribe, offene Modelle von Hugging Face, auf dem Handy oder in der Cloud. Sie erkennen die Sprache, setzen Satzzeichen und kommen mit Autolärm gut klar. Auf dem Handy wird das Modell beim ersten Mal geladen (per WLAN), danach geht es offline.",
+      ": Whisper (OpenAI) ou Cohere Transcribe, modelos abertos da Hugging Face, no telemóvel ou na nuvem. Detetam o idioma, põem acentos e pontuação e aguentam bem o ruído do carro. No telemóvel, da primeira vez transferem o modelo (com Wi-Fi) e depois funcionam sem rede."],
+    "🌐 Traducir": ["🌐 Traduir", "🌐 Translate", "🌐 Traduire", "🌐 Traduci", "🌐 Übersetzen", "🌐 Traduzir"],
+    ": entre 7 idiomas, con la IA (Groq), el traductor integrado de Chrome u Opus-MT (español ↔ catalán) dentro del móvil. Revisa la traducción; puedes deshacerla.": [
+      ": entre 7 idiomes, amb la IA (Groq), el traductor integrat de Chrome o Opus-MT (castellà ↔ català) dins del mòbil. Revisa la traducció; la pots desfer.",
+      ": between 7 languages, with AI (Groq), Chrome's built-in translator or Opus-MT (Spanish ↔ Catalan) on the phone. Check the translation; you can undo it.",
+      " : entre 7 langues, avec l'IA (Groq), le traducteur intégré de Chrome ou Opus-MT (espagnol ↔ catalan) sur le téléphone. Vérifie la traduction ; tu peux l'annuler.",
+      ": tra 7 lingue, con l'IA (Groq), il traduttore integrato di Chrome o Opus-MT (spagnolo ↔ catalano) sul telefono. Controlla la traduzione; puoi annullarla.",
+      ": zwischen 7 Sprachen, mit KI (Groq), dem eingebauten Chrome-Übersetzer oder Opus-MT (Spanisch ↔ Katalanisch) auf dem Handy. Prüfe die Übersetzung; du kannst sie rückgängig machen.",
+      ": entre 7 idiomas, com a IA (Groq), o tradutor integrado do Chrome ou o Opus-MT (espanhol ↔ catalão) no telemóvel. Revê a tradução; podes desfazê-la."],
+    "🚗 Modo conducción": ["🚗 Mode conducció", "🚗 Driving mode", "🚗 Mode conduite", "🚗 Modalità guida", "🚗 Fahrmodus", "🚗 Modo condução"],
+    ": pantalla simple con un botón enorme. Combínalo con «Parar al dejar de hablar» y «Leer en voz alta» para no tener que mirar.": [": pantalla simple amb un botó enorme. Combina-ho amb «Aturar en deixar de parlar» i «Llegir en veu alta» per no haver de mirar.", ": a simple screen with a huge button. Combine it with «Stop when I stop talking» and «Read the text aloud» so you don't have to look.", " : écran simple avec un énorme bouton. Combine-le avec « Arrêter quand je me tais » et « Lire le texte à voix haute » pour ne pas avoir à regarder.", ": schermata semplice con un pulsante enorme. Abbinala a «Ferma quando smetto di parlare» e «Leggi il testo ad alta voce» per non dover guardare.", ": einfacher Bildschirm mit riesiger Taste. Kombiniere ihn mit „Stoppen, wenn ich aufhöre zu sprechen“ und „Text vorlesen“, dann musst du nicht hinsehen.", ": ecrã simples com um botão enorme. Combina com «Parar quando deixo de falar» e «Ler o texto em voz alta» para não teres de olhar."],
+    "📤 Enviar": ["📤 Enviar", "📤 Send", "📤 Envoyer", "📤 Invia", "📤 Senden", "📤 Enviar"],
+    ": WhatsApp (botón verde), Telegram, SMS, correo, búsqueda en Google o «Más» para cualquier otra app del móvil. Los ✓✓ se ponen azules cuando lo copias o lo envías.": [": WhatsApp (botó verd), Telegram, SMS, correu, cerca a Google o «Més» per a qualsevol altra app. Els ✓✓ es tornen blaus quan el copies o l'envies.", ": WhatsApp (green button), Telegram, SMS, email, Google search or «More» for any other app. The ✓✓ turn blue when you copy or send it.", " : WhatsApp (bouton vert), Telegram, SMS, e-mail, recherche Google ou « Plus » pour toute autre app. Les ✓✓ deviennent bleus quand tu copies ou envoies.", ": WhatsApp (pulsante verde), Telegram, SMS, email, ricerca Google o «Altro» per qualsiasi app. Le ✓✓ diventano blu quando copi o invii.", ": WhatsApp (grüne Taste), Telegram, SMS, E-Mail, Google-Suche oder „Mehr“ für jede andere App. Die ✓✓ werden blau, wenn du kopierst oder sendest.", ": WhatsApp (botão verde), Telegram, SMS, email, pesquisa Google ou «Mais» para qualquer outra app. Os ✓✓ ficam azuis quando copias ou envias."],
+    "🏍️ Manos libres": ["🏍️ Mans lliures", "🏍️ Hands-free", "🏍️ Mains libres", "🏍️ Mani libere", "🏍️ Freihändig", "🏍️ Mãos livres"],
+    ": con «Órdenes por voz», «Parar al dejar de hablar» y «Leer el texto en voz alta» puedes dictar, revisar y mandar el mensaje sin mirar. Al decir «enviar» se abre WhatsApp con el mensaje escrito; el último toque en «Enviar» de WhatsApp es tuyo, porque WhatsApp no deja que ninguna app envíe por ti.": [
+      ": amb «Ordres de veu», «Aturar en deixar de parlar» i «Llegir el text en veu alta» pots dictar, revisar i enviar el missatge sense mirar. En dir «envia» s'obre WhatsApp amb el missatge escrit; l'últim toc a «Enviar» de WhatsApp és teu, perquè WhatsApp no deixa que cap app enviï per tu.",
+      ": with «Voice commands», «Stop when I stop talking» and «Read the text aloud» you can dictate, check and send without looking. Saying «send» opens WhatsApp with the message typed; the final tap on WhatsApp's Send is yours, because WhatsApp doesn't let any app send for you.",
+      " : avec « Commandes vocales », « Arrêter quand je me tais » et « Lire le texte à voix haute », tu dictes, vérifies et envoies sans regarder. Dire « envoie » ouvre WhatsApp avec le message écrit ; le dernier appui sur Envoyer de WhatsApp t'appartient, car WhatsApp ne laisse aucune app envoyer à ta place.",
+      ": con «Comandi vocali», «Ferma quando smetto di parlare» e «Leggi il testo ad alta voce» puoi dettare, controllare e inviare senza guardare. Dicendo «invia» si apre WhatsApp con il messaggio scritto; l'ultimo tocco su Invia di WhatsApp è tuo, perché WhatsApp non permette a nessuna app di inviare al posto tuo.",
+      ": mit „Sprachbefehle“, „Stoppen, wenn ich aufhöre zu sprechen“ und „Text vorlesen“ kannst du diktieren, prüfen und senden, ohne hinzusehen. „Senden“ öffnet WhatsApp mit der fertigen Nachricht; den letzten Tipp auf Senden machst du, denn WhatsApp lässt keine App für dich senden.",
+      ": com «Comandos de voz», «Parar quando deixo de falar» e «Ler o texto em voz alta» podes ditar, rever e enviar sem olhar. Ao dizer «enviar» abre-se o WhatsApp com a mensagem escrita; o último toque em Enviar do WhatsApp é teu, porque o WhatsApp não deixa nenhuma app enviar por ti."],
+    "⚠️ Con el vehículo en marcha no manipules el móvil: usa la voz o el botón del casco, o detente en un lugar seguro. Respeta siempre las normas de tráfico.": ["⚠️ Amb el vehicle en marxa no manipulis el mòbil: fes servir la veu o el botó del casc, o atura't en un lloc segur. Respecta sempre les normes de trànsit.", "⚠️ While the vehicle is moving, don't handle your phone: use your voice or helmet button, or stop somewhere safe. Always follow traffic laws.", "⚠️ Véhicule en marche, ne manipule pas ton téléphone : utilise la voix ou le bouton du casque, ou arrête-toi dans un endroit sûr. Respecte toujours le code de la route.", "⚠️ Con il veicolo in movimento non usare il telefono con le mani: usa la voce o il tasto del casco, o fermati in un posto sicuro. Rispetta sempre il codice della strada.", "⚠️ Bedien das Handy nicht während der Fahrt: nutze Stimme oder Helmtaste oder halte sicher an. Halte dich immer an die Verkehrsregeln.", "⚠️ Com o veículo em andamento não mexas no telemóvel: usa a voz ou o botão do capacete, ou para num local seguro. Respeita sempre as regras de trânsito."],
+    "Consejo: menú ⋮ de Chrome → «Añadir a pantalla de inicio».": ["Consell: menú ⋮ de Chrome → «Afegeix a la pantalla d'inici».", "Tip: Chrome menu ⋮ → «Add to Home screen».", "Astuce : menu ⋮ de Chrome → « Ajouter à l'écran d'accueil ».", "Consiglio: menu ⋮ di Chrome → «Aggiungi a schermata Home».", "Tipp: Chrome-Menü ⋮ → „Zum Startbildschirm hinzufügen“.", "Dica: menu ⋮ do Chrome → «Adicionar ao ecrã principal»."],
+
+    // ---------- mensajes de estado ----------
+    "Modo Preciso: pulsa, habla y vuelve a pulsar": ["Mode Precís: prem, parla i torna a prémer", "Precise mode: tap, talk and tap again", "Mode Précis : touche, parle et touche à nouveau", "Modalità Precisa: tocca, parla e tocca di nuovo", "Präzise: tippen, sprechen, nochmal tippen", "Modo Preciso: toca, fala e volta a tocar"],
+    "Este navegador no tiene el modo Rápido. Usa Chrome, o el modo Preciso.": ["Aquest navegador no té el mode Ràpid. Fes servir Chrome, o el mode Precís.", "This browser has no Fast mode. Use Chrome, or Precise mode.", "Ce navigateur n'a pas le mode Rapide. Utilise Chrome ou le mode Précis.", "Questo browser non ha la modalità Veloce. Usa Chrome o la modalità Precisa.", "Dieser Browser hat keinen Schnell-Modus. Nutze Chrome oder den Präzise-Modus.", "Este navegador não tem o modo Rápido. Usa o Chrome ou o modo Preciso."],
+    "Cohere no tiene catalán: se usará Whisper Turbo.": ["Cohere no té català: es farà servir Whisper Turbo.", "Cohere has no Catalan: Whisper Turbo will be used.", "Cohere ne gère pas le catalan : Whisper Turbo sera utilisé.", "Cohere non ha il catalano: verrà usato Whisper Turbo.", "Cohere kann kein Katalanisch: Whisper Turbo wird verwendet.", "O Cohere não tem catalão: será usado o Whisper Turbo."],
+    "Borrado (puedes deshacer)": ["Esborrat (pots desfer)", "Deleted (you can undo)", "Effacé (tu peux annuler)", "Cancellato (puoi annullare)", "Gelöscht (rückgängig möglich)", "Apagado (podes desfazer)"],
+    "Descargando el traductor de Chrome: {0}%": ["Baixant el traductor de Chrome: {0}%", "Downloading Chrome's translator: {0}%", "Téléchargement du traducteur de Chrome : {0} %", "Download del traduttore di Chrome: {0}%", "Chrome-Übersetzer wird geladen: {0} %", "A transferir o tradutor do Chrome: {0}%"],
+    "Error: {0}": ["Error: {0}", "Error: {0}", "Erreur : {0}", "Errore: {0}", "Fehler: {0}", "Erro: {0}"],
+    "Este navegador no permite usar el botón de los auriculares": ["Aquest navegador no permet fer servir el botó dels auriculars", "This browser can't use the headset button", "Ce navigateur ne permet pas d'utiliser le bouton des écouteurs", "Questo browser non permette di usare il tasto delle cuffie", "Dieser Browser kann die Headset-Taste nicht nutzen", "Este navegador não permite usar o botão dos auriculares"],
+    "Grabación demasiado corta": ["Gravació massa curta", "Recording too short", "Enregistrement trop court", "Registrazione troppo breve", "Aufnahme zu kurz", "Gravação demasiado curta"],
+    "Grabando… pulsa otra vez cuando acabes": ["Gravant… prem un altre cop quan acabis", "Recording… tap again when you're done", "Enregistrement… touche à nouveau quand tu as fini", "Registrazione… tocca di nuovo quando hai finito", "Aufnahme… tippe nochmal, wenn du fertig bist", "A gravar… toca outra vez quando acabares"],
+    "Escuchando… habla con normalidad": ["T'escolto… parla amb normalitat", "Listening… speak normally", "J'écoute… parle normalement", "Ti ascolto… parla normalmente", "Ich höre zu… sprich ganz normal", "A ouvir… fala normalmente"],
+    "Historial borrado": ["Historial esborrat", "History deleted", "Historique effacé", "Cronologia cancellata", "Verlauf gelöscht", "Histórico apagado"],
+    "Listo ✓ Pulsa para seguir dictando.": ["Fet ✓ Prem per continuar dictant.", "Done ✓ Tap to keep dictating.", "Terminé ✓ Touche pour continuer à dicter.", "Fatto ✓ Tocca per continuare a dettare.", "Fertig ✓ Tippe, um weiter zu diktieren.", "Pronto ✓ Toca para continuar a ditar."],
+    "Listo ✓": ["Fet ✓", "Done ✓", "Terminé ✓", "Fatto ✓", "Fertig ✓", "Pronto ✓"],
+    "Lo copiado no parece una clave de Groq (empieza por gsk_)": ["El que has copiat no sembla una clau de Groq (comença per gsk_)", "That doesn't look like a Groq key (starts with gsk_)", "Ce n'est pas une clé Groq (elle commence par gsk_)", "Non sembra una chiave Groq (inizia con gsk_)", "Das sieht nicht nach einem Groq-Schlüssel aus (beginnt mit gsk_)", "Isso não parece uma chave do Groq (começa por gsk_)"],
+    "Mantén pulsado el campo y elige «Pegar»": ["Mantén premut el camp i tria «Enganxa»", "Press and hold the field and choose Paste", "Appuie longuement sur le champ et choisis Coller", "Tieni premuto il campo e scegli Incolla", "Feld gedrückt halten und Einfügen wählen", "Mantém premido o campo e escolhe Colar"],
+    "Mantén pulsado el texto para copiar": ["Mantén premut el text per copiar", "Press and hold the text to copy", "Appuie longuement sur le texte pour copier", "Tieni premuto il testo per copiare", "Text gedrückt halten zum Kopieren", "Mantém premido o texto para copiar"],
+    "Modelo grande: en móvil puede no caber en memoria": ["Model gran: al mòbil pot no cabre a la memòria", "Large model: may not fit in a phone's memory", "Gros modèle : peut ne pas tenir en mémoire sur téléphone", "Modello grande: sul telefono potrebbe non entrare in memoria", "Großes Modell: passt evtl. nicht in den Handyspeicher", "Modelo grande: pode não caber na memória do telemóvel"],
+    "Modelos borrados": ["Models esborrats", "Models deleted", "Modèles effacés", "Modelli cancellati", "Modelle gelöscht", "Modelos apagados"],
+    "No hay texto": ["No hi ha text", "No text", "Pas de texte", "Nessun testo", "Kein Text", "Não há texto"],
+    "No se ha oído nada. Prueba otra vez.": ["No s'ha sentit res. Torna-ho a provar.", "Didn't hear anything. Try again.", "Rien entendu. Réessaie.", "Non ho sentito niente. Riprova.", "Nichts gehört. Versuch's nochmal.", "Não se ouviu nada. Tenta outra vez."],
+    "No se ha entendido nada. Prueba otra vez.": ["No s'ha entès res. Torna-ho a provar.", "Couldn't understand anything. Try again.", "Rien compris. Réessaie.", "Non ho capito niente. Riprova.", "Nichts verstanden. Versuch's nochmal.", "Não se percebeu nada. Tenta outra vez."],
+    "No se pudo leer el audio: {0}": ["No s'ha pogut llegir l'àudio: {0}", "Couldn't read the audio: {0}", "Impossible de lire l'audio : {0}", "Impossibile leggere l'audio: {0}", "Audio konnte nicht gelesen werden: {0}", "Não foi possível ler o áudio: {0}"],
+    "Permite el micrófono para esta página (icono a la izquierda de la dirección).": ["Permet el micròfon per a aquesta pàgina (icona a l'esquerra de l'adreça).", "Allow the microphone for this page (icon left of the address).", "Autorise le micro pour cette page (icône à gauche de l'adresse).", "Consenti il microfono per questa pagina (icona a sinistra dell'indirizzo).", "Erlaube das Mikrofon für diese Seite (Symbol links neben der Adresse).", "Permite o microfone nesta página (ícone à esquerda do endereço)."],
+    "Preparando {0}…": ["Preparant {0}…", "Preparing {0}…", "Préparation de {0}…", "Preparazione di {0}…", "{0} wird vorbereitet…", "A preparar {0}…"],
+    "Pulsa WhatsApp para enviarlo": ["Prem WhatsApp per enviar-lo", "Tap WhatsApp to send it", "Touche WhatsApp pour l'envoyer", "Tocca WhatsApp per inviarlo", "Tippe auf WhatsApp zum Senden", "Toca em WhatsApp para enviar"],
+    "Recuperado": ["Recuperat", "Restored", "Récupéré", "Recuperato", "Wiederhergestellt", "Recuperado"],
+    "Sin conexión: el modo Rápido necesita internet. Usa el modo Preciso.": ["Sense connexió: el mode Ràpid necessita internet. Fes servir el mode Precís.", "Offline: Fast mode needs internet. Use Precise mode.", "Hors ligne : le mode Rapide a besoin d'internet. Utilise le mode Précis.", "Offline: la modalità Veloce richiede internet. Usa la Precisa.", "Offline: Schnell braucht Internet. Nutze Präzise.", "Sem ligação: o modo Rápido precisa de internet. Usa o modo Preciso."],
+    "Sin corregir: {0}": ["Sense corregir: {0}", "Not fixed: {0}", "Non corrigé : {0}", "Non corretto: {0}", "Nicht korrigiert: {0}", "Sem corrigir: {0}"],
+    "Traducido. «Deshacer» para volver al original.": ["Traduït. «Desfer» per tornar a l'original.", "Translated. «Undo» to go back.", "Traduit. « Annuler » pour revenir à l'original.", "Tradotto. «Annulla» per tornare all'originale.", "Übersetzt. „Rückgängig“ für das Original.", "Traduzido. «Desfazer» para voltar ao original."],
+    "Traduciendo…": ["Traduint…", "Translating…", "Traduction…", "Traduzione…", "Wird übersetzt…", "A traduzir…"],
+    "Transcribiendo en la nube…": ["Transcrivint al núvol…", "Transcribing in the cloud…", "Transcription dans le cloud…", "Trascrizione nel cloud…", "Transkription in der Cloud…", "A transcrever na nuvem…"],
+    "Transcribiendo…": ["Transcrivint…", "Transcribing…", "Transcription…", "Trascrizione…", "Transkription…", "A transcrever…"],
+    "✓ Clave de Groq guardada. ¡Listo para dictar!": ["✓ Clau de Groq desada. A punt per dictar!", "✓ Groq key saved. Ready to dictate!", "✓ Clé Groq enregistrée. Prêt à dicter !", "✓ Chiave Groq salvata. Pronto a dettare!", "✓ Groq-Schlüssel gespeichert. Bereit zum Diktieren!", "✓ Chave do Groq guardada. Pronto para ditar!"],
+    "✓ Clave guardada": ["✓ Clau desada", "✓ Key saved", "✓ Clé enregistrée", "✓ Chiave salvata", "✓ Schlüssel gespeichert", "✓ Chave guardada"],
+    "✓ Copiado": ["✓ Copiat", "✓ Copied", "✓ Copié", "✓ Copiato", "✓ Kopiert", "✓ Copiado"],
+    "✨ Puliendo con IA…": ["✨ Polint amb IA…", "✨ Polishing with AI…", "✨ Finition par l'IA…", "✨ Rifinitura con IA…", "✨ KI feilt nach…", "✨ A polir com IA…"],
+    "✨ Retocando con IA…": ["✨ Retocant amb IA…", "✨ Touching up with AI…", "✨ Retouche par l'IA…", "✨ Ritocco con IA…", "✨ KI überarbeitet…", "✨ A retocar com IA…"],
+    "✨ {0}. «Deshacer» para volver.": ["✨ {0}. «Desfer» per tornar.", "✨ {0}. «Undo» to go back.", "✨ {0}. « Annuler » pour revenir.", "✨ {0}. «Annulla» per tornare.", "✨ {0}. „Rückgängig“ zum Zurücksetzen.", "✨ {0}. «Desfazer» para voltar."],
+    "Corregido": ["Corregit", "Fixed", "Corrigé", "Corretto", "Korrigiert", "Corrigido"],
+    "Más formal": ["Més formal", "More formal", "Plus formel", "Più formale", "Förmlicher", "Mais formal"],
+    "Más cercano": ["Més proper", "Friendlier", "Plus chaleureux", "Più amichevole", "Herzlicher", "Mais próximo"],
+    "Más corto": ["Més curt", "Shorter", "Plus court", "Più breve", "Kürzer", "Mais curto"],
+    "Con emojis": ["Amb emojis", "With emojis", "Avec émojis", "Con emoji", "Mit Emojis", "Com emojis"],
+    "Más claro": ["Més clar", "Clearer", "Plus clair", "Più chiaro", "Klarer", "Mais claro"],
+    "🎧 Pulsa el botón del casco o los auriculares para dictar": ["🎧 Prem el botó del casc o dels auriculars per dictar", "🎧 Press your helmet or headset button to dictate", "🎧 Appuie sur le bouton du casque ou des écouteurs pour dicter", "🎧 Premi il tasto del casco o delle cuffie per dettare", "🎧 Drück die Helm- oder Headset-Taste zum Diktieren", "🎧 Carrega no botão do capacete ou dos auriculares para ditar"],
+    "{0} no cabe en este móvil: uso {1}": ["{0} no cap en aquest mòbil: faig servir {1}", "{0} doesn't fit on this phone: using {1}", "{0} ne tient pas sur ce téléphone : j'utilise {1}", "{0} non entra in questo telefono: uso {1}", "{0} passt nicht auf dieses Handy: nutze {1}", "{0} não cabe neste telemóvel: uso {1}"],
+    "Descargando el traductor (solo la primera vez): {0}% de {1} MB": ["Baixant el traductor (només la primera vegada): {0}% de {1} MB", "Downloading the translator (first time only): {0}% of {1} MB", "Téléchargement du traducteur (la première fois seulement) : {0} % de {1} Mo", "Download del traduttore (solo la prima volta): {0}% di {1} MB", "Übersetzer wird geladen (nur beim ersten Mal): {0} % von {1} MB", "A transferir o tradutor (só da primeira vez): {0}% de {1} MB"],
+    "Descargando {0} (solo la primera vez): {1}% de {2} MB": ["Baixant {0} (només la primera vegada): {1}% de {2} MB", "Downloading {0} (first time only): {1}% of {2} MB", "Téléchargement de {0} (la première fois seulement) : {1} % de {2} Mo", "Download di {0} (solo la prima volta): {1}% di {2} MB", "{0} wird geladen (nur beim ersten Mal): {1} % von {2} MB", "A transferir {0} (só da primeira vez): {1}% de {2} MB"],
+    "Chrome se cerró con la aceleración gráfica: la he desactivado": ["Chrome es va tancar amb l'acceleració gràfica: l'he desactivada", "Chrome closed with graphics acceleration: I've turned it off", "Chrome s'est fermé avec l'accélération graphique : je l'ai désactivée", "Chrome si è chiuso con l'accelerazione grafica: l'ho disattivata", "Chrome ist mit Grafikbeschleunigung abgestürzt: habe sie ausgeschaltet", "O Chrome fechou com a aceleração gráfica: desativei-a"],
+    "{0} listo. Pulsa y habla.": ["{0} a punt. Prem i parla.", "{0} ready. Tap and talk.", "{0} prêt. Touche et parle.", "{0} pronto. Tocca e parla.", "{0} bereit. Tippen und sprechen.", "{0} pronto. Toca e fala."],
+    "{0} listo (GPU). Pulsa y habla.": ["{0} a punt (GPU). Prem i parla.", "{0} ready (GPU). Tap and talk.", "{0} prêt (GPU). Touche et parle.", "{0} pronto (GPU). Tocca e parla.", "{0} bereit (GPU). Tippen und sprechen.", "{0} pronto (GPU). Toca e fala."],
+    "Cargando {0} (aceleración GPU)…": ["Carregant {0} (acceleració GPU)…", "Loading {0} (GPU acceleration)…", "Chargement de {0} (accélération GPU)…", "Caricamento di {0} (accelerazione GPU)…", "{0} wird geladen (GPU)…", "A carregar {0} (aceleração GPU)…"],
+    "Cargando {0} (CPU)…": ["Carregant {0} (CPU)…", "Loading {0} (CPU)…", "Chargement de {0} (CPU)…", "Caricamento di {0} (CPU)…", "{0} wird geladen (CPU)…", "A carregar {0} (CPU)…"],
+    "Cargando el traductor (solo la primera vez)…": ["Carregant el traductor (només la primera vegada)…", "Loading the translator (first time only)…", "Chargement du traducteur (la première fois seulement)…", "Caricamento del traduttore (solo la prima volta)…", "Übersetzer wird geladen (nur beim ersten Mal)…", "A carregar o tradutor (só da primeira vez)…"],
+    "Falta la clave de Groq: ponla en Ajustes.": ["Falta la clau de Groq: posa-la a Configuració.", "Groq key missing: add it in Settings.", "Clé Groq manquante : ajoute-la dans Réglages.", "Manca la chiave Groq: aggiungila nelle Impostazioni.", "Groq-Schlüssel fehlt: in den Einstellungen eintragen.", "Falta a chave do Groq: coloca-a nas Definições."],
+    "Sin conexión: la nube necesita internet. Usa un modelo del móvil.": ["Sense connexió: el núvol necessita internet. Fes servir un model del mòbil.", "Offline: the cloud needs internet. Use an on-phone model.", "Hors ligne : le cloud a besoin d'internet. Utilise un modèle du téléphone.", "Offline: il cloud richiede internet. Usa un modello sul telefono.", "Offline: Die Cloud braucht Internet. Nutze ein Modell auf dem Handy.", "Sem ligação: a nuvem precisa de internet. Usa um modelo do telemóvel."],
+    "La clave de Groq no es válida.": ["La clau de Groq no és vàlida.", "The Groq key isn't valid.", "La clé Groq n'est pas valide.", "La chiave Groq non è valida.", "Der Groq-Schlüssel ist ungültig.", "A chave do Groq não é válida."],
+    "Límite gratuito de Groq alcanzado: prueba en un rato.": ["Límit gratuït de Groq assolit: prova-ho d'aquí a una estona.", "Groq free limit reached: try again shortly.", "Limite gratuite de Groq atteinte : réessaie un peu plus tard.", "Limite gratuito di Groq raggiunto: riprova tra poco.", "Groq-Gratislimit erreicht: versuch es gleich nochmal.", "Limite gratuito do Groq atingido: tenta daqui a pouco."],
+    "Error de Groq: {0}": ["Error de Groq: {0}", "Groq error: {0}", "Erreur Groq : {0}", "Errore di Groq: {0}", "Groq-Fehler: {0}", "Erro do Groq: {0}"],
+    "No se pudo conectar con Groq: {0}": ["No s'ha pogut connectar amb Groq: {0}", "Couldn't connect to Groq: {0}", "Impossible de joindre Groq : {0}", "Impossibile connettersi a Groq: {0}", "Keine Verbindung zu Groq: {0}", "Não foi possível ligar ao Groq: {0}"],
+    "Groq no responde": ["Groq no respon", "Groq isn't responding", "Groq ne répond pas", "Groq non risponde", "Groq antwortet nicht", "O Groq não responde"],
+    "La IA cambió demasiado el texto": ["La IA ha canviat massa el text", "The AI changed the text too much", "L'IA a trop modifié le texte", "L'IA ha cambiato troppo il testo", "Die KI hat den Text zu stark verändert", "A IA alterou demasiado o texto"],
+    "Para traducir a {0} activa la IA (gratis)": ["Per traduir a {0} activa la IA (gratis)", "To translate to {0}, turn on the AI (free)", "Pour traduire en {0}, active l'IA (gratuite)", "Per tradurre in {0} attiva l'IA (gratis)", "Für {0} die KI aktivieren (gratis)", "Para traduzir para {0} ativa a IA (grátis)"],
+    "Borrado": ["Esborrat", "Deleted", "Effacé", "Cancellato", "Gelöscht", "Apagado"],
+    "Deshecho": ["Desfet", "Undone", "Annulé", "Annullato", "Rückgängig gemacht", "Desfeito"],
+    "Abriendo WhatsApp": ["Obrint WhatsApp", "Opening WhatsApp", "Ouverture de WhatsApp", "Apro WhatsApp", "WhatsApp wird geöffnet", "A abrir o WhatsApp"],
+    "No hay nada que enviar": ["No hi ha res per enviar", "Nothing to send", "Rien à envoyer", "Niente da inviare", "Nichts zu senden", "Não há nada para enviar"],
+  };
+
+  const LOCALES = { es: 'es-ES', ca: 'ca-ES', en: 'en-GB', fr: 'fr-FR', it: 'it-IT', de: 'de-DE', pt: 'pt-PT' };
+  let ui = 'es';
+  function pickUi(pref) {
+    if (pref && pref !== 'auto' && LOCALES[pref]) return pref;
+    for (const l of (navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || 'es'])) {
+      const b = String(l).slice(0, 2).toLowerCase();
+      if (LOCALES[b]) return b;
+      if (b === 'gl' || b === 'eu') return 'es';
+    }
+    return 'en';
+  }
+  function t(key, ...args) {
+    const i = ORDER.indexOf(ui), row = T[key];
+    let s = i >= 0 && row && row[i] ? row[i] : key;
+    args.forEach((a, n) => { s = s.split('{' + n + '}').join(a); });
+    return s;
+  }
+  // traduce el documento: textos y atributos cuyo original (en español) esté en el diccionario
+  const orig = new WeakMap();
+  function translateDom(rootEl) {
+    const walk = document.createTreeWalker(rootEl || document.body, NodeFilter.SHOW_TEXT);
+    for (let n = walk.nextNode(); n; n = walk.nextNode()) {
+      if (n.parentElement && /^(SCRIPT|STYLE|TEXTAREA)$/.test(n.parentElement.tagName)) continue;
+      if (!orig.has(n)) { const k = n.nodeValue.trim(); if (!T[k]) continue; orig.set(n, n.nodeValue); }
+      const o = orig.get(n), k = o.trim();
+      n.nodeValue = o.replace(k, t(k));
+    }
+    for (const el of (rootEl || document.body).querySelectorAll('[placeholder],[title],[aria-label]')) {
+      for (const at of ['placeholder', 'title', 'aria-label']) {
+        if (!el.hasAttribute(at)) continue;
+        const key = 'data-i18n-' + at;
+        if (!el.hasAttribute(key)) { if (!T[el.getAttribute(at)]) continue; el.setAttribute(key, el.getAttribute(at)); }
+        el.setAttribute(at, t(el.getAttribute(key)));
+      }
+    }
+    document.documentElement.lang = ui;
+  }
+  root.I18N = { t, translateDom, pickUi, LOCALES, setUi: (l) => { ui = l; }, get ui() { return ui; }, locale: () => LOCALES[ui] };
+})(typeof window !== 'undefined' ? window : globalThis);

@@ -2,7 +2,7 @@
 
 *Tú habla, que yo escribo.*
 
-App web para dictar por voz en **español o catalán**, pensada para usar en el coche: el texto sale como un mensaje de chat, bien escrito y listo para enviar por **WhatsApp, Telegram, SMS, correo** o cualquier otra app. Todo cabe en una sola pantalla.
+App web para dictar por voz en **7 idiomas** (español, catalán, inglés, francés, italiano, alemán y portugués; la app se pone sola en el idioma del móvil y detecta el idioma de cada mensaje), pensada para usar en el coche: el texto sale como un mensaje de chat, bien escrito y listo para enviar por **WhatsApp, Telegram, SMS, correo** o cualquier otra app. Todo cabe en una sola pantalla.
 
 **Abrir:** https://iamikepm-ui.github.io/Transcribir-voz/
 

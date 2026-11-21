@@ -259,6 +259,11 @@
   .wcard .btn { width:100%; }
   .wpriv { display:block; margin-top:10px; font-size:12.5px; color:var(--mut); }
   .lock { z-index:65; background:var(--bg); }
+  .langs { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .langs button { display:flex; align-items:center; gap:10px; border:1px solid var(--line); background:var(--glass); border-radius:14px; padding:12px; font-weight:700; font-size:15.5px; text-align:left; }
+  .langs button b { width:34px; height:26px; border-radius:7px; display:grid; place-items:center; font-size:12px; background:linear-gradient(135deg,var(--a1),var(--a2)); color:#04210f; flex:none; }
+  .langs button:active { transform:scale(.97); }
+  .bar2 #modeSeg { flex:1; }
   .devbox { display:flex; align-items:center; gap:8px; background:var(--glass); border:1px solid var(--line); border-radius:14px; padding:10px 12px; margin-bottom:10px; text-align:left; }
   .devbox small { color:var(--mut); font-size:12px; font-weight:600; width:64px; line-height:1.2; }
   .devbox b { flex:1; font-family:ui-monospace,Menlo,Consolas,monospace; font-size:15px; letter-spacing:.02em; white-space:nowrap; }
@@ -299,16 +304,11 @@
       <button data-v="live" aria-pressed="true">⚡ Rápido</button>
       <button data-v="whisper" aria-pressed="false">🎯 Preciso</button>
     </div>
-    <div class="seg glass" id="langSeg" role="group" aria-label="Idioma">
-      <span class="thumb"></span>
-      <button data-v="es" aria-pressed="true">ES</button>
-      <button data-v="ca" aria-pressed="false">CA</button>
-    </div>
   </div>
 
   <div class="chat" id="chat">
     <div class="scroll" id="scroll">
-      <div class="day" id="sub">Hoy</div>
+      <div class="day" id="sub"></div>
       <div class="empty-hint"><img src="logo.svg" alt=""><b>Pulsa el micro y habla</b><span>Tu mensaje aparecerá aquí, bien escrito y listo para enviar.</span></div>
       <div class="bubble paper" id="bubble">
         <textarea id="text" rows="1" placeholder="Escribe o dicta…"></textarea>
@@ -329,7 +329,7 @@
   <div class="magic" id="magic" role="group" aria-label="Retocar con IA">
     <button class="lead" id="magicSetup">✨ Activa la IA gratis</button>
     <button data-act="fix">✨ Corregir</button>
-    <button id="translate">🌐 <span id="trLabel">Al catalán</span></button>
+    <button id="translate">🌐 <span id="trLabel">Traducir</span></button>
     <button data-act="formal">👔 Formal</button>
     <button data-act="warm">🤗 Cercano</button>
     <button data-act="short">✂️ Corto</button>
@@ -386,7 +386,7 @@
     <h2>Bienvenido a <span>Perezapp</span></h2>
     <p class="wsub">Tú habla, que yo escribo.</p>
     <ul class="wlist">
-      <li><b>🎤</b><span>Dicta tus mensajes en español o catalán y salen bien escritos.</span></li>
+      <li><b>🎤</b><span>Dicta tus mensajes en 7 idiomas y salen bien escritos.</span></li>
       <li><b>✨</b><span>La IA corrige, ordena el saludo y la despedida, y los retoca.</span></li>
       <li><b>📤</b><span>Envíalos a WhatsApp, Telegram, SMS, correo o cualquier app.</span></li>
       <li><b>🏍️</b><span>Manos libres: órdenes de voz y botón del casco o los auriculares.</span></li>
@@ -394,6 +394,16 @@
     <div class="wsafe"><b>⚠️ Seguridad al volante</b>Con el vehículo en marcha no toques el móvil: usa la voz («enviar», «borrar todo»…), el botón del casco o detente en un lugar seguro. Respeta siempre las normas de tráfico.</div>
     <button class="btn primary" id="welcomeOk">Entendido, ¡a dictar!</button>
     <a class="wpriv" href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones</a>
+  </div>
+</div>
+
+<!-- Traducir a… -->
+<div id="trRoot">
+  <div class="scrim" id="trScrim"></div>
+  <div class="sheet" role="dialog" aria-label="Traducir a…">
+    <div class="grab"></div>
+    <h2>🌐 <span>Traducir a…</span> <button class="round" id="trClose" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></h2>
+    <div class="langs" id="trList"></div>
   </div>
 </div>
 
@@ -446,12 +456,14 @@
 
     <h3>Dictado</h3>
     <div class="group">
+      <div class="opt"><div class="lbl">Idioma de la app</div><select id="optUiLang"><option value="auto">Automático (el del móvil)</option></select></div>
+      <div class="opt"><div class="lbl">Idioma al dictar<small>Automático: en el modo Preciso detecta el idioma; en el Rápido usa el del móvil</small></div><select id="optDictLang"><option value="auto">Automático</option></select></div>
       <div class="opt"><div class="lbl">Modelo de IA<small>Para el modo Preciso</small></div>
         <select id="optModel">
           <option value="onnx-community/whisper-base">Whisper Base · rápido (~80 MB)</option>
           <option value="onnx-community/whisper-small">Whisper Small · ligero (~250 MB)</option>
           <option value="onnx-community/whisper-large-v3-turbo">Whisper Turbo · el mejor (~760 MB)</option>
-          <option value="onnx-community/cohere-transcribe-03-2026-ONNX">Cohere · solo español, ordenador (~2 GB)</option>
+          <option value="onnx-community/cohere-transcribe-03-2026-ONNX">Cohere · ordenador, sin catalán (~2 GB)</option>
           <option value="groq">☁️ Whisper Large v3 en la nube (Groq) · el mejor, sin descargas</option>
         </select></div>
       <label class="opt"><div class="lbl">Aceleración gráfica (GPU)<small>Más rápida, pero en algunos móviles cierra Chrome</small></div><span class="switch"><input type="checkbox" id="optGpu"><span></span></span></label>
@@ -462,14 +474,14 @@
       <div class="opt"><div class="lbl">Parar al dejar de hablar<small>Sin tocar la pantalla</small></div>
         <select id="optSilence"><option value="0">No</option><option value="2">Tras 2 s</option><option value="3">Tras 3 s</option><option value="5">Tras 5 s</option></select></div>
       <label class="opt"><div class="lbl">Saludo y despedida en su línea<small>«Hola Marta,» arriba, el mensaje debajo y «Un abrazo.» al final</small></div><span class="switch"><input type="checkbox" id="optFormat"><span></span></span></label>
-      <label class="opt"><div class="lbl">Puntuación por voz<small>«coma», «punto», «punto y aparte»… (modo Rápido)</small></div><span class="switch"><input type="checkbox" id="optPunct"><span></span></span></label>
+      <label class="opt"><div class="lbl">Puntuación por voz<small>«coma», «punto», «punto y aparte»… (modo Rápido, español y catalán)</small></div><span class="switch"><input type="checkbox" id="optPunct"><span></span></span></label>
       <label class="opt"><div class="lbl">Pitido y vibración<small>Al empezar y al parar</small></div><span class="switch"><input type="checkbox" id="optBeep"><span></span></span></label>
       <label class="opt"><div class="lbl">Pantalla siempre encendida<small>Mientras la app está abierta</small></div><span class="switch"><input type="checkbox" id="optAwake"><span></span></span></label>
     </div>
 
     <h3>Manos libres · coche y moto</h3>
     <div class="group">
-      <label class="opt"><div class="lbl">Órdenes por voz<small>Di «enviar», «borrar todo», «deshacer», «léelo» o «para» (en catalán: «envia», «esborra-ho tot», «desfés», «llegeix», «atura»)</small></div><span class="switch"><input type="checkbox" id="optVoiceCmd"><span></span></span></label>
+      <label class="opt"><div class="lbl">Órdenes por voz<small>Di «enviar», «borrar todo», «deshacer», «léelo» o «para»</small></div><span class="switch"><input type="checkbox" id="optVoiceCmd"><span></span></span></label>
       <label class="opt"><div class="lbl">Botón del casco o auriculares<small>El botón de reproducir/pausa del intercomunicador o los auriculares Bluetooth empieza y para el dictado (experimental)</small></div><span class="switch"><input type="checkbox" id="optHeadset"><span></span></span></label>
     </div>
 
@@ -496,8 +508,8 @@
     <h3>Ayuda</h3>
     <div class="help">
       <p><b>⚡ Rápido</b>: reconocimiento de voz de Google (Chrome). Ves el texto mientras hablas; necesita conexión.</p>
-      <p><b>🎯 Preciso</b>: Whisper (OpenAI) o Cohere Transcribe, modelos abiertos de Hugging Face que funcionan dentro del móvil. Ponen tildes y signos solos y aguantan bien el ruido del coche. La primera vez descargan el modelo (con wifi); después funcionan sin cobertura.</p>
-      <p><b>🌐 Traducir</b>: español ↔ catalán con el traductor integrado de Chrome o, si no lo hay, Opus-MT dentro del móvil. Revisa la traducción; puedes deshacerla.</p>
+      <p><b>🎯 Preciso</b>: Whisper (OpenAI) o Cohere Transcribe, modelos abiertos de Hugging Face, en el móvil o en la nube. Detectan el idioma solos, ponen tildes y signos y aguantan bien el ruido del coche. En el móvil, la primera vez descargan el modelo (con wifi) y después funcionan sin cobertura.</p>
+      <p><b>🌐 Traducir</b>: entre 7 idiomas, con la IA (Groq), el traductor integrado de Chrome u Opus-MT (español ↔ catalán) dentro del móvil. Revisa la traducción; puedes deshacerla.</p>
       <p><b>🚗 Modo conducción</b>: pantalla simple con un botón enorme. Combínalo con «Parar al dejar de hablar» y «Leer en voz alta» para no tener que mirar.</p>
       <p><b>📤 Enviar</b>: WhatsApp (botón verde), Telegram, SMS, correo, búsqueda en Google o «Más» para cualquier otra app del móvil. Los ✓✓ se ponen azules cuando lo copias o lo envías.</p>
       <p><b>🏍️ Manos libres</b>: con «Órdenes por voz», «Parar al dejar de hablar» y «Leer el texto en voz alta» puedes dictar, revisar y mandar el mensaje sin mirar. Al decir «enviar» se abre WhatsApp con el mensaje escrito; el último toque en «Enviar» de WhatsApp es tuyo, porque WhatsApp no deja que ninguna app envíe por ti.</p>
@@ -510,6 +522,7 @@
 
 <div class="toast" id="toast"></div>
 
+<script src="i18n.js"></script>
 <script src="licencia.js"></script>
 <script src="format.js"></script>
 <script>
@@ -526,7 +539,22 @@
   const NAMES = { [BASE]: 'Whisper Base', [SMALL]: 'Whisper Small', [TURBO]: 'Whisper Turbo', [COHERE]: 'Cohere', groq: 'Whisper en la nube' };
   const SMALLER = { [COHERE]: TURBO, [TURBO]: SMALL, [SMALL]: BASE };
 
-  let engine = store.get('engine', 'live'), lang = store.get('lang', 'es');
+  // ---------- idiomas ----------
+  const I = window.I18N, t = I.t;
+  const LANGS = {
+    es: { n: 'Español', sr: 'es-ES', w: 'spanish', llm: 'español' }, ca: { n: 'Català', sr: 'ca-ES', w: 'catalan', llm: 'catalán' },
+    en: { n: 'English', sr: 'en-GB', w: 'english', llm: 'inglés' }, fr: { n: 'Français', sr: 'fr-FR', w: 'french', llm: 'francés' },
+    it: { n: 'Italiano', sr: 'it-IT', w: 'italian', llm: 'italiano' }, de: { n: 'Deutsch', sr: 'de-DE', w: 'german', llm: 'alemán' },
+    pt: { n: 'Português', sr: 'pt-PT', w: 'portuguese', llm: 'portugués' },
+  };
+  // el reconocedor de Google usa la variante del móvil si coincide (en-US, pt-BR…)
+  for (const l of navigator.languages || []) { const b = l.slice(0, 2).toLowerCase(); if (LANGS[b] && /-/.test(l) && LANGS[b].sr.slice(0, 2) === b && !LANGS[b].dev) { LANGS[b].sr = l; LANGS[b].dev = 1; } }
+  I.setUi(I.pickUi(store.get('uiLang', 'auto')));
+  const ui = () => I.ui;
+  const dictPref = () => store.get('dictLang', 'auto');
+  const liveLang = () => dictPref() !== 'auto' ? dictPref() : ui();          // Google necesita saber el idioma
+  const whisperLang = () => dictPref() !== 'auto' ? dictPref() : null;        // Whisper lo detecta solo
+  let engine = store.get('engine', 'live'), lang = dictPref() !== 'auto' ? dictPref() : ui();
   let recording = false, busy = false, history = [];
 
   // ---------- segmentados con «pastilla» animada ----------
@@ -536,7 +564,7 @@
     const th = seg.querySelector('.thumb'), b = btns[i];
     th.style.width = b.offsetWidth + 'px'; th.style.transform = `translateX(${b.offsetLeft - 4}px)`;
   }
-  window.addEventListener('resize', () => { segSet($('langSeg'), lang); segSet($('modeSeg'), engine); });
+  window.addEventListener('resize', () => { segSet($('modeSeg'), engine); });
 
   // ---------- ajustes ----------
   const CHECKS = { optVoiceCmd: true, optHeadset: false, optAiFix: true, optGpu: !isMobile, optFormat: true, optPunct: true, optBeep: true, optAwake: false, optAutoCopy: true, optReadBack: false, optAutoWa: false };
@@ -579,7 +607,7 @@
     setTimeout(() => toast(`Chrome se cerró con la aceleración gráfica: la he desactivado`, 6000), 1100);
   } else if (crashed && SMALLER[crashed]) {
     store.set('model', SMALLER[crashed]);
-    setTimeout(() => toast(`${NAMES[crashed]} no cabe en este móvil: uso ${NAMES[SMALLER[crashed]]}`, 6000), 1100);
+    setTimeout(() => toast(t('{0} no cabe en este móvil: uso {1}', NAMES[crashed], NAMES[SMALLER[crashed]]), 6000), 1100);
   }
   store.set('loading', null);
   $('optModel').value = store.get('model', isMobile ? SMALL : TURBO);
@@ -614,24 +642,21 @@
   $('optGpu').addEventListener('change', () => { if (worker) { worker.terminate(); worker = null; asrReady = false; } preloadAsr(); });
   try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch {}
   const model = () => (lang === 'ca' && $('optModel').value === COHERE) ? TURBO : $('optModel').value;   // Cohere no tiene catalán
-  function checkModelLang() { if (lang === 'ca' && $('optModel').value === COHERE && engine === 'whisper') setStatus('Cohere no tiene catalán: se usará Whisper Turbo.'); }
+  function checkModelLang() { if (lang === 'ca' && $('optModel').value === COHERE && engine === 'whisper' && typeof setStatus === 'function') setStatus('Cohere no tiene catalán: se usará Whisper Turbo.'); }
 
   // ---------- idioma y modo ----------
-  function setLang(l) {
-    if (recording || busy) return;
-    lang = l; store.set('lang', l); document.documentElement.lang = l;
-    segSet($('langSeg'), l);
-    $('trLabel').textContent = l === 'es' ? 'Al catalán' : 'Al castellà';
-    text.placeholder = l === 'es' ? 'Escribe o dicta…' : 'Escriu o dicta…';
-    $('slogan').textContent = l === 'es' ? 'Tú habla, que yo escribo' : 'Tu parla, que jo escric';
-    document.querySelector('.empty-hint b').textContent = l === 'es' ? 'Pulsa el micro y habla' : 'Prem el micro i parla';
-    document.querySelector('.empty-hint span').textContent = l === 'es' ? 'Tu mensaje aparecerá aquí, bien escrito y listo para enviar.' : 'El teu missatge apareixerà aquí, ben escrit i a punt per enviar.';
-    const h = new Date().getHours(), d = new Date().toLocaleDateString(l === 'ca' ? 'ca-ES' : 'es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
-    const hi = l === 'es' ? (h < 6 ? 'Buenas noches 🌙' : h < 13 ? 'Buenos días ☀️' : h < 21 ? 'Buenas tardes 🌤️' : 'Buenas noches 🌙')
-                          : (h < 6 ? 'Bona nit 🌙' : h < 13 ? 'Bon dia ☀️' : h < 21 ? 'Bona tarda 🌤️' : 'Bona nit 🌙');
-    $('sub').textContent = hi + ' · ' + d;
-    checkModelLang();
+  // idioma del mensaje (se detecta al dictar; decide el formato, las órdenes y la IA)
+  function setLang(l) { if (!LANGS[l]) return; lang = l; checkModelLang(); }
+  function paintDay() {
+    const h = new Date().getHours(), d = new Date().toLocaleDateString(I.locale(), { weekday: 'short', day: 'numeric', month: 'short' });
+    $('sub').textContent = t(h < 6 ? 'Buenas noches 🌙' : h < 13 ? 'Buenos días ☀️' : h < 21 ? 'Buenas tardes 🌤️' : 'Buenas noches 🌙') + ' · ' + d;
   }
+  // selectores de idioma en Ajustes
+  for (const [k, v] of Object.entries(LANGS)) for (const id of ['optUiLang', 'optDictLang']) { const o = document.createElement('option'); o.value = k; o.textContent = v.n; $(id).append(o); }
+  $('optUiLang').value = store.get('uiLang', 'auto'); $('optDictLang').value = dictPref();
+  function applyUi() { I.translateDom(); paintDay(); refresh(); drawHist(); setEngine(engine); segSet($('modeSeg'), engine); }
+  $('optUiLang').onchange = () => { store.set('uiLang', $('optUiLang').value); I.setUi(I.pickUi($('optUiLang').value)); applyUi(); };
+  $('optDictLang').onchange = () => { store.set('dictLang', $('optDictLang').value); setLang(dictPref() !== 'auto' ? dictPref() : ui()); preloadAsr(); };
   function setEngine(e) {
     if (recording || busy) return;
     engine = e; store.set('engine', e); segSet($('modeSeg'), e);
@@ -639,18 +664,17 @@
     else setStatus(e === 'live' ? 'Pulsa el micrófono y habla' : 'Modo Preciso: pulsa, habla y vuelve a pulsar');
     if (e === 'whisper') { checkModelLang(); preloadAsr(); }
   }
-  $$('#langSeg button').forEach(b => b.onclick = () => setLang(b.dataset.v));
   $$('#modeSeg button').forEach(b => b.onclick = () => setEngine(b.dataset.v));
 
   // ---------- utilidades de interfaz ----------
-  function setStatus(msg, err) { status.textContent = msg; status.classList.toggle('err', !!err); $('dstatus').textContent = msg; }
-  function toast(msg, ms = 1700) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), ms); }
+  function setStatus(msg, err) { msg = t(msg); status.textContent = msg; status.classList.toggle('err', !!err); $('dstatus').textContent = msg; }
+  function toast(msg, ms = 1700) { msg = I.t(msg); const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), ms); }
   function setMic(state) {
     $('chat').classList.toggle('busy', state === 'busy');
     $$('.mic-wrap').forEach(w => { w.classList.toggle('rec-on', state === 'rec'); w.classList.toggle('busy-on', state === 'busy'); });
     for (const m of [$('mic'), $('mic2')]) {
       m.classList.toggle('rec', state === 'rec'); m.classList.toggle('busy', state === 'busy');
-      m.querySelector('.micLabel').textContent = state === 'rec' ? 'Parar' : state === 'busy' ? 'Un momento' : 'Hablar';
+      m.querySelector('.micLabel').textContent = t(state === 'rec' ? 'Parar' : state === 'busy' ? 'Un momento' : 'Hablar');
       m.setAttribute('aria-label', m.querySelector('.micLabel').textContent);
     }
   }
@@ -658,22 +682,22 @@
   function autosize() { text.style.height = 'auto'; text.style.height = (text.scrollHeight + 1) + 'px'; const sc = $('scroll'); sc.scrollTop = sc.scrollHeight; }
   addEventListener('resize', () => autosize());
   // hora del mensaje y ✓✓ (azules cuando se copia o se envía)
-  function stamp() { $('btime').textContent = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }); }
+  function stamp() { $('btime').textContent = new Date().toLocaleTimeString(I.locale(), { hour: '2-digit', minute: '2-digit' }); }
   function markSent() { $('bubble').classList.add('sent'); }
   function refresh() {
     autosize();
     const n = (text.value.trim().match(/\S+/g) || []).length;
-    $('count').textContent = n + (n === 1 ? ' palabra' : ' palabras');
+    $('count').textContent = t(n === 1 ? '{0} palabra' : '{0} palabras', n);
     const fav = store.get('favName', ''), hasTel = !!store.get('favTel', '');
-    $$('.waLabel').forEach(l => l.textContent = hasTel ? (fav ? 'A ' + fav : 'A favorito') : 'WhatsApp');
+    $$('.waLabel').forEach(l => l.textContent = hasTel ? (fav ? t('A {0}', fav) : t('A favorito')) : 'WhatsApp');
     $('wa').href = $('wa2').href = waUrl();
-    const t = encodeURIComponent(text.value.trim());
-    $('tg').href = 'https://t.me/share/url?url=' + t;
-    $('sms').href = 'sms:?&body=' + t;
-    $('mail').href = 'mailto:?body=' + t;
-    $('google').href = 'https://www.google.com/search?q=' + t;
+    const enc = encodeURIComponent(text.value.trim());
+    $('tg').href = 'https://t.me/share/url?url=' + enc;
+    $('sms').href = 'sms:?&body=' + enc;
+    $('mail').href = 'mailto:?body=' + enc;
+    $('google').href = 'https://www.google.com/search?q=' + enc;
     $('chat').classList.toggle('has-text', !!text.value.trim());
-    const d = $('dtext'); d.textContent = text.value.trim() || 'Toca el círculo y habla'; d.classList.toggle('empty', !text.value.trim());
+    const d = $('dtext'); d.textContent = text.value.trim() || t('Toca el círculo y habla'); d.classList.toggle('empty', !text.value.trim());
   }
   function setText(v, undoable = true) {
     if (undoable && v !== text.value) history.push({ v: text.value, l: lang });
@@ -711,10 +735,10 @@
     const t0 = Date.now(), tick = () => { const s = Math.floor((Date.now() - t0) / 1000); timer.textContent = '● ' + Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
     tick(); tInt = setInterval(tick, 500);
   }
-  function speak(t) {
-    if (!('speechSynthesis' in window) || !t) return;
+  function speak(say, inLang) {
+    if (!('speechSynthesis' in window) || !say) return;
     speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(t); u.lang = lang === 'ca' ? 'ca-ES' : 'es-ES'; u.rate = 1.05;
+    const u = new SpeechSynthesisUtterance(say); u.lang = LANGS[inLang || lang].sr; u.rate = 1.05;
     speechSynthesis.speak(u);
   }
   $('speak').onclick = () => { if (speechSynthesis.speaking) speechSynthesis.cancel(); else speak(text.value.trim()); };
@@ -722,11 +746,11 @@
   // ---------- orbe: barras de voz alrededor del micrófono ----------
   const waves = [$('wave'), $('wave2')];
   const NB = 56, spec = new Float32Array(NB), specT = new Float32Array(NB);
-  let level = 0, target = 0, t = 0;
+  let level = 0, target = 0, tA = 0;
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   function css(v, d) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim() || d; }
   function drawWaves() {
-    t += 0.016; level += (target - level) * 0.18;
+    tA += 0.016; level += (target - level) * 0.18;
     for (let i = 0; i < NB; i++) spec[i] += (specT[i] - spec[i]) * 0.3;
     const a1 = css('--a1', '#8b7bff'), a2 = css('--a2', '#45d4ff');
     for (const c of waves) {
@@ -740,7 +764,7 @@
         // barras radiales simétricas que siguen la voz
         for (let i = 0; i < NB; i++) {
           const k = i < NB / 2 ? i : NB - 1 - i;            // espejo: graves arriba y abajo a la vez
-          const v = Math.max(spec[k], 0.04 + 0.03 * Math.sin(t * 6 + i));
+          const v = Math.max(spec[k], 0.04 + 0.03 * Math.sin(tA * 6 + i));
           const ang = (i / NB) * Math.PI * 2 - Math.PI / 2;
           const r0 = R * 1.1, r1 = r0 + R * (0.08 + v * 0.75);
           const grad = g.createLinearGradient(cx + Math.cos(ang) * r0, cy + Math.sin(ang) * r0, cx + Math.cos(ang) * r1, cy + Math.sin(ang) * r1);
@@ -752,13 +776,13 @@
         g.beginPath(); g.arc(cx, cy, R * (1.5 + level * 0.35), 0, Math.PI * 2); g.stroke(); g.globalAlpha = 1;
       } else {
         // reposo: anillos que respiran y luces en órbita
-        const br = reduce ? 0 : Math.sin(t * 1.6) * 0.03;
+        const br = reduce ? 0 : Math.sin(tA * 1.6) * 0.03;
         for (let k = 0; k < 2; k++) {
           g.globalAlpha = 0.28 - k * 0.12; g.strokeStyle = k ? a2 : a1; g.lineWidth = (1.6 - k * .5) * dpr;
           g.beginPath(); g.arc(cx, cy, R * (1.18 + k * 0.17 + br * (k + 1)), 0, Math.PI * 2); g.stroke();
         }
         for (let k = 0; k < 7; k++) {
-          const ang = t * (0.35 + k * 0.04) + k * 0.9, rr = R * (1.25 + (k % 3) * 0.12);
+          const ang = tA * (0.35 + k * 0.04) + k * 0.9, rr = R * (1.25 + (k % 3) * 0.12);
           const x = cx + Math.cos(ang) * rr, y = cy + Math.sin(ang) * rr, sz = (1.6 + (k % 3)) * dpr;
           const gl = g.createRadialGradient(x, y, 0, x, y, sz * 4);
           gl.addColorStop(0, k % 2 ? a2 : a1); gl.addColorStop(1, 'transparent');
@@ -859,7 +883,7 @@
     ca: [[/\s*\b(punt i a part|nova l[ií]nia|nou par[aà]graf)\b\s*/gi, '.\n'], [/\s*\b(punt i seguit|punt final)\b\s*/gi, '. '], [/\s*\bpunts suspensius\b\s*/gi, '... '], [/\s*\bdos punts\b\s*/gi, ': '], [/\s*\bpunt i coma\b\s*/gi, '; '],
          [/\s*\b(signe d')?interrogant\b\s*/gi, '? '], [/\s*\b(signe d')?exclamaci[oó]\b\s*/gi, '! '], [/\s*\bpunt\b\s*/gi, '. '], [/\s*\bcoma\b\s*/gi, ', ']],
   };
-  const voiceCommands = (s) => { for (const [re, r] of CMDS[lang]) s = s.replace(re, r); return s; };
+  const voiceCommands = (s) => { for (const [re, r] of (CMDS[lang] || [])) s = s.replace(re, r); return s; };
   function tidy(s, live) {
     s = s.replace(/[ \t]+/g, ' ').replace(/ +([,.;:?!…])/g, '$1').replace(/([,;:])(?=[a-zà-ÿ¿¡])/gi, '$1 ')
          .replace(/\.{2,}\s*\./g, '...').replace(/([.?!])\s*\./g, '$1').replace(/,\s*([.?!])/g, '$1').replace(/\n /g, '\n').replace(/^ +| +$/g, '');
@@ -878,10 +902,10 @@
   function endSentence() { const v = text.value.replace(/\s+$/, ''); if (v && !/[.?!…:;,]$/.test(v)) setText(v + '.'); }
   // ---------- IA de texto en Groq: corregir, retocar y traducir ----------
   const hasKey = () => !!store.get('groqKey', '');
-  const LANGNAME = { es: 'español', ca: 'catalán' };
+  const LANGNAME = Object.fromEntries(Object.entries(LANGS).map(([k, v]) => [k, v.llm]));
   const LLMS = [['openai/gpt-oss-120b', 'low'], ['qwen/qwen3.8-27b', 'none']];
   async function groqChat(system, user) {
-    const key = store.get('groqKey', ''); if (!key) throw new Error('Falta la clave de Groq');
+    const key = store.get('groqKey', ''); if (!key) throw new Error('Falta la clave de Groq: ponla en Ajustes.');
     let last = null;
     for (const [m, effort] of LLMS) {
       const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), 20000);
@@ -891,13 +915,13 @@
           body: JSON.stringify({ model: m, temperature: 0.2, reasoning_effort: effort, max_tokens: Math.min(1800, 400 + user.length * 2),
             messages: [{ role: 'system', content: system }, { role: 'user', content: user }] }) });
         const d = await res.json().catch(() => ({}));
-        if (!res.ok) { last = new Error(res.status === 401 ? 'La clave de Groq no es válida' : res.status === 429 ? 'Límite gratuito de Groq alcanzado' : ((d.error && d.error.message) || 'Error ' + res.status)); if (res.status === 401) break; continue; }
+        if (!res.ok) { last = new Error(res.status === 401 ? 'La clave de Groq no es válida.' : res.status === 429 ? 'Límite gratuito de Groq alcanzado: prueba en un rato.' : ((d.error && d.error.message) || 'Error ' + res.status)); if (res.status === 401) break; continue; }
         const out = ((d.choices && d.choices[0] && d.choices[0].message && d.choices[0].message.content) || '').replace(/<think>[\s\S]*?<\/think>/g, '').trim().replace(/^["«“]([\s\S]*)["»”]$/, '$1');
         if (out) return out;
       } catch (e) { last = e.name === 'AbortError' ? new Error('Groq no responde') : e; }
       finally { clearTimeout(to); }
     }
-    throw last || new Error('Sin respuesta');
+    throw last || new Error('Groq no responde');
   }
   const vocab = () => store.get('vocab', '');
   const KEEP = 'Mantén el saludo, el mensaje y la despedida en líneas separadas si las hay. No respondas al mensaje: devuelve SOLO el texto, sin comillas ni explicaciones.';
@@ -919,13 +943,13 @@
     btn && btn.classList.add('work'); if (!auto) setStatus('✨ Retocando con IA…'); else setStatus('✨ Puliendo con IA…');
     try {
       let out = await groqChat(PROMPTS[act](lang), v);
-      if (act === 'fix' && (out.length > v.length * 1.6 + 20 || out.length < v.length * 0.5)) throw new Error('respuesta descartada');
+      if (act === 'fix' && (out.length > v.length * 1.6 + 20 || out.length < v.length * 0.5)) throw new Error('La IA cambió demasiado el texto');
       if (vocab()) out = DictadoFormat.fixVocab(out, vocab());
       if (on('optFormat') && act !== 'emoji') out = DictadoFormat.formatMessage(out, lang);
       if (out !== v) { setText(out); if (!auto) confetti(btn || $('copy')); }
-      setStatus(auto ? 'Listo ✓' : '✨ ' + LABELS[act] + '. «Deshacer» para volver.');
+      setStatus(auto ? 'Listo ✓' : t('✨ {0}. «Deshacer» para volver.', t(LABELS[act])));
       return true;
-    } catch (e) { setStatus((auto ? 'Sin corregir: ' : '') + e.message, !auto); return false; }
+    } catch (e) { setStatus(auto ? t('Sin corregir: {0}', t(e.message)) : t(e.message), !auto); return false; }
     finally { btn && btn.classList.remove('work'); }
   }
   $$('#magic [data-act]').forEach(b => b.onclick = () => magic(b.dataset.act, b));
@@ -949,9 +973,18 @@
           undo: /^(deshacer|deshaz|borra eso|borra lo [uú]ltimo)$/, read: /^(l[eé]e(lo)?|leer|l[eé]emelo)$/, stop: /^(para|parar|stop|terminar|termina|listo|ya est[aá])$/ },
     ca: { send: /^(envia(-ho|'l|-l)?|enviar|envia el missatge)$/, clear: /^(esborra(-ho)? tot|esborrar tot|comença de nou)$/,
           undo: /^(desf[eé]s|desfer|esborra aix[oò])$/, read: /^(llegeix(-ho|-m'ho)?|llegir)$/, stop: /^(para|atura|aturar|prou|llest|ja est[aà])$/ },
+    en: { send: /^(send|send it|send message|send the message)$/, clear: /^(delete all|delete everything|clear all|start over)$/, undo: /^(undo|delete that|scratch that)$/, read: /^(read|read it|read it back|read it out)$/, stop: /^(stop|done|finish|that's it)$/ },
+    fr: { send: /^(envoie|envoyer|envoie-le|envoie le message)$/, clear: /^(efface tout|tout effacer|recommence)$/, undo: /^(annule|annuler|efface ça)$/, read: /^(lis|lis-le|lire|relis)$/, stop: /^(stop|arrête|terminé|c'est tout)$/ },
+    it: { send: /^(invia|invialo|manda|mandalo|invia il messaggio)$/, clear: /^(cancella tutto|ricomincia)$/, undo: /^(annulla|cancella quello)$/, read: /^(leggi|leggilo|rileggi)$/, stop: /^(stop|basta|fine|ferma)$/ },
+    de: { send: /^(senden|schicken|abschicken|nachricht senden)$/, clear: /^(alles löschen|von vorne)$/, undo: /^(rückgängig|lösch das)$/, read: /^(vorlesen|lies vor|lies es vor)$/, stop: /^(stopp|stop|fertig|ende)$/ },
+    pt: { send: /^(enviar|envia|manda|envia a mensagem)$/, clear: /^(apagar tudo|apaga tudo|começar de novo)$/, undo: /^(desfazer|desfaz|apaga isso)$/, read: /^(ler|lê|lê isso)$/, stop: /^(parar|pára|pronto|terminar)$/ },
   };
   const normCmd = (x) => x.toLowerCase().replace(/[¿¡.,!?;:"«»]/g, '').replace(/\s+/g, ' ').trim();
-  function matchCmd(x) { const n = normCmd(x); for (const [k, re] of Object.entries(CMDS_VOICE[lang])) if (re.test(n)) return k; return null; }
+  function matchCmd(x) {
+    const n = normCmd(x), order = [lang, ui(), ...Object.keys(CMDS_VOICE)];
+    for (const l of order) for (const [k, re] of Object.entries(CMDS_VOICE[l] || {})) if (re.test(n)) return k;
+    return null;
+  }
   // devuelve el texto sin la orden y la orden («… Un abrazo. Enviar.» → «… Un abrazo.» + enviar)
   function splitCommand(raw) {
     if (!on('optVoiceCmd') || !raw) return { text: raw, cmd: null };
@@ -961,18 +994,19 @@
     return { text: raw, cmd: null };
   }
   let pendingSend = false;
-  const SAY = { es: { clear: 'Borrado', undo: 'Deshecho', send: 'Abriendo WhatsApp', empty: 'No hay nada que enviar' }, ca: { clear: 'Esborrat', undo: 'Desfet', send: 'Obrint WhatsApp', empty: 'No hi ha res per enviar' } };
+  const SAY = { clear: 'Borrado', undo: 'Deshecho', send: 'Abriendo WhatsApp', empty: 'No hay nada que enviar' };
+  const say = (k) => speak(t(SAY[k]), ui());
   function runCmd(cmd) {
     if (cmd === 'send') { pendingSend = true; if (recording) stop(); else doSend(); return; }
     if (cmd === 'stop') { if (recording) stop(); return; }
-    if (cmd === 'clear') { if (text.value) { saveHist(); setText(''); } speak(SAY[lang].clear); toast('🗑️ ' + SAY[lang].clear); return; }
-    if (cmd === 'undo') { $('undo').click(); speak(SAY[lang].undo); return; }
+    if (cmd === 'clear') { if (text.value) { saveHist(); setText(''); } say('clear'); toast('🗑️ ' + t('Borrado')); return; }
+    if (cmd === 'undo') { $('undo').click(); say('undo'); return; }
     if (cmd === 'read') { speak(text.value.trim()); }
   }
   function doSend() {
     pendingSend = false;
-    if (!text.value.trim()) { speak(SAY[lang].empty); return; }
-    saveHist(); markSent(); speak(SAY[lang].send);
+    if (!text.value.trim()) { say('empty'); return; }
+    saveHist(); markSent(); say('send');
     const url = waUrl();
     setTimeout(() => { const w = window.open(url, '_blank'); if (!w) location.href = url; }, 700);
   }
@@ -1011,7 +1045,7 @@
     if (!LIC || !LIC.enabled) return;
     $('licRow').hidden = false;
     LIC.deviceCode().then(c => {
-      $('licInfo').textContent = (r.name ? r.name + ' · ' : '') + (r.expires ? 'válida hasta el ' + r.expires.toLocaleDateString('es-ES') : 'sin caducidad') + ' · móvil ' + c;
+      $('licInfo').textContent = (r.name ? r.name + ' · ' : '') + (r.expires ? t('válida hasta el {0}', r.expires.toLocaleDateString(I.locale())) : t('sin caducidad')) + ' · ' + t('móvil {0}', c);
     });
   }
   async function showLock(reason) {
@@ -1019,22 +1053,22 @@
     $('welcome').hidden = true; $('lock').hidden = false;
     const code = await LIC.deviceCode();
     $('devCode').textContent = code;
-    $('licMsg').textContent = reason || ''; $('licMsg').className = '';
-    $('licBuy').href = 'https://wa.me/' + (LIC.SELLER_WHATSAPP || '') + '?text=' + encodeURIComponent('Hola, quiero activar Perezapp. El código de mi móvil es: ' + code);
+    $('licMsg').textContent = !reason ? '' : typeof reason === 'object' ? (reason.reason ? t(reason.reason, ...(reason.args || [])) : '') : t(reason); $('licMsg').className = '';
+    $('licBuy').href = 'https://wa.me/' + (LIC.SELLER_WHATSAPP || '') + '?text=' + encodeURIComponent(t('Hola, quiero activar Perezapp. El código de mi móvil es: {0}', code));
   }
   function unlocked(r, fromUser) {
     licensed = true; $('lock').hidden = true; licInfo(r);
-    if (fromUser) { toast('✓ Perezapp activada' + (r.name ? ' · ' + r.name : ''), 4000); confetti($('mic')); }
+    if (fromUser) { toast(t('✓ Perezapp activada') + (r.name ? ' · ' + r.name : ''), 4000); confetti($('mic')); }
     if (!store.get('welcomed', false)) $('welcome').hidden = false;
   }
   $('copyDev').onclick = async () => { try { await navigator.clipboard.writeText($('devCode').textContent); toast('✓ Código copiado'); } catch { toast('Mantén pulsado el código para copiarlo', 2500); } };
   $('licGo').onclick = async () => {
     const k = $('licInput').value.trim();
-    if (!k) { $('licMsg').textContent = 'Pega primero tu clave.'; return; }
+    if (!k) { $('licMsg').textContent = t('Pega primero tu clave.'); return; }
     $('licGo').disabled = true;
     const r = await LIC.activate(k);
     $('licGo').disabled = false;
-    if (r.ok) unlocked(r, true); else { $('licMsg').textContent = r.reason; $('licMsg').className = ''; }
+    if (r.ok) unlocked(r, true); else { $('licMsg').textContent = t(r.reason, ...(r.args || [])); $('licMsg').className = ''; }
   };
   async function licenseGate() {
     if (licensed) return;
@@ -1043,10 +1077,10 @@
       window.history.replaceState(null, '', location.pathname + location.search);
       const r = await LIC.activate(m[1]);
       if (r.ok) { unlocked(r, true); return; }
-      showLock(r.reason); return;
+      showLock(r); return;
     }
     const r = await LIC.check();
-    if (r.ok) unlocked(r, false); else showLock(r.reason);
+    if (r.ok) unlocked(r, false); else showLock(r);
   }
 
   // ---------- bienvenida ----------
@@ -1061,13 +1095,13 @@
   function saveHist() { const v = text.value.trim(); if (!v) return; hist = [{ t: v, d: Date.now() }, ...hist.filter(h => h.t !== v)].slice(0, 30); store.set('hist', hist); drawHist(); }
   function drawHist() {
     const ul = $('hist'); ul.textContent = ''; $('histN').textContent = hist.length || '';
-    if (!hist.length) { const li = document.createElement('li'); li.className = 'empty'; li.textContent = 'Aquí aparecerán los mensajes que copies o envíes.'; ul.append(li); return; }
+    if (!hist.length) { const li = document.createElement('li'); li.className = 'empty'; li.textContent = t('Aquí aparecerán los mensajes que copies o envíes.'); ul.append(li); return; }
     for (const h of hist) {
       const li = document.createElement('li'), w = document.createElement('div'); w.className = 't';
       const sp = document.createElement('span'); sp.textContent = h.t;
-      const sm = document.createElement('small'); sm.textContent = new Date(h.d).toLocaleString('es-ES', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+      const sm = document.createElement('small'); sm.textContent = new Date(h.d).toLocaleString(I.locale(), { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
       w.append(sp, sm);
-      const b = document.createElement('button'); b.className = 'chip'; b.textContent = 'Usar';
+      const b = document.createElement('button'); b.className = 'chip'; b.textContent = t('Usar');
       b.onclick = () => { setText(h.t); $('histRoot').classList.remove('open'); toast('Recuperado'); };
       li.append(w, b); ul.append(li);
     }
@@ -1104,7 +1138,7 @@
   $('histClose').onclick = $('histScrim').onclick = () => $('histRoot').classList.remove('open');
   $('setBtn').onclick = () => openSheet(true); $('setClose').onclick = $('scrim').onclick = () => openSheet(false);
   async function storageInfo() {
-    try { const e = await navigator.storage.estimate(); $('storeInfo').textContent = 'Ocupan unos ' + Math.round((e.usage || 0) / 1048576) + ' MB en el móvil'; } catch {}
+    try { const e = await navigator.storage.estimate(); $('storeInfo').textContent = t('Ocupan unos {0} MB en el móvil', Math.round((e.usage || 0) / 1048576)); } catch {}
   }
   $('delModels').onclick = async () => {
     try { for (const k of await caches.keys()) await caches.delete(k); } catch {}
@@ -1121,7 +1155,7 @@
   function startLive() {
     if (!SR) { stop(); setStatus('Este navegador no tiene el modo Rápido. Usa Chrome, o el modo Preciso.', true); return; }
     rec = new SR();
-    rec.lang = lang === 'ca' ? 'ca-ES' : 'es-ES';
+    setLang(liveLang()); rec.lang = LANGS[lang].sr;
     rec.interimResults = true;
     rec.continuous = !isAndroid;   // en Android el modo continuo repite frases: una frase por sesión y se reinicia sola
     let done = 0; liveLast = ''; lastVoice = Date.now(); heardVoice = false;
@@ -1149,7 +1183,7 @@
       for (let i = 0; i < NB / 2; i++) specT[i] = talking ? Math.random() * (1 - i / NB) * 0.9 : 0.02;
       checkSilence();
     }, 110);
-    setStatus(lang === 'ca' ? 'T\'escolto… parla amb normalitat' : 'Escuchando… habla con normalidad');
+    setStatus('Escuchando… habla con normalidad');
   }
   let liveSilenceTimer = 0;
   function stopLive() { clearInterval(liveSilenceTimer); target = 0; specT.fill(0); const r = rec; rec = null; if (r) { r.onend = null; try { r.stop(); } catch {} } interim.textContent = ''; }
@@ -1161,11 +1195,12 @@
     worker = new Worker('worker.js', { type: 'module' });
     worker.onmessage = ({ data }) => {
       if (model() === 'groq' && /progress|ready|status/.test(data.type)) { bar.style.display = 'none'; return; }
-      if (data.type === 'progress') { bar.style.display = 'block'; barFill.style.width = data.pct + '%'; setStatus(`${data.kind === 'tr' ? 'Descargando el traductor' : 'Descargando ' + NAMES[model()]} (solo la primera vez): ${data.pct}% de ${data.mb} MB`); }
-      if (data.type === 'status') setStatus(data.text);
-      if (data.type === 'ready') { asrReady = true; loadingModel = null; store.set('loading', null); bar.style.display = 'none'; if (!busy && !recording) setStatus(NAMES[model()] + ' listo' + (data.gpu ? ' (GPU)' : '') + '. Pulsa y habla.'); }
+      if (data.type === 'progress') { bar.style.display = 'block'; barFill.style.width = data.pct + '%'; setStatus(data.kind === 'tr' ? t('Descargando el traductor (solo la primera vez): {0}% de {1} MB', data.pct, data.mb) : t('Descargando {0} (solo la primera vez): {1}% de {2} MB', NAMES[model()], data.pct, data.mb)); }
+      if (data.type === 'status') setStatus(t(data.key || data.text, ...(data.args || [])));
+      if (data.type === 'ready') { asrReady = true; loadingModel = null; store.set('loading', null); bar.style.display = 'none'; if (!busy && !recording) setStatus(t(data.gpu ? '{0} listo (GPU). Pulsa y habla.' : '{0} listo. Pulsa y habla.', NAMES[model()])); }
       if (data.type === 'result') {
         busy = false; setMic('idle'); loadingModel = null; store.set('loading', null);
+        detectFrom(data.text);
         const { text: said, cmd } = splitCommand(data.text || '');
         if (cmd === 'send') pendingSend = true;
         if (said) { const before = text.value; finishChunk(said, true); setStatus('Listo ✓'); afterDictation(text.value.slice(before.length).trim()); }
@@ -1173,8 +1208,8 @@
         else if (!cmd) setStatus('No se ha entendido nada. Prueba otra vez.', true);
         if (cmd && cmd !== 'send' && cmd !== 'stop') runCmd(cmd);
       }
-      if (data.type === 'translated') { busy = false; setMic('idle'); bar.style.display = 'none'; setText(data.text); setLang(lang === 'es' ? 'ca' : 'es'); setStatus('Traducido. «Deshacer» para volver al original.'); }
-      if (data.type === 'error') { busy = false; setMic('idle'); bar.style.display = 'none'; loadingModel = null; store.set('loading', null); setStatus('Error: ' + data.text, true); }
+      if (data.type === 'translated') { busy = false; setMic('idle'); bar.style.display = 'none'; setLang(trTarget); setText(on('optFormat') ? DictadoFormat.formatMessage(data.text, trTarget) : data.text); setStatus('Traducido. «Deshacer» para volver al original.'); }
+      if (data.type === 'error') { busy = false; setMic('idle'); bar.style.display = 'none'; loadingModel = null; store.set('loading', null); setStatus(t('Error: {0}', data.text), true); }
     };
     return worker;
   }
@@ -1185,6 +1220,7 @@
   function loadMsg(extra) { if (!asrReady) { loadingModel = model(); store.set('loading', loadingModel); store.set('loadingGpu', on('optGpu')); } return { model: model(), mobile: isMobile, gpu: on('optGpu'), ...extra }; }
   function preloadAsr() { if (engine === 'whisper' && model() !== 'groq') { asrReady = false; getWorker().postMessage({ type: 'load', ...loadMsg() }); } }
 
+  function detectFrom(x) { if (!whisperLang()) { const d = DictadoFormat.detectLang(x); if (d) setLang(d); } }
   // Whisper Large v3 en Groq (gratis con clave). El audio va a Groq; la clave solo está en este móvil.
   async function cloudTranscribe(blob, mime) {
     const key = store.get('groqKey', '');
@@ -1196,22 +1232,23 @@
       const fd = new FormData();
       fd.append('file', blob, 'audio.' + ((mime || '').includes('mp4') ? 'mp4' : (mime || '').includes('ogg') ? 'ogg' : 'webm'));
       fd.append('model', 'whisper-large-v3');
-      fd.append('language', lang);
+      if (whisperLang()) fd.append('language', whisperLang());
       fd.append('response_format', 'json');
       fd.append('temperature', '0');
       if (vocab()) fd.append('prompt', vocab());
       const res = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', { method: 'POST', headers: { Authorization: 'Bearer ' + key }, body: fd });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) { done(res.status === 401 ? 'La clave de Groq no es válida.' : res.status === 429 ? 'Groq: límite gratuito alcanzado, prueba en un rato.' : 'Error de Groq: ' + ((data.error && data.error.message) || res.status), true); return; }
+      if (!res.ok) { done(res.status === 401 ? 'La clave de Groq no es válida.' : res.status === 429 ? 'Límite gratuito de Groq alcanzado: prueba en un rato.' : t('Error de Groq: {0}', (data.error && data.error.message) || res.status), true); return; }
       done();
-      const t = (data.text || '').trim();
-      const { text: said, cmd } = splitCommand(t);
+      const heard = (data.text || '').trim();
+      detectFrom(heard);
+      const { text: said, cmd } = splitCommand(heard);
       if (cmd === 'send') pendingSend = true;
       if (said) { const before = text.value; finishChunk(said, true); setStatus('Listo ✓'); afterDictation(text.value.slice(before.length).trim()); }
       else if (cmd === 'send') doSend();
       else if (!cmd) setStatus('No se ha entendido nada. Prueba otra vez.', true);
       if (cmd && cmd !== 'send' && cmd !== 'stop') runCmd(cmd);
-    } catch (e) { done('No se pudo conectar con Groq: ' + e.message, true); }
+    } catch (e) { done(t('No se pudo conectar con Groq: {0}', e.message), true); }
   }
 
   async function startAI() {
@@ -1226,21 +1263,21 @@
     mr.onstop = async () => {
       meterStop(true);
       const blob = new Blob(chunks, { type: mr.mimeType });
-      if (!heardVoice) { setStatus(lang === 'ca' ? 'No s\'ha sentit res. Torna-ho a provar.' : 'No se ha oído nada. Prueba otra vez.', true); return; }
+      if (!heardVoice) { setStatus('No se ha oído nada. Prueba otra vez.', true); return; }
       busy = true; setMic('busy');
       if (model() === 'groq') { cloudTranscribe(blob, mr.mimeType); return; }
-      setStatus(asrReady ? 'Transcribiendo…' : 'Preparando ' + NAMES[model()] + '…');
+      setStatus(asrReady ? 'Transcribiendo…' : t('Preparando {0}…', NAMES[model()]));
       try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
         const buf = await ctx.decodeAudioData(await blob.arrayBuffer());
         const audio = buf.getChannelData(0).slice(); ctx.close();
         if (audio.length < 16000 * 0.4) { busy = false; setMic('idle'); setStatus('Grabación demasiado corta', true); return; }
-        getWorker().postMessage({ type: 'transcribe', audio, lang, ...loadMsg() }, [audio.buffer]);
-      } catch (e) { busy = false; setMic('idle'); setStatus('No se pudo leer el audio: ' + e.message, true); }
+        getWorker().postMessage({ type: 'transcribe', audio, wlang: whisperLang() ? LANGS[whisperLang()].w : null, clang: whisperLang() || (lang === 'ca' ? 'es' : lang), ...loadMsg() }, [audio.buffer]);
+      } catch (e) { busy = false; setMic('idle'); setStatus(t('No se pudo leer el audio: {0}', e.message), true); }
     };
     mr.start(1000);
     meterStart(stream);
-    setStatus(lang === 'ca' ? 'Gravant… prem un altre cop quan acabis' : 'Grabando… pulsa otra vez cuando acabes');
+    setStatus('Grabando… pulsa otra vez cuando acabes');
   }
 
   // ---------- traducir ----------
@@ -1251,7 +1288,7 @@
       const av = await limit(Translator.availability({ sourceLanguage: src, targetLanguage: tgt }), 4000);
       if (av === 'unavailable') return null;
       const tr = await limit(Translator.create({ sourceLanguage: src, targetLanguage: tgt, monitor(m) {
-        m.addEventListener('downloadprogress', (e) => setStatus('Descargando el traductor de Chrome: ' + Math.round(e.loaded * 100) + '%'));
+        m.addEventListener('downloadprogress', (e) => setStatus(t('Descargando el traductor de Chrome: {0}%', Math.round(e.loaded * 100))));
       } }), av === 'available' ? 8000 : 90000);
       const out = [];
       for (const line of v.split('\n')) out.push(line.trim() ? await limit(tr.translate(line), 15000) : '');
@@ -1259,18 +1296,31 @@
       return out.join('\n');
     } catch { return null; }
   }
+  let trTarget = 'es';
   $('translate').onclick = () => {
-    const v = text.value.trim();
-    if (!v) { toast('No hay texto'); return; }
+    if (!text.value.trim()) { toast('No hay texto'); return; }
     if (recording || busy) return;
-    busy = true; setMic('busy'); setStatus('Traduciendo…');
-    const [src, tgt] = lang === 'es' ? ['es', 'ca'] : ['ca', 'es'];
+    const src = DictadoFormat.detectLang(text.value) || lang, list = $('trList'); list.textContent = '';
+    const order = [ui(), ...Object.keys(LANGS)].filter((v, i, a) => a.indexOf(v) === i && v !== src);
+    for (const k of order) {
+      const b = document.createElement('button'); b.innerHTML = '<b></b><span></span>';
+      b.querySelector('b').textContent = k.toUpperCase(); b.querySelector('span').textContent = LANGS[k].n;
+      b.onclick = () => { $('trRoot').classList.remove('open'); translateTo(src, k); };
+      list.append(b);
+    }
+    $('trRoot').classList.add('open');
+  };
+  $('trClose').onclick = $('trScrim').onclick = () => $('trRoot').classList.remove('open');
+  function translateTo(src, tgt) {
+    const v = text.value.trim();
+    busy = true; setMic('busy'); setStatus('Traduciendo…'); trTarget = tgt;
     const viaAI = hasKey() && navigator.onLine ? groqChat(PROMPTS.tr(src, tgt), v).catch(() => null) : Promise.resolve(null);
     viaAI.then((ai) => ai || nativeTranslate(src, tgt, v)).then((out) => {
-      if (out) { busy = false; setMic('idle'); setText(on('optFormat') ? DictadoFormat.formatMessage(out, tgt) : out); setLang(tgt); setStatus('Traducido. «Deshacer» para volver al original.'); }
-      else getWorker().postMessage({ type: 'translate', dir: src + '-' + tgt, text: v });
+      if (out) { busy = false; setMic('idle'); setLang(tgt); setText(on('optFormat') ? DictadoFormat.formatMessage(out, tgt) : out); setStatus('Traducido. «Deshacer» para volver al original.'); }
+      else if ((src === 'es' && tgt === 'ca') || (src === 'ca' && tgt === 'es')) getWorker().postMessage({ type: 'translate', dir: src + '-' + tgt, text: v });
+      else { busy = false; setMic('idle'); setStatus(t('Para traducir a {0} activa la IA (gratis)', LANGS[tgt].n), true); }
     });
-  };
+  }
 
   // ---------- botón principal ----------
   function start() {
@@ -1288,6 +1338,7 @@
   }
   $('mic').onclick = $('mic2').onclick = () => recording ? stop() : start();
 
+  I.translateDom(); paintDay(); refresh(); drawHist();
   requestAnimationFrame(() => { setLang(lang); setEngine(engine); keepAwake(); });
   setTimeout(() => $('splash').classList.add('gone'), reduce ? 0 : 1300);
 })();
