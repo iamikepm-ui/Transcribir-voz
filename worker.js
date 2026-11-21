@@ -29,7 +29,7 @@ function progressReporter(kind) {
   };
 }
 
-async function loadAsr(model) {
+async function loadAsr(model, mobile) {
   const { pipeline } = await lib();
   const gpu = await hasWebGPU();
   const key = model + (gpu ? ':gpu' : ':wasm');
@@ -43,7 +43,8 @@ async function loadAsr(model) {
     try {
       asr = await pipeline('automatic-speech-recognition', model, {
         device: 'webgpu', progress_callback,
-        dtype: cohere ? 'q4f16' : { encoder_model: big ? 'fp16' : 'fp32', decoder_model_merged: 'q4' },
+        // en móvil, Turbo comprimido (q4, ~760 MB): la versión fp16 (~1,6 GB) hace que Chrome se quede sin memoria
+        dtype: cohere ? 'q4f16' : { encoder_model: big ? (mobile ? 'q4' : 'fp16') : 'fp32', decoder_model_merged: 'q4' },
       });
     } catch { asr = null; }
   }
@@ -52,7 +53,7 @@ async function loadAsr(model) {
     asr = await pipeline('automatic-speech-recognition', model, {
       device: 'wasm', progress_callback,
       // en CPU el decodificador cuantizado de Cohere no funciona (GatherBlockQuantized): fp16
-      dtype: cohere ? { encoder_model: 'q4', decoder_model_merged: 'fp16' } : 'q8',
+      dtype: cohere ? { encoder_model: 'q4', decoder_model_merged: 'fp16' } : (big && mobile ? { encoder_model: 'q4', decoder_model_merged: 'q4' } : 'q8'),
     });
   }
   asrKey = key;
@@ -78,9 +79,9 @@ async function translate(dir, text) {
 
 onmessage = async ({ data }) => {
   try {
-    if (data.type === 'load') await loadAsr(data.model);
+    if (data.type === 'load') await loadAsr(data.model, data.mobile);
     if (data.type === 'transcribe') {
-      await loadAsr(data.model);
+      await loadAsr(data.model, data.mobile);
       postMessage({ type: 'status', text: 'Transcribiendo…' });
       const out = /cohere/.test(data.model)
         ? await asr(data.audio, { language: data.lang, max_new_tokens: 1024 })
