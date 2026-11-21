@@ -419,7 +419,7 @@
     <button class="btn primary" id="licGo">Activar</button>
     <a class="btn ghost" id="licBuy" href="https://wa.me/" target="_blank" rel="noopener">💬 Pedir mi clave</a>
     <a class="wpriv" href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones</a>
-    <small class="wver">v2026.11.21-10</small>
+    <small class="wver">v2026.11.21-11</small>
   </div>
 </div>
 
@@ -563,16 +563,16 @@
       <p>⚠️ Con el vehículo en marcha no manipules el móvil: usa la voz o el botón del casco, o detente en un lugar seguro. Respeta siempre las normas de tráfico.</p>
       <p>Consejo: menú ⋮ de Chrome → «Añadir a pantalla de inicio».</p>
       <p><a href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones de uso</a></p>
-      <p style="opacity:.6">PerezApp v2026.11.21-10</p>
+      <p style="opacity:.6">PerezApp v2026.11.21-11</p>
     </div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
-<script src="i18n.js?v=2026.11.21-10"></script>
-<script src="licencia.js?v=2026.11.21-10"></script>
-<script src="format.js?v=2026.11.21-10"></script>
+<script src="i18n.js?v=2026.11.21-11"></script>
+<script src="licencia.js?v=2026.11.21-11"></script>
+<script src="format.js?v=2026.11.21-11"></script>
 <script>
 (() => {
   const $ = (id) => document.getElementById(id);
@@ -979,7 +979,7 @@
   const cloud = () => !!(API && PZ.enabled && licensed);
   const hasKey = () => cloud() || !!store.get('groqKey', '');
   // errores del servidor de PerezApp
-  const LIC_REASON = { invalid: 'La clave no es válida.', device: 'Esta clave es para otro móvil.', expired: 'La licencia caducó el {0}.', revoked: 'Esta licencia ha sido anulada.' };
+  const LIC_REASON = { invalid: 'La clave no es válida: no la ha creado el generador de esta app o está mal copiada.', device: 'Esta clave es para otro móvil.', expired: 'La licencia ha caducado.', revoked: 'Esta licencia ha sido anulada.', devices: 'Esta licencia ya se está usando en otros móviles.' };
   async function apiFetch(path, init) {
     let res;
     try { res = await fetch(API + path, { ...init, headers: { ...(init.headers || {}), ...(await PZ.headers()) } }); }
@@ -987,7 +987,12 @@
     const d = await res.json().catch(() => ({}));
     if (res.ok) return d;
     const code = d.error && d.error.code;
-    if (res.status === 401 && code === 'license') { const why = d.error.reason; LIC.check().then((r) => showLock(r.ok ? LIC_REASON[why] || '' : r)); throw new Error(LIC_REASON[why] || 'La clave no es válida.'); }
+    if (res.status === 401 && code === 'license') {
+      const why = d.error.reason;
+      if (why === 'revoked' || why === 'expired') { serverLicense(); throw new Error(LIC_REASON[why]); }
+      throw new Error(LIC_REASON[why] || LIC_REASON.invalid);       // la app sigue funcionando con los modos del móvil
+    }
+    if (res.status === 429 && code === 'slow_down') throw new Error('Demasiadas peticiones seguidas: espera un minuto.');
     if (res.status === 429) throw new Error('Has llegado al límite diario de tu licencia. Vuelve mañana.');
     if (res.status === 503) throw new Error('La nube está saturada: prueba en un momento.');
     throw new Error(t('No se pudo conectar con la nube: {0}', res.status));
@@ -1162,8 +1167,18 @@
     $('licMsg').textContent = !reason ? '' : typeof reason === 'object' ? (reason.reason ? t(reason.reason, ...(reason.args || [])) : '') : t(reason); $('licMsg').className = '';
     $('licBuy').href = 'https://wa.me/' + (LIC.SELLER_WHATSAPP || '') + '?text=' + encodeURIComponent(t('Hola, quiero activar PerezApp. El código de mi móvil es: {0}', code));
   }
+  // al abrir la app con internet, el servidor confirma la licencia (anulaciones y caducidad con su fecha, no la del móvil)
+  async function serverLicense() {
+    if (!LIC || !LIC.enabled || !LIC.serverCheck) return;
+    const s = await LIC.serverCheck();
+    if (!s || s.ok) return;
+    if (s.reason === 'revoked') showLock('Esta licencia ha sido anulada.');
+    else if (s.reason === 'expired') showLock(s.expires ? { reason: 'La licencia caducó el {0}.', args: [new Date(s.expires + 'T12:00:00Z').toLocaleDateString(I.locale())] } : 'La licencia ha caducado.');
+    else if (s.reason === 'devices' && store.get('model', '') === 'pzcloud') toast(LIC_REASON.devices, 5000);
+  }
   function unlocked(r, fromUser) {
     licensed = true; $('lock').hidden = true; licInfo(r);
+    if (navigator.onLine) serverLicense(); else addEventListener('online', serverLicense, { once: true });
     if (fromUser) { toast(t('✓ PerezApp activada') + (r.name ? ' · ' + r.name : ''), 4000); confetti($('mic')); }
     if (!store.get('welcomed', false)) $('welcome').hidden = false;
   }
@@ -1300,7 +1315,7 @@
   let worker = null, mediaRec = null, chunks = [], asrReady = false;
   function getWorker() {
     if (worker) return worker;
-    worker = new Worker('worker.js?v=2026.11.21-10', { type: 'module' });
+    worker = new Worker('worker.js?v=2026.11.21-11', { type: 'module' });
     worker.onmessage = ({ data }) => {
       if (model() === 'groq' && /progress|ready|status/.test(data.type)) { bar.style.display = 'none'; return; }
       if (data.type === 'progress') { bar.style.display = 'block'; barFill.style.width = data.pct + '%'; setStatus(data.kind === 'tr' ? t('Descargando el traductor (solo la primera vez): {0}% de {1} MB', data.pct, data.mb) : t('Descargando {0} (solo la primera vez): {1}% de {2} MB', NAMES[offlinePrep || model()], data.pct, data.mb)); }

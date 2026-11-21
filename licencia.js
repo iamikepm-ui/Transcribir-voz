@@ -88,11 +88,11 @@
       const pub = await crypto.subtle.importKey('raw', b64u(PUBLIC_KEY), { name: 'ECDSA', namedCurve: 'P-256' }, false, ['verify']);
       good = await crypto.subtle.verify({ name: 'ECDSA', hash: 'SHA-256' }, pub, sig, payload);
     } catch { good = false; }
-    if (!good) return { ok: false, reason: 'La clave no es válida.' };
+    if (!good) return { ok: false, reason: 'La clave no es válida: no la ha creado el generador de esta app o está mal copiada.' };
     if (payload[0] !== 1) return { ok: false, reason: 'Versión de clave no compatible.' };
     const flags = payload[1], dev = payload.slice(2, 10), days = (payload[10] << 8) | payload[11], serial = hex(payload.slice(12, 16));
     const n = payload[16], name = new TextDecoder().decode(payload.slice(17, 17 + n));
-    if (REVOKED.includes(serial)) return { ok: false, reason: 'Esta licencia ha sido anulada.' };
+    if (REVOKED.includes(serial) || localRevoked().includes(serial)) return { ok: false, reason: 'Esta licencia ha sido anulada.' };
     if (flags & 1) {
       const mine = await deviceId();
       if (hex(mine) !== hex(dev)) return { ok: false, reason: 'Esta clave es para otro móvil.' };
@@ -117,11 +117,39 @@
   }
   function deactivate() { try { localStorage.removeItem('perezapp.license'); } catch {} }
 
+  // licencias que el servidor ha dicho que están anuladas: se recuerdan aunque luego no haya internet
+  function localRevoked() { try { return JSON.parse(localStorage.getItem('perezapp.revoked') || '[]'); } catch { return []; } }
+  function markRevoked(serial) {
+    if (!/^[0-9a-f]{8}$/.test(serial || '')) return;
+    const l = localRevoked(); if (!l.includes(serial)) l.push(serial);
+    try { localStorage.setItem('perezapp.revoked', JSON.stringify(l.slice(-50))); } catch {}
+  }
+
+  // Comprobación en el servidor (si hay internet): anulada, caducada (con la fecha del servidor, no la del móvil)…
+  // Devuelve null si no se pudo preguntar (sin cobertura, servidor caído): la app sigue funcionando.
+  async function serverCheck() {
+    if (!API_BASE || !PUBLIC_KEY) return null;
+    let key = ''; try { key = localStorage.getItem('perezapp.license') || ''; } catch {}
+    if (!key) return null;
+    const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), 8000);
+    try {
+      const res = await fetch(API_BASE + '/v1/license', { method: 'POST', headers: await headers(), signal: ctl.signal });
+      const d = await res.json().catch(() => ({}));
+      if (res.ok && d.ok) { try { localStorage.setItem('perezapp.checked', String(Date.now())); } catch {} return { ok: true }; }
+      if (res.status === 401 && d.error && d.error.code === 'license') {
+        const why = d.error.reason;
+        if (why === 'revoked') { const r = await verify(key); if (r.serial) markRevoked(r.serial); deactivate(); }
+        return { ok: false, reason: why, expires: d.error.expires, max: d.error.max };
+      }
+      return null;
+    } catch { return null; } finally { clearTimeout(to); }
+  }
+
   // cabeceras para el servidor: la licencia guardada y el código de este móvil
   async function headers() {
     let key = ''; try { key = localStorage.getItem('perezapp.license') || ''; } catch {}
     return { 'X-Perezapp-License': key, 'X-Perezapp-Device': await deviceCode() };
   }
 
-  root.PerezappLicense = { enabled: !!PUBLIC_KEY, check, activate, deactivate, deviceCode, verify, headers, cleanKey, SELLER_WHATSAPP, API_BASE, _b32: { b32encode, b32decode } };
+  root.PerezappLicense = { enabled: !!PUBLIC_KEY, check, activate, deactivate, deviceCode, verify, headers, cleanKey, serverCheck, SELLER_WHATSAPP, API_BASE, _b32: { b32encode, b32decode } };
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -11,6 +11,8 @@ ALLOWED_ORIGINS = "https://iamikepm-ui.github.io"
 # Comprobación de salud: https://<nombre>.<tu-subdominio>.workers.dev/v1/health
 LIMIT_STT_DAY = "300"
 LIMIT_LLM_DAY = "600"
+# Móviles distintos por licencia que vale «en cualquier móvil»
+MAX_DEVICES = "2"
 REVOKED = ""
 
 # Contador de usos y licencias anuladas: Cloudflare lo crea solo al publicar

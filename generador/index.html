@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://iamikepm-ui.github.io https://*.workers.dev; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta name="referrer" content="no-referrer">
 <title>PerezApp · Generador de licencias</title>
 <meta name="theme-color" content="#0b141a">
 <link rel="manifest" href="manifest.webmanifest">
@@ -46,7 +48,11 @@
   .chk { display:flex; align-items:center; gap:8px; font-weight:600; margin-top:14px; }
   .chk input { width:auto; }
   table.plansT input { padding:7px 8px; }
-  td .mini { padding:6px 10px; font-size:13px; }
+  td .mini { padding:6px 10px; font-size:13px; margin:2px; }
+  td .mini.danger { background:rgba(255,138,160,.14); color:var(--err); }
+  tr.revoked td { opacity:.55; text-decoration:line-through; }
+  tr.revoked td:last-child { opacity:1; text-decoration:none; }
+  .tag { display:inline-block; font-size:11.5px; font-weight:800; padding:2px 8px; border-radius:999px; background:rgba(255,138,160,.18); color:var(--err); margin-left:6px; text-decoration:none; }
   .scroll { overflow-x:auto; }
   .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:0 12px; }
   @media (max-width:560px) { .grid2 { grid-template-columns:1fr; } }
@@ -110,7 +116,9 @@
       <h2>Licencias emitidas</h2>
       <div class="scroll"><table><thead><tr><th>Fecha</th><th>Cliente</th><th>Móvil</th><th>Tarifa</th><th>Caduca</th><th>Serie</th><th></th></tr></thead><tbody id="log"></tbody></table></div>
       <div class="row"><button id="csv">Descargar lista (CSV)</button></div>
-      <p class="sub" style="margin:10px 0 0">Para anular una licencia, dile a Claude su número de serie y se añadirá a la lista de anuladas de la app.</p>
+      <p class="sub" style="margin:10px 0 0"><b>Anular</b> una licencia (impago, devolución, la ha compartido…): deja de funcionar en cuanto el móvil del cliente se conecta a internet, y desde ese momento tampoco puede usar la nube. La orden va firmada con tu clave privada: nadie más puede anular ni reactivar licencias.</p>
+      <div class="row" style="align-items:center"><input id="revSerial" class="mono" maxlength="8" placeholder="Nº de serie (8 caracteres)" style="max-width:240px"><button class="mini danger" id="revBtn" style="padding:11px 16px">Anular por número de serie</button></div>
+      <div class="msg" id="revMsg"></div>
     </div>
 
     <div class="card">
@@ -203,12 +211,41 @@
   $('cpPub').onclick = () => navigator.clipboard.writeText(vault.pub).then(() => alert('Clave pública copiada.'));
 
   // ¿coincide la clave pública de este generador con la que tiene la app publicada?
+  let appApi = null;
   async function appPublicKey() {
     try {
       const txt = await (await fetch(APP_URL + 'licencia.js?check=' + Date.now(), { cache: 'no-store' })).text();
+      const a = /const API_BASE = '([^']*)'/.exec(txt); appApi = a ? a[1] : '';
       const m = /const PUBLIC_KEY = '([^']*)'/.exec(txt); return m ? m[1] : null;
     } catch { return null; }
   }
+  // orden firmada para el servidor de la app: «PZADMIN|acción|serie|hora»
+  const ADMIN_ERR = { signature: 'El servidor no reconoce la firma: este generador no tiene las claves de la app.', clock: 'La hora de este dispositivo no es correcta: ponla en automático y vuelve a probar.', replay: 'Orden repetida: vuelve a pulsar.', no_storage: 'El servidor no tiene almacenamiento (KV) configurado.', storage: 'El servidor no ha podido guardar el cambio: prueba en un rato.', bad_request: 'Número de serie no válido.', slow_down: 'Demasiados intentos: espera un minuto.', origin: 'El servidor no acepta peticiones desde aquí.' };
+  async function adminCall(action, serial) {
+    if (!signKey) throw new Error('Desbloquea el generador primero.');
+    if (appApi === null) await appPublicKey();
+    if (!appApi) throw new Error('La app todavía no tiene servidor configurado.');
+    const ts = Date.now();
+    const sig = await crypto.subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, signKey, enc.encode(`PZADMIN|${action}|${serial}|${ts}`));
+    let res;
+    try { res = await fetch(appApi + '/v1/admin', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, serial, ts, sig: b64u(sig) }) }); }
+    catch { throw new Error('No se pudo conectar con el servidor de la app.'); }
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(ADMIN_ERR[d.error && d.error.code] || 'Error del servidor (' + res.status + ').');
+    return d;
+  }
+  async function setRevoked(serial, revoke, label) {
+    serial = String(serial || '').trim().toLowerCase();
+    if (!/^[0-9a-f]{8}$/.test(serial)) { msg('revMsg', 'El número de serie tiene 8 caracteres (0-9 y a-f).'); return; }
+    if (revoke && !confirm('¿Anular la licencia ' + (label ? 'de ' + label + ' ' : '') + '(serie ' + serial + ')?\n\nDejará de funcionar en cuanto su móvil se conecte a internet.')) return;
+    msg('revMsg', revoke ? 'Anulando…' : 'Reactivando…', true);
+    try {
+      const d = await adminCall(revoke ? 'revoke' : 'restore', serial);
+      const log = load('pzgen.log', []); for (const l of log) if (l.serial === serial) l.revoked = !!d.revoked; save('pzgen.log', log); drawLog();
+      msg('revMsg', d.revoked ? '✓ Licencia ' + serial + ' anulada.' : '✓ Licencia ' + serial + ' reactivada.', true);
+    } catch (e) { msg('revMsg', e.message); }
+  }
+  $('revBtn').onclick = () => setRevoked($('revSerial').value, true, '');
   async function checkApp() {
     const box = $('appCheck'); box.className = 'msg'; box.textContent = 'Comprobando la app…';
     const k = await appPublicKey();
@@ -216,7 +253,7 @@
     if (!k) { box.className = 'msg err'; box.textContent = '⚠️ La app todavía no tiene clave pública: pásale a Claude la clave pública de abajo.'; return; }
     if (k === vault.pub) { box.className = 'msg ok'; box.textContent = '✓ Conectado con la app: las licencias que crees aquí funcionarán.'; return; }
     box.className = 'msg err';
-    box.textContent = '✗ La app usa OTRA clave pública (empieza por ' + k.slice(0, 8) + '…; la de aquí empieza por ' + vault.pub.slice(0, 8) + '…). Las licencias de aquí NO funcionarán. Usa el generador donde creaste las claves, o importa su copia de seguridad.';
+    box.textContent = '✗ La app usa OTRA clave pública (empieza por ' + k.slice(0, 8) + '…; la de aquí empieza por ' + vault.pub.slice(0, 8) + '…). Las licencias de aquí NO funcionarán. Usa el generador donde creaste las claves o importa su copia de seguridad. Si quieres usar las claves de ESTE generador, pulsa «Copiar clave pública» (abajo) y pásasela a Claude: no es secreta.';
   }
   function enterGen() { show('gen'); $('pubKey').value = vault.pub; drawLog(); drawPlanRows(); resetForm(); $('cName').focus(); checkApp(); }
 
@@ -343,7 +380,7 @@
   function drawLog() {
     const tb = $('log'); tb.textContent = '';
     for (const l of load('pzgen.log', [])) {
-      const tr = document.createElement('tr');
+      const tr = document.createElement('tr'); if (l.revoked) tr.className = 'revoked';
       for (const v of [new Date(l.date).toLocaleDateString('es-ES'), l.name, l.device || 'cualquiera', (l.plan || '') + (l.paid ? ' · ' + eur(l.paid) : ''), l.until ? new Date(l.until + 'T00:00:00Z').toLocaleDateString('es-ES', { timeZone: 'UTC' }) : 'nunca', l.serial]) {
         const td = document.createElement('td'); td.textContent = v; tr.append(td);
       }
@@ -359,6 +396,13 @@
           scrollTo({ top: 0, behavior: 'smooth' });
         };
         td.append(bt);
+      }
+      if (l.serial) {
+        const rv = document.createElement('button'); rv.className = 'mini' + (l.revoked ? '' : ' danger');
+        rv.textContent = l.revoked ? 'Reactivar' : 'Anular';
+        rv.onclick = () => setRevoked(l.serial, !l.revoked, l.name);
+        if (l.revoked) { const tg = document.createElement('span'); tg.className = 'tag'; tg.textContent = 'ANULADA'; td.append(tg); }
+        td.append(rv);
       }
       tr.append(td);
       tb.append(tr);
