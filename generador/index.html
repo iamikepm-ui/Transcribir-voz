@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Perezapp · Generador de licencias</title>
+<meta name="theme-color" content="#0b141a">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+  :root { --a1:#25d366; --a2:#00a884; --bg:#0b141a; --bg2:#111b21; --line:rgba(255,255,255,.1); --txt:#e9edef; --mut:#8696a0; --err:#ff8aa0; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:radial-gradient(900px 500px at 10% -10%, rgba(37,211,102,.18), transparent 60%), var(--bg); color:var(--txt); font:15px/1.5 ui-rounded,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; min-height:100vh; }
+  main { max-width:760px; margin:0 auto; padding:28px 18px 60px; }
+  h1 { font-size:26px; margin:0 0 4px; letter-spacing:-.02em; }
+  h1 span { background:linear-gradient(90deg,var(--a1),var(--a2)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  h2 { font-size:18px; margin:0 0 10px; }
+  .sub { color:var(--mut); margin:0 0 22px; }
+  .card { background:var(--bg2); border:1px solid var(--line); border-radius:20px; padding:18px; margin-bottom:16px; }
+  label { display:block; font-weight:600; margin:12px 0 4px; }
+  label small { color:var(--mut); font-weight:500; }
+  input, select, textarea { width:100%; background:rgba(255,255,255,.06); border:1px solid var(--line); color:var(--txt); border-radius:12px; padding:10px 12px; font:inherit; }
+  textarea { font:13px/1.45 ui-monospace,Menlo,Consolas,monospace; resize:vertical; }
+  .mono { font-family:ui-monospace,Menlo,Consolas,monospace; }
+  button { font:inherit; font-weight:700; border:0; border-radius:12px; padding:11px 16px; cursor:pointer; background:rgba(255,255,255,.08); color:var(--txt); }
+  button.primary { background:linear-gradient(135deg,var(--a1),var(--a2)); color:#04210f; }
+  button:disabled { opacity:.5; cursor:default; }
+  .row { display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; }
+  .msg { min-height:20px; margin-top:10px; font-weight:600; }
+  .msg.err { color:var(--err); } .msg.ok { color:var(--a1); }
+  .warn { background:rgba(255,181,71,.1); border:1px solid rgba(255,181,71,.35); color:#ffd59a; border-radius:14px; padding:10px 14px; font-size:14px; }
+  table { width:100%; border-collapse:collapse; font-size:13.5px; }
+  th, td { text-align:left; padding:7px 6px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { color:var(--mut); font-weight:600; }
+  .hidden { display:none; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:0 12px; }
+  @media (max-width:560px) { .grid2 { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<main>
+  <h1><img src="logo.svg" alt="" style="width:44px;height:44px;border-radius:12px;vertical-align:-12px;margin-right:6px"> <span>Perezapp</span> · Generador de licencias</h1>
+  <p class="sub">Solo para el titular. Tus claves se crean y se guardan cifradas en este dispositivo; nunca salen de aquí.</p>
+
+  <!-- 1. Crear claves -->
+  <section id="setup" class="card hidden">
+    <h2>1 · Crear tus claves</h2>
+    <p>Se crea un par de claves en este dispositivo. La <b>clave privada</b> (la que firma las licencias) se guarda cifrada con tu contraseña y no sale nunca de aquí. La <b>clave pública</b> es la que va dentro de la app.</p>
+    <label>Contraseña maestra <small>(mínimo 12 caracteres; apúntala en un lugar seguro: sin ella no podrás crear licencias)</small></label>
+    <input type="password" id="pw1" autocomplete="new-password">
+    <label>Repite la contraseña</label>
+    <input type="password" id="pw2" autocomplete="new-password">
+    <div class="row"><button class="primary" id="create">Crear mis claves</button> <button id="importBtn">Importar copia de seguridad</button></div>
+    <input type="file" id="importFile" accept=".json,application/json" class="hidden">
+    <div class="msg" id="setupMsg"></div>
+  </section>
+
+  <!-- 2. Desbloquear -->
+  <section id="unlock" class="card hidden">
+    <h2>🔒 Desbloquear</h2>
+    <label>Contraseña maestra</label>
+    <input type="password" id="pw" autocomplete="current-password">
+    <div class="row"><button class="primary" id="open">Desbloquear</button> <button id="importBtn2">Importar otra copia</button></div>
+    <div class="msg" id="unlockMsg"></div>
+  </section>
+
+  <!-- 3. Generar -->
+  <section id="gen" class="hidden">
+    <div class="card">
+      <h2>Nueva licencia</h2>
+      <div class="grid2">
+        <div><label>Nombre del cliente</label><input id="cName" maxlength="40" placeholder="Juan Pérez"></div>
+        <div><label>Código del móvil <small>(vacío = cualquier móvil)</small></label><input id="cDev" class="mono" placeholder="XXXX-XXXX-XXXX-X"></div>
+        <div><label>Duración</label>
+          <select id="cDur"><option value="0">Sin caducidad</option><option value="1">1 mes</option><option value="3">3 meses</option><option value="6">6 meses</option><option value="12">1 año</option><option value="d">Hasta una fecha…</option></select></div>
+        <div id="dateBox" class="hidden"><label>Válida hasta (incluido)</label><input type="date" id="cDate"></div>
+      </div>
+      <div class="row"><button class="primary" id="make">Generar licencia</button></div>
+      <div class="msg" id="genMsg"></div>
+      <div id="out" class="hidden">
+        <label>Clave de activación</label>
+        <textarea id="outKey" rows="4" readonly></textarea>
+        <label>Enlace de activación <small>(el cliente lo abre en su móvil y queda activada)</small></label>
+        <textarea id="outLink" rows="3" readonly></textarea>
+        <div class="row"><button id="cpKey">Copiar clave</button><button id="cpLink">Copiar enlace</button><button class="primary" id="sendWa">Enviar por WhatsApp</button></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Licencias emitidas</h2>
+      <table><thead><tr><th>Fecha</th><th>Cliente</th><th>Móvil</th><th>Caduca</th><th>Serie</th></tr></thead><tbody id="log"></tbody></table>
+      <div class="row"><button id="csv">Descargar lista (CSV)</button></div>
+      <p class="sub" style="margin:10px 0 0">Para anular una licencia, dile a Claude su número de serie y se añadirá a la lista de anuladas de la app.</p>
+    </div>
+
+    <div class="card">
+      <h2>Tu clave pública</h2>
+      <p>Es la que va dentro de la app. Se puede compartir sin problema (no sirve para crear licencias).</p>
+      <textarea id="pubKey" rows="2" readonly></textarea>
+      <div class="row"><button id="cpPub">Copiar clave pública</button><button id="backup">Descargar copia de seguridad</button><button id="lockBtn">🔒 Bloquear</button></div>
+      <p class="warn" style="margin-top:14px">Guarda la copia de seguridad (archivo .json) en un lugar seguro, por ejemplo un pendrive. Va cifrada con tu contraseña. Si pierdes la copia y este navegador borra sus datos, o si olvidas la contraseña, no podrás crear más licencias y habrá que cambiar las claves de la app.</p>
+    </div>
+  </section>
+</main>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const APP_URL = 'https://iamikepm-ui.github.io/Transcribir-voz/';
+  const ALPHA = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
+  const EPOCH = Date.UTC(2025, 0, 1), DAY = 86400000, ITER = 600000;
+  const enc = new TextEncoder();
+  const b64u = (u) => btoa(String.fromCharCode(...new Uint8Array(u))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  const unb64u = (s) => Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((s.length + 3) % 4)), (c) => c.charCodeAt(0));
+  const hex = (u) => [...u].map((b) => b.toString(16).padStart(2, '0')).join('');
+  function b32encode(bytes) { let bits = 0, val = 0, out = ''; for (const b of bytes) { val = (val << 8) | b; bits += 8; while (bits >= 5) { out += ALPHA[(val >>> (bits - 5)) & 31]; bits -= 5; } } if (bits > 0) out += ALPHA[(val << (5 - bits)) & 31]; return out; }
+  function b32decode(str) { const c = String(str).toUpperCase().replace(/[\s-]/g, '').replace(/O/g, '0').replace(/[IL]/g, '1'); let bits = 0, val = 0; const out = []; for (const ch of c) { const i = ALPHA.indexOf(ch); if (i < 0) throw new Error('bad'); val = ((val << 5) | i) & 0xffff; bits += 5; if (bits >= 8) { out.push((val >>> (bits - 8)) & 255); bits -= 8; } } return new Uint8Array(out); }
+  const group = (s, n = 5) => s.match(new RegExp('.{1,' + n + '}', 'g')).join('-');
+  const msg = (id, t, ok) => { $(id).textContent = t; $(id).className = 'msg ' + (ok ? 'ok' : 'err'); };
+  const show = (id) => ['setup', 'unlock', 'gen'].forEach((x) => $(x).classList.toggle('hidden', x !== id));
+  const load = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } };
+  const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
+  let signKey = null, vault = load('pzgen.vault', null);
+
+  async function aesKey(password, salt) {
+    const base = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
+    return crypto.subtle.deriveKey({ name: 'PBKDF2', hash: 'SHA-256', salt, iterations: ITER }, base, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+  }
+  function download(name, text, type = 'application/json') {
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  }
+  const backup = () => download('perezapp-claves-COPIA-SEGURIDAD.json', JSON.stringify(vault, null, 1));
+
+  // 1. crear
+  $('create').onclick = async () => {
+    const a = $('pw1').value, b = $('pw2').value;
+    if (a.length < 12) return msg('setupMsg', 'La contraseña debe tener al menos 12 caracteres.');
+    if (a !== b) return msg('setupMsg', 'Las contraseñas no coinciden.');
+    $('create').disabled = true; msg('setupMsg', 'Creando claves…', true);
+    const kp = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign', 'verify']);
+    const pub = new Uint8Array(await crypto.subtle.exportKey('raw', kp.publicKey));
+    const pk8 = await crypto.subtle.exportKey('pkcs8', kp.privateKey);
+    const salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12));
+    const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, await aesKey(a, salt), pk8);
+    vault = { v: 1, app: 'perezapp', created: new Date().toISOString(), pub: b64u(pub), salt: b64u(salt), iv: b64u(iv), ct: b64u(ct), iter: ITER };
+    save('pzgen.vault', vault);
+    signKey = await crypto.subtle.importKey('pkcs8', pk8, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign']);
+    $('pw1').value = $('pw2').value = '';
+    backup(); enterGen();
+  };
+  // importar copia
+  const importer = () => $('importFile').click();
+  $('importBtn').onclick = $('importBtn2').onclick = importer;
+  $('importFile').onchange = async () => {
+    try {
+      const v = JSON.parse(await $('importFile').files[0].text());
+      if (v.app !== 'perezapp' || !v.ct || !v.pub) throw 0;
+      vault = v; save('pzgen.vault', v); show('unlock'); msg('unlockMsg', 'Copia importada. Escribe tu contraseña.', true);
+    } catch { alert('Ese archivo no es una copia de seguridad del generador.'); }
+  };
+  // 2. desbloquear
+  $('open').onclick = async () => {
+    $('open').disabled = true; msg('unlockMsg', 'Comprobando…', true);
+    try {
+      const pk8 = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64u(vault.iv) }, await aesKey($('pw').value, unb64u(vault.salt)), unb64u(vault.ct));
+      signKey = await crypto.subtle.importKey('pkcs8', pk8, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign']);
+      $('pw').value = ''; enterGen();
+    } catch { msg('unlockMsg', 'Contraseña incorrecta.'); }
+    $('open').disabled = false;
+  };
+  $('pw').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('open').click(); });
+  $('lockBtn').onclick = () => { signKey = null; show('unlock'); msg('unlockMsg', ''); };
+  $('backup').onclick = backup;
+  $('cpPub').onclick = () => navigator.clipboard.writeText(vault.pub).then(() => alert('Clave pública copiada.'));
+
+  function enterGen() { show('gen'); $('pubKey').value = vault.pub; drawLog(); $('cName').focus(); }
+
+  // 3. generar
+  $('cDur').onchange = () => $('dateBox').classList.toggle('hidden', $('cDur').value !== 'd');
+  async function checkByte(u) { return new Uint8Array(await crypto.subtle.digest('SHA-256', u.slice(0, 7)))[0]; }
+  $('make').onclick = async () => {
+    const name = $('cName').value.trim();
+    if (!name) return msg('genMsg', 'Escribe el nombre del cliente.');
+    const chars = [...name]; while (enc.encode(chars.join('')).length > 40) chars.pop();
+    const nameB = enc.encode(chars.join(''));
+    let dev = new Uint8Array(8), flags = 0;
+    const dc = $('cDev').value.trim();
+    if (dc) {
+      try { dev = b32decode(dc); } catch { return msg('genMsg', 'El código del móvil tiene caracteres no válidos.'); }
+      if (dev.length !== 8 || await checkByte(dev) !== dev[7]) return msg('genMsg', 'El código del móvil no es correcto. Revísalo (son 13 caracteres).');
+      flags |= 1;
+    }
+    let days = 0, until = null;
+    const dur = $('cDur').value;
+    if (dur !== '0') {
+      if (dur === 'd') { if (!$('cDate').value) return msg('genMsg', 'Elige la fecha.'); until = new Date($('cDate').value + 'T00:00:00Z'); }
+      else { until = new Date(); until.setUTCMonth(until.getUTCMonth() + +dur); until = new Date(Date.UTC(until.getUTCFullYear(), until.getUTCMonth(), until.getUTCDate())); }
+      days = Math.floor((until.getTime() - EPOCH) / DAY);
+      if (days < 1 || days > 65535) return msg('genMsg', 'Fecha no válida.');
+      flags |= 2;
+    }
+    const serial = crypto.getRandomValues(new Uint8Array(4));
+    const payload = new Uint8Array(17 + nameB.length);
+    payload[0] = 1; payload[1] = flags; payload.set(dev, 2); payload[10] = days >> 8; payload[11] = days & 255; payload.set(serial, 12); payload[16] = nameB.length; payload.set(nameB, 17);
+    const sig = new Uint8Array(await crypto.subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, signKey, payload));
+    const all = new Uint8Array(payload.length + 64); all.set(payload); all.set(sig, payload.length);
+    const key = 'PZ-' + group(b32encode(all));
+    const link = APP_URL + '#lic=' + key;
+    $('outKey').value = key; $('outLink').value = link; $('out').classList.remove('hidden');
+    msg('genMsg', '✓ Licencia creada para ' + name + (dc ? ' (solo para su móvil)' : ' (cualquier móvil)') + (until ? ', válida hasta el ' + until.toLocaleDateString('es-ES', { timeZone: 'UTC' }) : ', sin caducidad') + '.', true);
+    const log = load('pzgen.log', []);
+    log.unshift({ date: new Date().toISOString(), name, device: dc ? group(b32encode(dev), 4) : '', until: until ? until.toISOString().slice(0, 10) : '', serial: hex(serial), key });
+    save('pzgen.log', log); drawLog();
+  };
+  $('cpKey').onclick = () => navigator.clipboard.writeText($('outKey').value).then(() => msg('genMsg', '✓ Clave copiada', true));
+  $('cpLink').onclick = () => navigator.clipboard.writeText($('outLink').value).then(() => msg('genMsg', '✓ Enlace copiado', true));
+  $('sendWa').onclick = () => window.open('https://wa.me/?text=' + encodeURIComponent('¡Gracias por comprar Perezapp! 🦥\nAbre este enlace en tu móvil para activarla:\n' + $('outLink').value), '_blank');
+  function drawLog() {
+    const tb = $('log'); tb.textContent = '';
+    for (const l of load('pzgen.log', [])) {
+      const tr = document.createElement('tr');
+      for (const v of [new Date(l.date).toLocaleDateString('es-ES'), l.name, l.device || 'cualquiera', l.until ? new Date(l.until + 'T00:00:00Z').toLocaleDateString('es-ES', { timeZone: 'UTC' }) : 'nunca', l.serial]) {
+        const td = document.createElement('td'); td.textContent = v; tr.append(td);
+      }
+      tb.append(tr);
+    }
+  }
+  $('csv').onclick = () => {
+    const rows = [['fecha', 'cliente', 'movil', 'caduca', 'serie', 'clave'], ...load('pzgen.log', []).map((l) => [l.date, l.name, l.device, l.until, l.serial, l.key])];
+    download('perezapp-licencias.csv', rows.map((r) => r.map((x) => '"' + String(x ?? '').replace(/"/g, '""') + '"').join(';')).join('\n'), 'text/csv');
+  };
+
+  if (!crypto.subtle) { document.querySelector('main').innerHTML = '<p class="warn">Abre este archivo con Chrome, Edge o Firefox actualizados.</p>'; return; }
+  show(vault ? 'unlock' : 'setup');
+})();
+</script>
+</body>
+</html>
