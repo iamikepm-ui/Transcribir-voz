@@ -60,6 +60,7 @@
   <!-- 1. Crear claves -->
   <section id="setup" class="card hidden">
     <h2>1 · Crear tus claves</h2>
+    <p class="warn hidden" id="setupWarn">⚠️ <b>La app ya tiene una clave pública.</b> Si ya creaste tus claves en otro dispositivo o navegador, <b>no crees otras</b>: pulsa «Importar copia de seguridad» y elige el archivo <i>perezapp-claves-COPIA-SEGURIDAD.json</i>. Si creas claves nuevas, las licencias que ya hayas dado dejarán de valer y habrá que cambiar la clave de la app.</p>
     <p>Se crea un par de claves en este dispositivo. La <b>clave privada</b> (la que firma las licencias) se guarda cifrada con tu contraseña y no sale nunca de aquí. La <b>clave pública</b> es la que va dentro de la app.</p>
     <label>Contraseña maestra <small>(mínimo 12 caracteres; apúntala en un lugar seguro: sin ella no podrás crear licencias)</small></label>
     <input type="password" id="pw1" autocomplete="new-password">
@@ -82,6 +83,7 @@
   <!-- 3. Generar -->
   <section id="gen" class="hidden">
     <div class="card">
+      <div id="appCheck" class="msg"></div>
       <h2>Nueva licencia</h2>
       <div class="grid2">
         <div><label>Nombre del cliente</label><input id="cName" maxlength="40" placeholder="Juan Pérez"></div>
@@ -200,7 +202,23 @@
   $('backup').onclick = backup;
   $('cpPub').onclick = () => navigator.clipboard.writeText(vault.pub).then(() => alert('Clave pública copiada.'));
 
-  function enterGen() { show('gen'); $('pubKey').value = vault.pub; drawLog(); drawPlanRows(); resetForm(); $('cName').focus(); }
+  // ¿coincide la clave pública de este generador con la que tiene la app publicada?
+  async function appPublicKey() {
+    try {
+      const txt = await (await fetch(APP_URL + 'licencia.js?check=' + Date.now(), { cache: 'no-store' })).text();
+      const m = /const PUBLIC_KEY = '([^']*)'/.exec(txt); return m ? m[1] : null;
+    } catch { return null; }
+  }
+  async function checkApp() {
+    const box = $('appCheck'); box.className = 'msg'; box.textContent = 'Comprobando la app…';
+    const k = await appPublicKey();
+    if (k === null) { box.textContent = 'No he podido comprobar la app (sin conexión).'; return; }
+    if (!k) { box.className = 'msg err'; box.textContent = '⚠️ La app todavía no tiene clave pública: pásale a Claude la clave pública de abajo.'; return; }
+    if (k === vault.pub) { box.className = 'msg ok'; box.textContent = '✓ Conectado con la app: las licencias que crees aquí funcionarán.'; return; }
+    box.className = 'msg err';
+    box.textContent = '✗ La app usa OTRA clave pública (empieza por ' + k.slice(0, 8) + '…; la de aquí empieza por ' + vault.pub.slice(0, 8) + '…). Las licencias de aquí NO funcionarán. Usa el generador donde creaste las claves, o importa su copia de seguridad.';
+  }
+  function enterGen() { show('gen'); $('pubKey').value = vault.pub; drawLog(); drawPlanRows(); resetForm(); $('cName').focus(); checkApp(); }
 
   // 3. generar
   // ---------- tarifas ----------
@@ -280,6 +298,8 @@
   };
   async function checkByte(u) { return new Uint8Array(await crypto.subtle.digest('SHA-256', u.slice(0, 7)))[0]; }
   $('make').onclick = async () => {
+    const appKey = await appPublicKey();
+    if (appKey && appKey !== vault.pub) { checkApp(); return msg('genMsg', '✗ No genero la licencia: no funcionaría, porque la app usa otra clave pública (mira el aviso en rojo de arriba).'); }
     const name = $('cName').value.trim();
     if (!name) return msg('genMsg', 'Escribe el nombre del cliente.');
     const chars = [...name]; while (enc.encode(chars.join('')).length > 40) chars.pop();
@@ -351,6 +371,7 @@
 
   if (!crypto.subtle) { document.querySelector('main').innerHTML = '<p class="warn">Abre este archivo con Chrome, Edge o Firefox actualizados.</p>'; return; }
   show(vault ? 'unlock' : 'setup');
+  if (!vault) appPublicKey().then((k) => { if (k) $('setupWarn').classList.remove('hidden'); });
 })();
 </script>
 </body>

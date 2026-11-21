@@ -61,8 +61,9 @@
     let s = String(input || '');
     try { s = decodeURIComponent(s); } catch {}
     s = s.replace(/[\u2010-\u2015\u2212\u00ad]/g, '-').toUpperCase();
-    const m = s.match(/PZ-?[0-9A-Z]{5}(?:-?[0-9A-Z]{1,5})+/);
-    if (m) return { key: m[0] };
+    // puede haber varias (p. ej. un intento anterior que se quedó en el cuadro): se separan por «PZ-»
+    const keys = s.split(/(?=PZ-)/).map((part) => (part.match(/^PZ-?[0-9A-Z]{5}(?:-?[0-9A-Z]{1,5})+/) || [])[0]).filter(Boolean);
+    if (keys.length) return { key: keys[0], keys };
     // la clave pública del generador (87 caracteres con _ o -) no es una licencia
     if (/^[A-Za-z0-9_-]{80,95}$/.test(String(input || '').trim())) return { error: 'Eso es la clave pública del generador, no una licencia. Pega la licencia, que empieza por PZ-.' };
     return { error: 'No encuentro ninguna licencia (PZ-…) en lo que has pegado.' };
@@ -72,7 +73,12 @@
     if (!PUBLIC_KEY) return { ok: true, disabled: true };
     const c = cleanKey(input);
     if (c.error) return { ok: false, reason: c.error };
-    const key = c.key;
+    // si se pegaron varias, vale la primera que sea correcta
+    let first = null;
+    for (const k of c.keys) { const r = await verifyOne(k); if (r.ok) return r; first = first || r; }
+    return first;
+  }
+  async function verifyOne(key) {
     let raw;
     try { raw = b32decode(key); } catch (e) { return { ok: false, reason: 'La clave tiene un carácter que no es válido: «{0}».', args: [e.ch || '?'] }; }
     if (raw.length < 17 + 64) return { ok: false, reason: 'La clave está incompleta.' };
