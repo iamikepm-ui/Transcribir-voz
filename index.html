@@ -522,6 +522,27 @@
   .langpill:active { transform:scale(.95); }
   @media (max-width:380px) { .dayrow .day { font-size:11px; padding:5px 9px; } }
   #lgList button.on { border-color:var(--a1); box-shadow:inset 0 0 0 2px var(--a1); }
+
+  /* ===== pantalla vacía: una sola tarjeta (fecha e idioma, logo, instrucciones y escribir) ===== */
+  .chat.idle .bubble { display:none; }
+  .chat:not(.idle) .empty-hint { display:none; }
+  .chat.idle .empty-hint { width:min(100%, 340px); padding:16px 18px 14px; gap:8px; border-radius:26px;
+    background:linear-gradient(180deg, color-mix(in srgb,var(--a1) 12%,transparent), transparent 60%), color-mix(in srgb,var(--panel) 88%,transparent);
+    border:1px solid color-mix(in srgb,var(--a1) 28%,var(--line)); box-shadow:0 18px 40px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.06); backdrop-filter:blur(14px); }
+  [data-theme="light"] .chat.idle .empty-hint { box-shadow:0 14px 34px rgba(0,0,0,.08), inset 0 1px 0 #fff; }
+  .empty-hint .dayrow { margin:0 0 6px; flex-wrap:wrap; justify-content:center; }
+  .empty-hint .dayrow .day { box-shadow:none; }
+  .hintwrite { margin-top:6px; min-height:46px; padding:8px 18px; border-radius:999px; border:1px dashed color-mix(in srgb,var(--a1) 55%,transparent); background:transparent; color:var(--txt); font:inherit; font-size:14.5px; font-weight:700; cursor:pointer; }
+  .gloves .hintwrite { min-height:54px; font-size:15.5px; }
+  .hintwrite:active { transform:scale(.96); }
+  @media (max-height:760px) {
+    .chat.idle .empty-hint { padding:12px 14px 10px; gap:6px; }
+    .chat.idle .empty-hint img { width:54px; height:54px; border-radius:16px; }
+    .chat.idle .empty-hint > span { display:none; }
+    .empty-hint .dayrow { flex-wrap:nowrap; margin-bottom:2px; }
+    .empty-hint .dayrow .day { font-size:11px; padding:4px 8px; }
+    .hintwrite, .gloves .hintwrite { min-height:44px; margin-top:2px; }
+  }
 </style>
 </head>
 <body>
@@ -553,7 +574,7 @@
   <div class="chat" id="chat">
     <div class="scroll" id="scroll">
       <div class="dayrow"><div class="day" id="sub"></div><button class="langpill" id="langPill" aria-label="Idioma del mensaje" title="Idioma del mensaje"></button></div>
-      <div class="empty-hint"><img src="logo.svg" alt=""><b>Pulsa el micro y habla</b><span>Tu mensaje aparecerá aquí, bien escrito y listo para enviar.</span></div>
+      <div class="empty-hint" id="hint"><img src="logo.svg" alt=""><b>Pulsa el micro y habla</b><span>Tu mensaje aparecerá aquí, bien escrito y listo para enviar.</span><button class="hintwrite" id="hintWrite">✏️ <span>O escríbelo aquí</span></button></div>
       <div class="bubble paper" id="bubble">
         <textarea id="text" rows="1" placeholder="Escribe o dicta…"></textarea>
         <div id="interim"></div>
@@ -638,7 +659,7 @@
       <button class="btn primary" id="licGo">Activar</button>
     </div>
     <a class="wpriv" href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones</a>
-    <small class="wver">v2026.11.22-18</small>
+    <small class="wver">v2026.11.22-19</small>
   </div>
 </div>
 
@@ -824,16 +845,16 @@
       <p>⚠️ Con el vehículo en marcha no manipules el móvil: usa la voz o el botón del casco, o detente en un lugar seguro. Respeta siempre las normas de tráfico.</p>
       <p>Consejo: menú ⋮ de Chrome → «Añadir a pantalla de inicio».</p>
       <p><a href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones de uso</a></p>
-      <p style="opacity:.6">PerezApp v2026.11.22-18</p>
+      <p style="opacity:.6">PerezApp v2026.11.22-19</p>
     </div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
-<script src="i18n.js?v=2026.11.22-18"></script>
-<script src="licencia.js?v=2026.11.22-18"></script>
-<script src="format.js?v=2026.11.22-18"></script>
+<script src="i18n.js?v=2026.11.22-19"></script>
+<script src="licencia.js?v=2026.11.22-19"></script>
+<script src="format.js?v=2026.11.22-19"></script>
 <script>
 (() => {
   const $ = (id) => document.getElementById(id);
@@ -1038,7 +1059,7 @@
   function setStatus(msg, err) { const k = msg; msg = t(msg); status.textContent = msg; status.title = msg; status.classList.toggle('err', !!err); $('dstatus').textContent = IDLE.includes(k) ? '' : msg; }
   function toast(msg, ms = 1700) { msg = I.t(msg); const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), ms); }
   function setMic(state) {
-    $('chat').classList.toggle('busy', state === 'busy'); $('chat').classList.toggle('rec', state === 'rec');
+    $('chat').classList.toggle('busy', state === 'busy'); $('chat').classList.toggle('rec', state === 'rec'); if (typeof paintIdle === 'function') paintIdle();
     $$('.mic-wrap').forEach(w => { w.classList.toggle('rec-on', state === 'rec'); w.classList.toggle('busy-on', state === 'busy'); });
     for (const m of [$('mic'), $('mic2')]) {
       m.classList.toggle('rec', state === 'rec'); m.classList.toggle('busy', state === 'busy');
@@ -1052,6 +1073,19 @@
   // hora del mensaje y ✓✓ (azules cuando se copia o se envía)
   function stamp() { $('btime').textContent = new Date().toLocaleTimeString(I.locale(), { hour: '2-digit', minute: '2-digit' }); }
   function markSent() { $('bubble').classList.add('sent'); }
+
+  // ---------- pantalla vacía: tarjeta única ----------
+  var writing = false;
+  function paintIdle() {
+    const chat = $('chat'), idle = !text.value.trim() && !recording && !chat.classList.contains('busy') && !writing && !interim.textContent.trim();
+    chat.classList.toggle('idle', idle);
+    const row = document.querySelector('.dayrow'), hint = $('hint');
+    if (idle && row.parentElement !== hint) hint.prepend(row);
+    if (idle) $('scroll').scrollTop = 0;
+    else if (!idle && row.parentElement === hint) $('scroll').prepend(row);
+  }
+  $('hintWrite').onclick = () => { writing = true; paintIdle(); text.focus(); };
+  text.addEventListener('blur', () => { writing = false; setTimeout(paintIdle, 150); });
   function refresh() {
     autosize();
     const n = (text.value.trim().match(/\S+/g) || []).length;
@@ -1065,7 +1099,7 @@
     $('mail').href = 'mailto:?body=' + enc;
     $('google').href = 'https://www.google.com/search?q=' + enc;
     $('chat').classList.toggle('has-text', !!text.value.trim());
-    renderDrive();
+    renderDrive(); paintIdle();
   }
   function renderDrive() {
     const d = $('dtext'), v = text.value.trim(), live = interim.textContent.trim();
@@ -1922,7 +1956,7 @@
   let worker = null, mediaRec = null, chunks = [], asrReady = false;
   function getWorker() {
     if (worker) return worker;
-    worker = new Worker('worker.js?v=2026.11.22-18', { type: 'module' });
+    worker = new Worker('worker.js?v=2026.11.22-19', { type: 'module' });
     worker.onmessage = ({ data }) => {
       if (model() === 'groq' && /progress|ready|status/.test(data.type)) { bar.style.display = 'none'; return; }
       if (data.type === 'progress') { bar.style.display = 'block'; barFill.style.width = data.pct + '%'; setStatus(data.kind === 'tr' ? t('Descargando el traductor (solo la primera vez): {0}% de {1} MB', data.pct, data.mb) : t('Descargando {0} (solo la primera vez): {1}% de {2} MB', NAMES[offlinePrep || model()], data.pct, data.mb)); }
