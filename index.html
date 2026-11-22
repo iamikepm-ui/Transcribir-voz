@@ -548,7 +548,7 @@
       <button class="btn primary" id="licGo">Activar</button>
     </div>
     <a class="wpriv" href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones</a>
-    <small class="wver">v2026.11.22-3</small>
+    <small class="wver">v2026.11.22-4</small>
   </div>
 </div>
 
@@ -708,16 +708,16 @@
       <p>⚠️ Con el vehículo en marcha no manipules el móvil: usa la voz o el botón del casco, o detente en un lugar seguro. Respeta siempre las normas de tráfico.</p>
       <p>Consejo: menú ⋮ de Chrome → «Añadir a pantalla de inicio».</p>
       <p><a href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones de uso</a></p>
-      <p style="opacity:.6">PerezApp v2026.11.22-3</p>
+      <p style="opacity:.6">PerezApp v2026.11.22-4</p>
     </div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
-<script src="i18n.js?v=2026.11.22-3"></script>
-<script src="licencia.js?v=2026.11.22-3"></script>
-<script src="format.js?v=2026.11.22-3"></script>
+<script src="i18n.js?v=2026.11.22-4"></script>
+<script src="licencia.js?v=2026.11.22-4"></script>
+<script src="format.js?v=2026.11.22-4"></script>
 <script>
 (() => {
   const $ = (id) => document.getElementById(id);
@@ -1642,7 +1642,7 @@
   let worker = null, mediaRec = null, chunks = [], asrReady = false;
   function getWorker() {
     if (worker) return worker;
-    worker = new Worker('worker.js?v=2026.11.22-3', { type: 'module' });
+    worker = new Worker('worker.js?v=2026.11.22-4', { type: 'module' });
     worker.onmessage = ({ data }) => {
       if (model() === 'groq' && /progress|ready|status/.test(data.type)) { bar.style.display = 'none'; return; }
       if (data.type === 'progress') { bar.style.display = 'block'; barFill.style.width = data.pct + '%'; setStatus(data.kind === 'tr' ? t('Descargando el traductor (solo la primera vez): {0}% de {1} MB', data.pct, data.mb) : t('Descargando {0} (solo la primera vez): {1}% de {2} MB', NAMES[offlinePrep || model()], data.pct, data.mb)); }

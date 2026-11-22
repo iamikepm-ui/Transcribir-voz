@@ -2,7 +2,7 @@
 // - Páginas y archivos de la app: primero la red (para tener siempre la última versión) y, si no hay o tarda, la copia guardada.
 // - Librerías de jsdelivr (motor de IA, versión fija): primero la copia guardada.
 // - Los modelos de Hugging Face los guarda el propio motor de IA (Transformers.js) en su caché.
-const SHELL = 'pz-shell-v2', CDN = 'pz-cdn-v1';
+const SHELL = 'pz-shell-v3', CDN = 'pz-cdn-v1';
 const FILES = ['./', 'index.html', 'i18n.js', 'licencia.js', 'format.js', 'worker.js', 'logo.svg', 'manifest.webmanifest',
   'pz-icon-192.png', 'pz-icon-512.png', 'pz-icon-maskable.png', 'pz-apple-touch-icon.png', 'privacidad.html'];
 
