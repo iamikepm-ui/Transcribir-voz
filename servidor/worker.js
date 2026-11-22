@@ -228,7 +228,7 @@ export default {
       'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'no-referrer', 'X-Frame-Options': 'DENY',
     } });
     if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
-    if (url.pathname === '/v1/health' && req.method === 'GET') return json({ ok: true, configured: !!(env.PUBLIC_KEY && env.GROQ_API_KEY), storage: !!env.PZ_KV });
+    if (url.pathname === '/v1/health' && req.method === 'GET') return json({ ok: true, version: '2026.11.22-6', configured: !!(env.PUBLIC_KEY && env.GROQ_API_KEY), storage: !!env.PZ_KV });
     const routes = ['/v1/transcribe', '/v1/chat', '/v1/license', '/v1/admin', '/v1/request'];
     if (req.method !== 'POST' || !routes.includes(url.pathname)) return json({ error: { code: 'not_found' } }, 404);
     // solo la web de la app (los navegadores siempre envían «Origin» en estas peticiones)
