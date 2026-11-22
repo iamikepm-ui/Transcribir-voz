@@ -667,6 +667,12 @@
   .pzapp { background:linear-gradient(90deg,var(--a1),var(--a2)); -webkit-background-clip:text; background-clip:text; color:transparent; }
   /* sobre fondo verde (avisos, botones) el verde no se vería: ahí «App» va en blanco */
   .toast .pzapp, .btn.primary .pzapp { background:none; -webkit-background-clip:border-box; background-clip:border-box; color:#fff; text-shadow:0 1px 0 rgba(0,0,0,.15); }
+
+  /* botón grande para abrir otra app */
+  #outRoot .scrim, #outRoot .sheet { z-index:72; }
+  .outsheet { text-align:center; }
+  .outsheet .outgo { display:flex; justify-content:center; width:100%; min-height:64px; font-size:19px; margin:6px 0 10px; text-decoration:none; color:#04210f; }
+  .outsheet .btn.ghost { width:100%; }
 </style>
 </head>
 <body>
@@ -796,7 +802,7 @@
       <button class="btn primary" id="licGo">Activar</button>
     </div>
     <a class="wpriv" href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones</a>
-    <small class="wver">v2026.11.22-28</small>
+    <small class="wver">v2026.11.22-29</small>
   </div>
 </div>
 
@@ -869,6 +875,17 @@
       <li><b>«Coma» · «Punto» · «Punto y aparte»</b><small>Puntuación (castellano y catalán)</small></li>
       <li><b>«Sí» · «No» · «Sigue» · «A Jordi»</b><small>Respuestas cuando te pregunta «¿Lo envío?»</small></li>
     </ul>
+  </div>
+</div>
+
+<!-- Abrir otra app con un toque (cuando el navegador no deja abrirla solo con la voz) -->
+<div id="outRoot">
+  <div class="scrim" id="outScrim"></div>
+  <div class="sheet outsheet" role="dialog" aria-label="Abrir">
+    <div class="grab"></div>
+    <p class="phhint" id="outHint">El navegador no deja abrir otra app sin tocar la pantalla. Toca el botón:</p>
+    <a class="btn primary outgo" id="outGo" href="#" rel="noopener"></a>
+    <button class="btn ghost" id="outClose">Cerrar</button>
   </div>
 </div>
 
@@ -1012,7 +1029,7 @@
       <p>⚠️ Con el vehículo en marcha no manipules el móvil: usa la voz o el botón del casco, o detente en un lugar seguro. Respeta siempre las normas de tráfico.</p>
       <p>Consejo: menú ⋮ de Chrome → «Añadir a pantalla de inicio».</p>
       <p><a href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones de uso</a></p>
-      <p style="opacity:.6">PerezApp v2026.11.22-28</p>
+      <p style="opacity:.6">PerezApp v2026.11.22-29</p>
     </div>
   </div>
 </div>
@@ -1020,9 +1037,9 @@
 <div class="toast" id="toast"></div>
 <div class="snack" id="snack" role="status"><span id="snackMsg"></span><button id="snackBtn">Deshacer</button></div>
 
-<script src="i18n.js?v=2026.11.22-28" defer></script>
-<script src="licencia.js?v=2026.11.22-28" defer></script>
-<script src="format.js?v=2026.11.22-28" defer></script>
+<script src="i18n.js?v=2026.11.22-29" defer></script>
+<script src="licencia.js?v=2026.11.22-29" defer></script>
+<script src="format.js?v=2026.11.22-29" defer></script>
 <script>
 // se ejecuta cuando ya se han cargado i18n.js, licencia.js y format.js (defer): la pantalla se pinta antes
 document.addEventListener('DOMContentLoaded', () => {
@@ -1801,7 +1818,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (on('optAutoCopy')) copy(true);
     if (askToSend()) return;          // modo conducción: te lo lee y pregunta «¿Lo envío?»
     if (on('optReadBack')) speak(text.value.trim());
-    if (on('optAutoWa') && text.value.trim()) { saveHist(); const w = window.open(waUrl(), '_blank'); if (!w) toast('Pulsa WhatsApp para enviarlo'); }
+    if (on('optAutoWa') && text.value.trim()) { saveHist(); markSent(); openOut(waUrl(), '💬 ' + t('Abrir WhatsApp')); }
   }
 
   // ---------- órdenes por voz (manos libres) ----------
@@ -1883,7 +1900,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function runCmd(cmd) {
     if (cmd === 'send') { pendingSend = true; if (recording) stop(); else doSend(); return; }
     if (cmd === 'stop') { if (recording) stop(); return; }
-    if (cmd === 'call') { const f = callWho; callWho = null; if (!f) return; if (recording) stop(); const m = t('Llamando a {0}', f.n); speak(m, ui()); setStatus(m); setTimeout(() => { location.href = 'tel:' + intlTel(f.t); }, 1100); return; }
+    if (cmd === 'call') { const f = callWho; callWho = null; if (!f) return; if (recording) stop(); const m = t('Llamando a {0}', f.n); speak(m, ui()); setStatus(m); setTimeout(() => openOut('tel:' + intlTel(f.t), '📞 ' + t('Llamar a {0}', f.n), true), 1100); return; }
     if (cmd === 'nocontact') { const m = t('No encuentro a {0} en tus contactos', callMiss); callMiss = ''; if (recording) stop(); speak(m, ui()); setStatus(m, true); return; }
     if (cmd === 'clear') { if (text.value) { saveHist(); setText(''); } say('clear'); toast('🗑️ ' + t('Borrado')); return; }
     if (cmd === 'undo') { $('undo').click(); say('undo'); return; }
@@ -1894,6 +1911,22 @@ document.addEventListener('DOMContentLoaded', () => {
     if (cmd === 'newmsg') { if (text.value) { saveHist(); setText(''); } toWho = null; refresh(); say('clear'); return; }
     if (cmd && cmd.startsWith('tr:')) { editPending = false; const tgt = cmd.slice(3), src = DictadoFormat.detectLang(text.value) || lang; if (text.value.trim() && tgt !== src) translateTo(src, tgt); return; }
   }
+  // abre WhatsApp, Telegram, SMS, correo o una llamada. Si a los 2 s seguimos aquí (el navegador lo bloqueó por no haber toque), botón grande
+  function openOut(url, label, nav) {
+    let left = false; const hid = () => { if (document.hidden) left = true; };
+    document.addEventListener('visibilitychange', hid);
+    try { if (nav) location.href = url; else { const w = window.open(url, '_blank'); if (!w) location.href = url; } } catch {}
+    setTimeout(() => {
+      document.removeEventListener('visibilitychange', hid);
+      if (left || document.hidden) return;
+      $('outGo').textContent = label; $('outGo').href = url;
+      if (/^https?:/.test(url)) $('outGo').target = '_blank'; else $('outGo').removeAttribute('target');
+      $('outRoot').classList.add('open');
+      if (driving()) speak(t('Toca la pantalla para abrirlo'), ui());
+    }, 2000);
+  }
+  $('outGo').addEventListener('click', () => setTimeout(() => $('outRoot').classList.remove('open'), 300));
+  $('outClose').onclick = $('outScrim').onclick = () => $('outRoot').classList.remove('open');
   function doSend() {
     pendingSend = false;
     const f = sendWho ? findFav(sendWho) : toWho, via = sendVia || 'wa'; sendWho = ''; sendVia = '';
@@ -1904,7 +1937,8 @@ document.addEventListener('DOMContentLoaded', () => {
     speak(msg, ui()); setStatus(msg);
     const enc = encodeURIComponent(text.value.trim());
     const url = via === 'tg' ? 'https://t.me/share/url?url=' + enc : via === 'sms' ? 'sms:' + (f ? intlTel(f.t) : '') + '?&body=' + enc : via === 'mail' ? 'mailto:?body=' + enc : f ? waUrl(f.t) : waUrl();
-    setTimeout(() => { if (via === 'sms' || via === 'mail') { location.href = url; return; } const w = window.open(url, '_blank'); if (!w) location.href = url; }, 700);
+    const label = via === 'wa' ? (f ? t('WhatsApp a {0}', f.n) : t('Abrir WhatsApp')) : via === 'sms' ? (f ? t('SMS a {0}', f.n) : t('Abrir {0}', 'SMS')) : t('Abrir {0}', app);
+    setTimeout(() => openOut(url, (via === 'wa' ? '💬 ' : via === 'tg' ? '✈️ ' : via === 'sms' ? '💬 ' : '✉️ ') + label, via === 'sms' || via === 'mail'), 700);
   }
 
   // ---------- manos libres en conducción: te lee el mensaje y pregunta «¿Lo envío?» ----------
@@ -2433,7 +2467,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   function getWorker() {
     if (worker) return worker;
-    worker = new Worker('worker.js?v=2026.11.22-28', { type: 'module' });
+    worker = new Worker('worker.js?v=2026.11.22-29', { type: 'module' });
     worker.onerror = () => { if (busy && !recording) { busy = false; setMic('idle'); bar.style.display = 'none'; setStatus('El modelo del móvil ha fallado. Prueba otra vez o usa la nube.', true); } };
     worker.onmessage = ({ data }) => {
       if (model() === 'groq' && !offlinePrep && data.kind !== 'tr' && /progress|ready|status/.test(data.type)) { bar.style.display = 'none'; return; }
@@ -2463,20 +2497,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // transcripción con el servidor de PerezApp
   // sin cobertura (túneles, carreteras): el audio se guarda y se transcribe solo al volver la señal
-  const audioQueue = [];   // grabaciones hechas sin cobertura, en orden
+  const audioQueue = [];   // grabaciones hechas sin cobertura, en orden (también guardadas en el móvil)
+  // almacén del móvil (IndexedDB): si Android cierra la app sin cobertura, al volver a abrirla se escriben
+  const qdb = (() => { let pr = null; return () => pr || (pr = new Promise((ok, no) => {
+    try { const rq = indexedDB.open('perezapp', 1); rq.onupgradeneeded = () => rq.result.createObjectStore('audio', { keyPath: 'id', autoIncrement: true }); rq.onsuccess = () => ok(rq.result); rq.onerror = () => no(rq.error); } catch (e) { no(e); }
+  })); })();
+  async function qPut(it) {
+    try { const db = await qdb(); it.id = await new Promise((ok, no) => { const tx = db.transaction('audio', 'readwrite'), rq = tx.objectStore('audio').add({ blob: it.blob, mime: it.mime, ts: Date.now() }); rq.onsuccess = () => ok(rq.result); tx.onerror = () => no(tx.error); }); if (it.gone) qDel(it.id); } catch {}
+  }
+  async function qDel(id) { if (id == null) return; try { (await qdb()).transaction('audio', 'readwrite').objectStore('audio').delete(id); } catch {} }
+  async function qAll() { try { const db = await qdb(); return await new Promise((ok) => { const rq = db.transaction('audio').objectStore('audio').getAll(); rq.onsuccess = () => ok(rq.result || []); rq.onerror = () => ok([]); }); } catch { return []; } }
   function queueAudio(blob, mime, done) {
-    audioQueue.push({ blob, mime });
+    const it = { blob, mime }; audioQueue.push(it); qPut(it);
+    while (audioQueue.length > 10) { const old = audioQueue.shift(); old.gone = true; qDel(old.id); }   // como mucho 10
     done('📶 Sin cobertura: guardo lo que has dicho y lo escribo en cuanto vuelva la señal.');
     if (driving()) speak(t('Sin cobertura. Lo escribo cuando vuelva la señal.'), ui());
   }
   function flushAudio() {
     if (!audioQueue.length || !navigator.onLine || busy || recording) return;
-    const { blob, mime } = audioQueue.shift();
+    const it = audioQueue.shift(), { blob, mime } = it; it.gone = true; qDel(it.id);   // si vuelve a fallar, se guarda otra vez
     busy = true; setMic('busy'); toast('📶 Ha vuelto la cobertura: escribiendo tu mensaje…', 3000);
     Promise.resolve(cloudTranscribe(blob, mime)).finally(() => setTimeout(flushAudio, 800));
   }
   addEventListener('online', () => setTimeout(flushAudio, 1500));
   setInterval(flushAudio, 15000);   // por si el móvil no avisa al recuperar la señal
+  // al abrir la app: recupera lo que quedó guardado sin cobertura (de hasta 7 días)
+  setTimeout(async () => {
+    const items = await qAll(), now = Date.now();
+    for (const x of items) {
+      if (now - (x.ts || 0) > 7 * 86400000 || !hasKey()) { if (now - (x.ts || 0) > 7 * 86400000) qDel(x.id); continue; }
+      if (!audioQueue.some((q) => q.id === x.id)) audioQueue.push({ blob: x.blob, mime: x.mime, id: x.id });
+    }
+    if (audioQueue.length) { setStatus('📶 Sin cobertura: guardo lo que has dicho y lo escribo en cuanto vuelva la señal.'); setTimeout(flushAudio, 1200); }
+  }, 2500);
   async function pzTranscribe(blob, mime, done) {
     if (!navigator.onLine) { queueAudio(blob, mime, done); return; }
     setStatus('Transcribiendo en la nube…');
