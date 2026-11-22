@@ -717,7 +717,7 @@
       <button class="btn primary" id="licGo">Activar</button>
     </div>
     <a class="wpriv" href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones</a>
-    <small class="wver">v2026.11.22-21</small>
+    <small class="wver">v2026.11.22-22</small>
   </div>
 </div>
 
@@ -856,7 +856,7 @@
       <div class="opt"><div class="lbl">Modo de dictado<small>Preciso: el mejor resultado. Rápido: ves el texto mientras hablas</small></div>
         <select id="optEngine"><option value="whisper">🎯 Preciso</option><option value="live">⚡ Rápido</option></select></div>
       <div class="opt"><div class="lbl">Parar al dejar de hablar<small>Sin tocar la pantalla</small></div>
-        <select id="optSilence"><option value="auto">Solo al conducir</option><option value="0">No</option><option value="2">Tras 2 s</option><option value="3">Tras 3 s</option><option value="5">Tras 5 s</option></select></div>
+        <select id="optSilence"><option value="1">Tras 1 s</option><option value="2">Tras 2 s</option><option value="3">Tras 3 s</option><option value="5">Tras 5 s</option><option value="auto">Solo al conducir</option><option value="0">No</option></select></div>
       <label class="opt"><div class="lbl">Saludo y despedida en su línea<small>«Hola Marta,» arriba, el mensaje debajo y «Un abrazo.» al final</small></div><span class="switch"><input type="checkbox" id="optFormat"><span></span></span></label>
       <label class="opt"><div class="lbl">Puntuación por voz<small>«coma», «punto», «punto y aparte»… (modo Rápido, español y catalán)</small></div><span class="switch"><input type="checkbox" id="optPunct"><span></span></span></label>
       <label class="opt"><div class="lbl">Pitido y vibración<small>Al empezar y al parar</small></div><span class="switch"><input type="checkbox" id="optBeep"><span></span></span></label>
@@ -903,7 +903,7 @@
       <p>⚠️ Con el vehículo en marcha no manipules el móvil: usa la voz o el botón del casco, o detente en un lugar seguro. Respeta siempre las normas de tráfico.</p>
       <p>Consejo: menú ⋮ de Chrome → «Añadir a pantalla de inicio».</p>
       <p><a href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones de uso</a></p>
-      <p style="opacity:.6">PerezApp v2026.11.22-21</p>
+      <p style="opacity:.6">PerezApp v2026.11.22-22</p>
     </div>
   </div>
 </div>
@@ -911,9 +911,9 @@
 <div class="toast" id="toast"></div>
 <div class="snack" id="snack" role="status"><span id="snackMsg"></span><button id="snackBtn">Deshacer</button></div>
 
-<script src="i18n.js?v=2026.11.22-21"></script>
-<script src="licencia.js?v=2026.11.22-21"></script>
-<script src="format.js?v=2026.11.22-21"></script>
+<script src="i18n.js?v=2026.11.22-22"></script>
+<script src="licencia.js?v=2026.11.22-22"></script>
+<script src="format.js?v=2026.11.22-22"></script>
 <script>
 (() => {
   const $ = (id) => document.getElementById(id);
@@ -968,7 +968,8 @@
   const on = (id) => $(id).checked;
   const applyGloves = () => { document.documentElement.classList.toggle('gloves', on('optGloves')); requestAnimationFrame(() => { segSet($('modeSeg'), engine); }); };
   $('optGloves').addEventListener('change', applyGloves); applyGloves();
-  $('optSilence').value = String(store.get('silence', 'auto'));
+  if (!store.get('silenceV2', false)) { store.set('silence', 1); store.set('silenceV2', true); }
+  $('optSilence').value = String(store.get('silence', 1));
   $('optSilence').onchange = () => { const v = $('optSilence').value; store.set('silence', v === 'auto' ? 'auto' : +v); };
 
   // tema, color y tamaño
@@ -1386,6 +1387,7 @@
       const buf = new Uint8Array(an.fftSize), fb = new Uint8Array(an.frequencyBinCount);
       an.smoothingTimeConstant = 0.6;
       lastVoice = Date.now(); heardVoice = false;
+      let floor = -1, run = 0;
       meterTimer = setInterval(() => {
         an.getByteTimeDomainData(buf);
         let s = 0; for (const v of buf) s += (v - 128) ** 2;
@@ -1393,7 +1395,9 @@
         target = Math.min(1, rms / 30);
         an.getByteFrequencyData(fb);
         for (let i = 0; i < NB / 2; i++) { const a = 2 + Math.floor(Math.pow(i / (NB / 2), 1.6) * 120); specT[i] = Math.min(1, (fb[a] / 255) * 1.25); }
-        if (rms > 5) { lastVoice = Date.now(); heardVoice = true; }
+        // ruido de fondo: baja enseguida y sube muy despacio; la voz es lo que destaca por encima
+        floor = floor < 0 ? rms : rms < floor ? floor + (rms - floor) * 0.3 : floor + (rms - floor) * 0.004;
+        if (rms > Math.max(5, floor * 1.7 + 2.5)) { if (++run >= 2) { lastVoice = Date.now(); heardVoice = true; } } else run = 0;
         checkSilence();
       }, 50);
     } catch {}
@@ -1404,9 +1408,11 @@
     if (stopTracks && meterStream) meterStream.getTracks().forEach(t => t.stop());
     meterStream = null;
   }
+  let recStart = 0;
   function checkSilence() {
-    const v = store.get('silence', 'auto'), secs = v === 'auto' ? (driving() ? 3 : 0) : +v;
-    if (!recording || !secs || !heardVoice) return;
+    const v = store.get('silence', 1), secs = v === 'auto' ? (driving() ? 3 : 0) : +v;
+    if (!recording || !secs) return;
+    if (!heardVoice) { if (Date.now() - recStart > 8000) stop(); return; }   // nadie ha hablado: no se queda grabando
     if (Date.now() - lastVoice > secs * 1000) stop();
   }
 
@@ -2049,7 +2055,7 @@
   let worker = null, mediaRec = null, chunks = [], asrReady = false;
   function getWorker() {
     if (worker) return worker;
-    worker = new Worker('worker.js?v=2026.11.22-21', { type: 'module' });
+    worker = new Worker('worker.js?v=2026.11.22-22', { type: 'module' });
     worker.onmessage = ({ data }) => {
       if (model() === 'groq' && /progress|ready|status/.test(data.type)) { bar.style.display = 'none'; return; }
       if (data.type === 'progress') { bar.style.display = 'block'; barFill.style.width = data.pct + '%'; setStatus(data.kind === 'tr' ? t('Descargando el traductor (solo la primera vez): {0}% de {1} MB', data.pct, data.mb) : t('Descargando {0} (solo la primera vez): {1}% de {2} MB', NAMES[offlinePrep || model()], data.pct, data.mb)); }
@@ -2286,7 +2292,8 @@
     if (lastSel && Date.now() - lastSel.t < 20000 && text.value.trim() && (lastSel.s !== lastSel.e || lastSel.s < text.value.trimEnd().length)) insertAt = { s: lastSel.s, e: lastSel.e };
     lastSel = null;
     recording = true; setMic('rec'); beep(880); keepAwake(); runTimer(true); $('lTime').textContent = '0:00';
-    { const v = store.get('silence', 'auto'), secs = v === 'auto' ? (driving() ? 3 : 0) : +v;
+    recStart = Date.now();
+    { const v = store.get('silence', 1), secs = v === 'auto' ? (driving() ? 3 : 0) : +v;
       $('lHint').textContent = t(secs ? 'Paro solo cuando te calles' : 'Pulsa otra vez cuando acabes · o mantén pulsado mientras hablas'); }
     engine === 'live' ? startLive() : startAI();
     if (insertAt) setStatus(insertAt.s !== insertAt.e ? 'Dictando para sustituir lo seleccionado…' : 'Dictando en el punto marcado…');

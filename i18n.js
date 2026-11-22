@@ -373,6 +373,7 @@
     "Grabando… suelta para terminar": ["Gravant… deixa anar per acabar", "Recording… release to finish", "Enregistrement… relâche pour terminer", "Registrazione… rilascia per finire", "Aufnahme… loslassen zum Beenden", "A gravar… solta para terminar"],
     "✍️ Escribiendo tu mensaje…": ["✍️ Escrivint el teu missatge…", "✍️ Writing your message…", "✍️ J'écris ton message…", "✍️ Scrivo il tuo messaggio…", "✍️ Deine Nachricht wird geschrieben…", "✍️ A escrever a tua mensagem…"],
     "Traducido": ["Traduït", "Translated", "Traduit", "Tradotto", "Übersetzt", "Traduzido"],
+    "Tras 1 s": ["Després d'1 s", "After 1 s", "Après 1 s", "Dopo 1 s", "Nach 1 s", "Após 1 s"],
     "Borrado": ["Esborrat", "Deleted", "Effacé", "Cancellato", "Gelöscht", "Apagado"],
     "Deshecho": ["Desfet", "Undone", "Annulé", "Annullato", "Rückgängig gemacht", "Desfeito"],
     "Abriendo WhatsApp": ["Obrint WhatsApp", "Opening WhatsApp", "Ouverture de WhatsApp", "Apro WhatsApp", "WhatsApp wird geöffnet", "A abrir o WhatsApp"],
