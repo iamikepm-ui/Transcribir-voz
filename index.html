@@ -559,7 +559,7 @@
       <button class="btn primary" id="licGo">Activar</button>
     </div>
     <a class="wpriv" href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones</a>
-    <small class="wver">v2026.11.22-8</small>
+    <small class="wver">v2026.11.22-9</small>
   </div>
 </div>
 
@@ -730,16 +730,16 @@
       <p>⚠️ Con el vehículo en marcha no manipules el móvil: usa la voz o el botón del casco, o detente en un lugar seguro. Respeta siempre las normas de tráfico.</p>
       <p>Consejo: menú ⋮ de Chrome → «Añadir a pantalla de inicio».</p>
       <p><a href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones de uso</a></p>
-      <p style="opacity:.6">PerezApp v2026.11.22-8</p>
+      <p style="opacity:.6">PerezApp v2026.11.22-9</p>
     </div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
-<script src="i18n.js?v=2026.11.22-8"></script>
-<script src="licencia.js?v=2026.11.22-8"></script>
-<script src="format.js?v=2026.11.22-8"></script>
+<script src="i18n.js?v=2026.11.22-9"></script>
+<script src="licencia.js?v=2026.11.22-9"></script>
+<script src="format.js?v=2026.11.22-9"></script>
 <script>
 (() => {
   const $ = (id) => document.getElementById(id);
@@ -1736,7 +1736,7 @@
   let worker = null, mediaRec = null, chunks = [], asrReady = false;
   function getWorker() {
     if (worker) return worker;
-    worker = new Worker('worker.js?v=2026.11.22-8', { type: 'module' });
+    worker = new Worker('worker.js?v=2026.11.22-9', { type: 'module' });
     worker.onmessage = ({ data }) => {
       if (model() === 'groq' && /progress|ready|status/.test(data.type)) { bar.style.display = 'none'; return; }
       if (data.type === 'progress') { bar.style.display = 'block'; barFill.style.width = data.pct + '%'; setStatus(data.kind === 'tr' ? t('Descargando el traductor (solo la primera vez): {0}% de {1} MB', data.pct, data.mb) : t('Descargando {0} (solo la primera vez): {1}% de {2} MB', NAMES[offlinePrep || model()], data.pct, data.mb)); }
@@ -1775,7 +1775,7 @@
     setStatus('Transcribiendo en la nube…');
     try {
       const fd = new FormData();
-      fd.append('file', blob, 'audio.' + ((mime || '').includes('mp4') ? 'mp4' : (mime || '').includes('ogg') ? 'ogg' : 'webm'));
+      fd.append('file', blob, 'audio.' + ((mime || '').includes('wav') ? 'wav' : (mime || '').includes('mp4') ? 'mp4' : (mime || '').includes('ogg') ? 'ogg' : 'webm'));
       if (whisperLang()) fd.append('language', whisperLang());
       if (vocab()) fd.append('prompt', vocab());
       const d = await apiFetch('/v1/transcribe', { method: 'POST', body: fd });
@@ -1802,7 +1802,7 @@
     setStatus('Transcribiendo en la nube…');
     try {
       const fd = new FormData();
-      fd.append('file', blob, 'audio.' + ((mime || '').includes('mp4') ? 'mp4' : (mime || '').includes('ogg') ? 'ogg' : 'webm'));
+      fd.append('file', blob, 'audio.' + ((mime || '').includes('wav') ? 'wav' : (mime || '').includes('mp4') ? 'mp4' : (mime || '').includes('ogg') ? 'ogg' : 'webm'));
       if (whisperLang()) fd.append('language', whisperLang());
       fd.append('response_format', 'json');
       fd.append('temperature', '0');
@@ -1828,6 +1828,20 @@
     } catch (e) { done(t('No se pudo conectar con Groq: {0}', e.message), true); }
   }
 
+  async function toWav(blob) {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+      const buf = await ctx.decodeAudioData(await blob.arrayBuffer()); ctx.close();
+      const x = buf.getChannelData(0), n = x.length;
+      if (n < 16000 * 0.4) return { short: true };
+      const out = new DataView(new ArrayBuffer(44 + n * 2));
+      const w = (o, str) => { for (let i = 0; i < str.length; i++) out.setUint8(o + i, str.charCodeAt(i)); };
+      w(0, 'RIFF'); out.setUint32(4, 36 + n * 2, true); w(8, 'WAVE'); w(12, 'fmt '); out.setUint32(16, 16, true); out.setUint16(20, 1, true); out.setUint16(22, 1, true);
+      out.setUint32(24, 16000, true); out.setUint32(28, 32000, true); out.setUint16(32, 2, true); out.setUint16(34, 16, true); w(36, 'data'); out.setUint32(40, n * 2, true);
+      for (let i = 0; i < n; i++) { const v = Math.max(-1, Math.min(1, x[i])); out.setInt16(44 + i * 2, v < 0 ? v * 0x8000 : v * 0x7fff, true); }
+      return { blob: new Blob([out.buffer], { type: 'audio/wav' }) };
+    } catch { return null; }
+  }
   async function startAI() {
     let stream;
     try { stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true } }); }
@@ -1842,7 +1856,12 @@
       const blob = new Blob(chunks, { type: mr.mimeType });
       if (!heardVoice) { setStatus('No se ha oído nada. Prueba otra vez.', true); return; }
       busy = true; setMic('busy');
-      if (model() === 'groq' || model() === 'pzcloud') { cloudTranscribe(blob, mr.mimeType); return; }
+      if (model() === 'groq' || model() === 'pzcloud') {
+        // a la nube va en WAV (16 kHz, mono): lleva la duración exacta. El WebM de Android no la indica y Groq la calcula mal
+        const wav = await toWav(blob);
+        if (wav && wav.short) { busy = false; setMic('idle'); setStatus('Grabación demasiado corta', true); return; }
+        cloudTranscribe(wav ? wav.blob : blob, wav ? 'audio/wav' : mr.mimeType); return;
+      }
       setStatus(asrReady ? 'Transcribiendo…' : t('Preparando {0}…', NAMES[model()]));
       try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
