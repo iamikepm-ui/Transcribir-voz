@@ -355,6 +355,7 @@
     "Borrar todo el historial": ["Esborrar tot l'historial", "Delete all history", "Effacer tout l'historique", "Cancella tutta la cronologia", "Gesamten Verlauf löschen", "Apagar todo o histórico"],
     "¿Borrar todos los mensajes del historial?": ["Vols esborrar tots els missatges de l'historial?", "Delete all messages from the history?", "Effacer tous les messages de l'historique ?", "Cancellare tutti i messaggi della cronologia?", "Alle Nachrichten im Verlauf löschen?", "Apagar todas as mensagens do histórico?"],
     "Mensaje borrado": ["Missatge esborrat", "Message deleted", "Message effacé", "Messaggio cancellato", "Nachricht gelöscht", "Mensagem apagada"],
+    "Compartir PerezApp": ["Compartir PerezApp", "Share PerezApp", "Partager PerezApp", "Condividi PerezApp", "PerezApp teilen", "Partilhar a PerezApp"],
     "Borrado": ["Esborrat", "Deleted", "Effacé", "Cancellato", "Gelöscht", "Apagado"],
     "Deshecho": ["Desfet", "Undone", "Annulé", "Annullato", "Rückgängig gemacht", "Desfeito"],
     "Abriendo WhatsApp": ["Obrint WhatsApp", "Opening WhatsApp", "Ouverture de WhatsApp", "Apro WhatsApp", "WhatsApp wird geöffnet", "A abrir o WhatsApp"],
