@@ -575,11 +575,11 @@
   .wcard2 b { font-size:14.5px; color:#e39a2d; }
   [data-theme="dark"] .wcard2 b { color:#ffc56e; }
   /* ===== aviso con «Deshacer» ===== */
-  .snack { position:fixed; left:50%; top:calc(env(safe-area-inset-top) + 12px); z-index:41; display:flex; align-items:center; gap:12px; max-width:calc(100% - 24px); padding:6px 6px 6px 18px; border-radius:18px;
+  .snack { position:fixed; left:50%; top:calc(env(safe-area-inset-top) + 12px); z-index:41; display:flex; align-items:center; gap:12px; width:max-content; max-width:calc(100vw - 24px); box-sizing:border-box; padding:6px 6px 6px 18px; border-radius:18px;
     background:#1f2c34; color:#e9edef; font-weight:700; box-shadow:0 14px 34px rgba(0,0,0,.4); border:1px solid rgba(255,255,255,.1);
     transform:translate(-50%,-30px); opacity:0; pointer-events:none; transition:.3s cubic-bezier(.3,1.3,.5,1); }
   .snack.show { transform:translate(-50%,0); opacity:1; pointer-events:auto; }
-  .snack span { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .snack span { overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; line-height:1.25; }
   .snack button { flex:none; min-height:44px; padding:8px 16px; border-radius:13px; border:0; background:linear-gradient(135deg,var(--a1),var(--a2)); color:#04210f; font:inherit; font-weight:800; }
   .gloves .snack button { min-height:52px; }
   /* ===== avión de papel al enviar ===== */
@@ -609,6 +609,13 @@
   #pickContacts[hidden] { display:none; }
   .hintrow { flex-wrap:nowrap; width:100%; }
   .hintrow .hintwrite { flex:0 1 auto; min-width:0; padding:8px 10px; font-size:13.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:4px; }
+
+  /* ===== estadísticas en Ajustes ===== */
+  .statscard { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:10px 0 2px; }
+  .statscard[hidden] { display:none; }
+  .statscard > div { padding:12px 6px 10px; border-radius:16px; text-align:center; background:color-mix(in srgb,var(--panel) 80%,transparent); border:1px solid var(--line); }
+  .statscard b { display:block; font-size:22px; font-weight:800; letter-spacing:-.02em; background:linear-gradient(135deg,var(--a1),var(--a2)); -webkit-background-clip:text; background-clip:text; color:transparent; font-variant-numeric:tabular-nums; }
+  .statscard small { display:block; margin-top:2px; font-size:12px; line-height:1.25; color:var(--soft); }
 </style>
 </head>
 <body>
@@ -620,9 +627,9 @@
 <main class="app">
   <h1 class="sr">PerezApp</h1>
   <header>
-    <button class="brand brandbtn" id="brandShare" aria-label="Compartir PerezApp" title="Compartir PerezApp">
+    <button class="brand brandbtn" id="brandShare" title="Compartir PerezApp">
       <span class="lw"><img class="logo" src="logo.svg" alt=""><i class="shareic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><path d="m16 6-4-4-4 4M12 2v13"/></svg></i></span>
-      <div><div class="name">Perez<span>App</span></div><small id="slogan">Tú habla, que yo escribo</small></div>
+      <div><div class="name">Perez<span>App</span></div><small id="slogan">Tú habla, que yo escribo</small></div><span class="sr">Compartir</span>
     </button>
     <button class="round" id="histBtn" aria-label="Mensajes recientes" title="Mensajes recientes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg><span class="badge" id="histN"></span></button>
     <button class="round drv" id="driveBtn" aria-label="Modo conducción" title="Modo conducción"><svg viewBox="1.7 2.25 20.6 20.6" fill="currentColor"><path fill-rule="evenodd" d="M8.9 4.5h6.2c1.2 0 2.3.8 2.7 1.9l1.5 3.9h.4l1-.6a.9.9 0 1 1 .9 1.6l-.7.4c.6.5 1 1.3 1 2.1v3.4c0 .9-.6 1.6-1.4 1.8v1.4a1 1 0 0 1-1 1h-1.2a1 1 0 0 1-1-1v-1.3H6.6v1.3a1 1 0 0 1-1 1H4.4a1 1 0 0 1-1-1v-1.4A1.9 1.9 0 0 1 2 17.2v-3.4c0-.8.4-1.6 1-2.1l-.7-.4a.9.9 0 1 1 .9-1.6l1 .6h.4l1.5-3.9c.4-1.1 1.5-1.9 2.7-1.9ZM8.9 6.4c-.4 0-.8.3-.9.6l-1.2 3.3h10.4L16 7c-.1-.3-.5-.6-.9-.6H8.9ZM5 14.3a1.4 1.4 0 1 0 2.8 0a1.4 1.4 0 1 0-2.8 0ZM16.2 14.3a1.4 1.4 0 1 0 2.8 0a1.4 1.4 0 1 0-2.8 0ZM10.35 13.6h3.3a.75.75 0 0 1 0 1.5h-3.3a.75.75 0 0 1 0-1.5Z"/></svg></button>
@@ -686,7 +693,7 @@
       <div class="mic-wrap">
         <div class="halo"></div>
         <canvas id="wave"></canvas>
-        <button class="mic" id="mic" aria-label="Empezar a dictar">
+        <button class="mic" id="mic" aria-label="Hablar">
           <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-2.08A7 7 0 0 0 19 12h-2Z"/></svg>
           <span class="micLabel">Hablar</span>
         </button>
@@ -732,7 +739,7 @@
       <button class="btn primary" id="licGo">Activar</button>
     </div>
     <a class="wpriv" href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones</a>
-    <small class="wver">v2026.11.22-24</small>
+    <small class="wver">v2026.11.22-25</small>
   </div>
 </div>
 
@@ -797,6 +804,7 @@
     <ul class="vclist">
       <li><b>«Dile a Marta que llego en diez minutos»</b><small>Escribe el mensaje para Marta y te pregunta si se lo envía</small></li>
       <li><b>«Envíaselo a Marta» · «Envíalo por Telegram» · «Envíalo por SMS»</b><small>Enviar a un contacto o por otra app</small></li>
+      <li><b>«Llama a Marta»</b><small>Llamar a un contacto (por el manos libres)</small></li>
       <li><b>«Corrígelo» · «Más formal» · «Más corto» · «Añade emojis»</b><small>Retocar el mensaje con la IA</small></li>
       <li><b>«Tradúcelo al inglés»</b><small>Traducir a otro idioma</small></li>
       <li><b>«Léelo» · «Deshacer» · «Borra todo» · «Cópialo»</b><small>Revisar sin mirar</small></li>
@@ -829,7 +837,7 @@
   <div class="mic-wrap">
     <div class="halo"></div>
     <canvas id="wave2"></canvas>
-    <button class="mic" id="mic2" aria-label="Empezar a dictar">
+    <button class="mic" id="mic2" aria-label="Hablar">
       <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-2.08A7 7 0 0 0 19 12h-2Z"/></svg>
       <span class="micLabel">Hablar</span>
     </button>
@@ -853,13 +861,20 @@
     <h2>Ajustes <button class="round" id="setClose" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></h2>
 
     <div class="installcard" id="installRow" hidden>
-      <img src="pz-icon-192.png" alt="">
+      <img src="logo.svg" alt="">
       <div class="sc-t"><b>📲 Instala PerezApp</b><small>Icono en la pantalla de inicio, a pantalla completa y lista al momento.</small></div>
       <button class="btn primary" id="installApp">Instalar</button>
     </div>
     <div class="sharecard">
       <div class="sc-t"><b>🎁 Recomienda PerezApp</b><small>Envía el enlace a quien conduzca o vaya en moto. Desde la app podrá pedir su clave.</small></div>
       <button class="btn primary" id="shareApp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><path d="m16 6-4-4-4 4M12 2v13"/></svg><span>Compartir</span></button>
+    </div>
+
+
+    <div class="statscard" id="statsCard" hidden>
+      <div><b id="stW">0</b><small>palabras dictadas</small></div>
+      <div><b id="stM">0</b><small>mensajes enviados</small></div>
+      <div><b id="stT">0</b><small>ahorrado sin teclear</small></div>
     </div>
 
     <h3>Apariencia</h3>
@@ -903,13 +918,14 @@
       <div class="opt"><div class="lbl">Qué puedo decir<small>Todas las órdenes de voz</small></div><button class="btn small primary" id="vcOpen" style="padding:12px 16px">🗣️ Ver</button></div>
       <label class="opt"><div class="lbl">Órdenes por voz<small>Di «enviar», «borrar todo», «deshacer», «léelo» o «para»</small></div><span class="switch"><input type="checkbox" id="optVoiceCmd"><span></span></span></label>
       <label class="opt"><div class="lbl">Preguntar «¿Lo envío?»<small>En modo conducción te lee el mensaje y respondes «sí», «no», «léelo» o «sigue»</small></div><span class="switch"><input type="checkbox" id="optAsk"><span></span></span></label>
+      <label class="opt"><div class="lbl">Modo conducción automático<small>Se activa solo al ponerte en marcha (más de 20 km/h). Usa el GPS mientras la app está abierta</small></div><span class="switch"><input type="checkbox" id="optAutoDrive"><span></span></span></label>
       <label class="opt"><div class="lbl">Modo guantes<small>Botones extra grandes para usar con guantes (moto)</small></div><span class="switch"><input type="checkbox" id="optGloves"><span></span></span></label>
       <label class="opt"><div class="lbl">Botón del casco o auriculares<small>El botón de reproducir/pausa del intercomunicador o los auriculares Bluetooth empieza y para el dictado (experimental)</small></div><span class="switch"><input type="checkbox" id="optHeadset"><span></span></span></label>
     </div>
 
     <h3>Al terminar de hablar</h3>
     <div class="group">
-      <label class="opt"><div class="lbl">Empezar con el mensaje vacío<small>Al abrir la app, el último texto pasa al historial</small></div><span class="switch"><input type="checkbox" id="optFresh"><span></span></span></label>
+      <label class="opt"><div class="lbl">Empezar con el mensaje vacío<small>Al abrir la app y al volver de enviarlo, el último texto pasa al historial</small></div><span class="switch"><input type="checkbox" id="optFresh"><span></span></span></label>
       <label class="opt"><div class="lbl">Copiar automáticamente</div><span class="switch"><input type="checkbox" id="optAutoCopy"><span></span></span></label>
       <label class="opt"><div class="lbl">Leer el texto en voz alta<small>Para comprobarlo sin mirar</small></div><span class="switch"><input type="checkbox" id="optReadBack"><span></span></span></label>
       <label class="opt"><div class="lbl">Abrir WhatsApp<small>Con el mensaje ya escrito</small></div><span class="switch"><input type="checkbox" id="optAutoWa"><span></span></span></label>
@@ -939,7 +955,7 @@
       <p>⚠️ Con el vehículo en marcha no manipules el móvil: usa la voz o el botón del casco, o detente en un lugar seguro. Respeta siempre las normas de tráfico.</p>
       <p>Consejo: menú ⋮ de Chrome → «Añadir a pantalla de inicio».</p>
       <p><a href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones de uso</a></p>
-      <p style="opacity:.6">PerezApp v2026.11.22-24</p>
+      <p style="opacity:.6">PerezApp v2026.11.22-25</p>
     </div>
   </div>
 </div>
@@ -947,11 +963,12 @@
 <div class="toast" id="toast"></div>
 <div class="snack" id="snack" role="status"><span id="snackMsg"></span><button id="snackBtn">Deshacer</button></div>
 
-<script src="i18n.js?v=2026.11.22-24"></script>
-<script src="licencia.js?v=2026.11.22-24"></script>
-<script src="format.js?v=2026.11.22-24"></script>
+<script src="i18n.js?v=2026.11.22-25" defer></script>
+<script src="licencia.js?v=2026.11.22-25" defer></script>
+<script src="format.js?v=2026.11.22-25" defer></script>
 <script>
-(() => {
+// se ejecuta cuando ya se han cargado i18n.js, licencia.js y format.js (defer): la pantalla se pinta antes
+document.addEventListener('DOMContentLoaded', () => {
   const $ = (id) => document.getElementById(id);
   const $$ = (sel) => [...document.querySelectorAll(sel)];
   const text = $('text'), interim = $('interim'), status = $('status'), bar = $('bar'), barFill = bar.firstElementChild, timer = $('timer');
@@ -999,7 +1016,7 @@
   window.addEventListener('resize', () => { segSet($('modeSeg'), engine); });
 
   // ---------- ajustes ----------
-  const CHECKS = { optGloves: true, optVoiceCmd: true, optHeadset: false, optAiFix: true, optGpu: !isMobile, optFormat: true, optPunct: true, optBeep: true, optAwake: false, optAutoCopy: true, optReadBack: false, optAutoWa: false, optAsk: true, optFresh: true };
+  const CHECKS = { optGloves: true, optVoiceCmd: true, optHeadset: false, optAiFix: true, optGpu: !isMobile, optFormat: true, optPunct: true, optBeep: true, optAwake: false, optAutoCopy: true, optReadBack: false, optAutoWa: false, optAsk: true, optFresh: true, optAutoDrive: false };
   for (const [id, def] of Object.entries(CHECKS)) { $(id).checked = store.get(id, def); $(id).onchange = () => { store.set(id, $(id).checked); if (id === 'optAwake') keepAwake(); }; }
   const on = (id) => $(id).checked;
   const applyGloves = () => { document.documentElement.classList.toggle('gloves', on('optGloves')); requestAnimationFrame(() => { segSet($('modeSeg'), engine); }); };
@@ -1130,7 +1147,7 @@
   $('optDictLang').onchange = () => setDictLang($('optDictLang').value);
   // ---------- idioma del mensaje (botón del chat) ----------
   const langName = (k) => k === 'auto' ? t('Automático') : k === 'es' ? 'Castellano' : LANGS[k].n;
-  function paintLangPill() { const k = dictPref(); $('langPill').textContent = (k === 'auto' ? '🌐 ' : '🗣️ ') + langName(k); }
+  function paintLangPill() { const k = dictPref(); $('langPill').textContent = (k === 'auto' ? '🌐 ' : '🗣️ ') + langName(k); $('langPill').setAttribute('aria-label', $('langPill').textContent + ' · ' + t('Idioma del mensaje')); }
   function setDictLang(k) {
     store.set('dictLang', k); $('optDictLang').value = k;
     setLang(k !== 'auto' ? k : ui()); preloadAsr(); paintLangPill();
@@ -1189,7 +1206,28 @@
   addEventListener('resize', () => autosize());
   // hora del mensaje y ✓✓ (azules cuando se copia o se envía)
   function stamp() { $('btime').textContent = new Date().toLocaleTimeString(I.locale(), { hour: '2-digit', minute: '2-digit' }); }
-  function markSent() { $('bubble').classList.add('sent'); }
+  function markSent(sent) { $('bubble').classList.add('sent'); if (sent !== false) noteSent(); }
+  // al volver de WhatsApp (o Telegram, SMS…) la pantalla queda lista para el siguiente mensaje; «Recuperar» por si no llegaste a enviarlo
+  var sentMark = null, hiddenAt = 0;
+  function noteSent() { if (!text.value.trim()) return; if (!sentMark || sentMark.v !== text.value) bumpStat('m', 1); sentMark = { v: text.value, who: toWho }; }
+  function freshAfterSend() {
+    const prev = sentMark; sentMark = null;
+    if (!prev || !on('optFresh') || recording || busy || text.value !== prev.v) return false;
+    setText(''); toWho = null; refresh();
+    snack('✓ ' + t('Listo para el siguiente mensaje'), 'Recuperar', () => { setText(prev.v, false); toWho = prev.who; refresh(); }, 6000);
+    return true;
+  }
+  document.addEventListener('visibilitychange', () => { if (document.hidden) hiddenAt = Date.now(); else if (sentMark && Date.now() - hiddenAt > 1200) freshAfterSend(); });
+  // estadísticas: mensajes enviados y palabras dictadas
+  function bumpStat(k, n) { const st = store.get('stats', { m: 0, w: 0 }); st[k] = (st[k] || 0) + n; store.set('stats', st); paintStats(); }
+  function paintStats() {
+    const st = store.get('stats', { m: 0, w: 0 }), el = $('statsCard'); if (!el) return;
+    el.hidden = !(st.w > 0 || st.m > 0);
+    const nf = new Intl.NumberFormat(I.locale());
+    $('stM').textContent = nf.format(st.m || 0); $('stW').textContent = nf.format(st.w || 0);
+    const sec = Math.max(0, Math.round(((st.w || 0) / 40 - (st.w || 0) / 150) * 60));   // teclear en el móvil ~40 palabras/min; hablar ~150
+    $('stT').textContent = sec < 60 ? sec + ' s' : sec < 3600 ? nf.format(Math.round(sec / 60)) + ' min' : Math.floor(sec / 3600) + ' h ' + Math.round((sec % 3600) / 60) + ' min';
+  }
   function flyPlane() {
     if (reduce || driving()) return;
     const b = $('bubble'); if (!b.offsetWidth) return;
@@ -1435,6 +1473,7 @@
     try {
       meterStream = stream || await navigator.mediaDevices.getUserMedia({ audio: true });
       meterCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (meterCtx.state === 'suspended') meterCtx.resume().catch(() => {});
       const an = meterCtx.createAnalyser(); an.fftSize = 1024;
       meterCtx.createMediaStreamSource(meterStream).connect(an);
       const buf = new Uint8Array(an.fftSize), fb = new Uint8Array(an.frequencyBinCount);
@@ -1465,6 +1504,7 @@
   function checkSilence() {
     const v = store.get('silence', 1), secs = v === 'auto' ? (driving() ? 3 : 0) : +v;
     if (!recording || !secs) return;
+    if (engine !== 'live' && meterCtx && meterCtx.state !== 'running') return;   // sin medidor de volumen no sé si hablas
     if (!heardVoice) { if (Date.now() - recStart > 8000) stop(); return; }   // nadie ha hablado: no se queda grabando
     if (Date.now() - lastVoice > secs * 1000) stop();
   }
@@ -1522,7 +1562,7 @@
     return null;
   }
   function finishChunk(raw, fromAI) { let s = raw.trim(); if (!s) return;
-    if (!text.value.trim() && on('optVoiceCmd')) { const m = matchRecipient(s); if (m) { toWho = m.f; s = m.rest.charAt(0).toUpperCase() + m.rest.slice(1); paintTo(); } } if (!fromAI && on('optPunct')) s = voiceCommands(s); append(tidy(s, !fromAI)); }
+    if (!text.value.trim() && on('optVoiceCmd')) { const m = matchRecipient(s); if (m) { toWho = m.f; s = m.rest.charAt(0).toUpperCase() + m.rest.slice(1); paintTo(); } } if (!fromAI && on('optPunct')) s = voiceCommands(s); bumpStat('w', (s.match(/[\p{L}\p{N}]+/gu) || []).length); append(tidy(s, !fromAI)); }
   function endSentence() { const v = text.value.replace(/\s+$/, ''); if (v && !/[.?!…:;,]$/.test(v) && !/https?:\/\/\S+$/.test(v)) setText(v + '.'); }
   // ---------- IA de texto en Groq: corregir, retocar y traducir ----------
   const cloud = () => !!(API && PZ.enabled && licensed);
@@ -1696,7 +1736,18 @@
     pt: /^(?:envia(?:-o|-lhe)?|manda(?:-o)?|enviar)\s+(?:a|para|ao|à)\s+(.+)$/,
   };
   const LOC = /^(mi ubicaci[oó]n|d[oó]nde estoy|(manda|env[ií]a|a[ñn]ade|pon) mi ubicaci[oó]n|la meva ubicaci[oó]|on s[oó]c|my location|send my location|where i am|ma position|ma localisation|la mia posizione|mein standort|meinen standort|a minha localiza[cç][aã]o|onde estou)$/;
-  let sendWho = '', sendVia = '', editPending = false;
+  let sendWho = '', sendVia = '', editPending = false, callWho = null, callMiss = '';
+  // «Llama a Marta» → llamada (por el manos libres del coche o el intercomunicador)
+  const CALL = /^(?:ll[aá]ma(?:le|la|lo)?|llamar(?:le)?|telefonea(?:le)?|truca(?:-li)?|trucar|call|phone|ring|appelle(?:r)?|chiama(?:re)?|telefona(?:re)?|ruf(?:e)?|anrufen|liga(?:r)?(?:-lhe)?)\s+(.+?)(?:\s+an)?$/;
+  function matchCall(x) {
+    const m = CALL.exec(normCmd(x)); if (!m || m[1].split(' ').length > 4) return null;
+    const f = findFav(m[1]) || findFav(m[1].split(' ').slice(-1)[0]);
+    if (f) return { f };
+    // nombre que no está en contactos: solo si suena a nombre propio («Llama a Pedro»); «Llama cuando puedas» se escribe tal cual
+    const who = m[1].replace(/^(?:(?:a|al|para|to|à|ao|per a)\s+)?(?:(?:la|el|en|na|o|a)\s+)?/, '');
+    const raw = new RegExp('(?:^|\\s)(\\p{Lu}[\\p{L}]*)[.!?]?\\s*$', 'u').exec(x.trim());
+    return who.split(' ').length === 1 && raw && plain(raw[1]) === plain(who) ? { miss: raw[1] } : null;
+  }
   const VIA = /\s*(?:por|v[ií]a|per|by|par|über|pelo|pela|com)\s+(whatsapp|telegram|sms|mensaje de texto|missatge de text|text message|correo|correu|email|e-mail|mail|courriel)$/;
   const CHAN = (w) => /whatsapp/.test(w) ? 'wa' : /telegram/.test(w) ? 'tg' : /sms|texto|text/.test(w) ? 'sms' : 'mail';
   const SENDWORD = /^(env[ií]a(lo|selo|le)?|enviar(lo)?|m[aá]nda(lo|selo|le)?|envia(-ho)?|send( it)?|envoie(-le)?|invia(lo)?|schick(e)?( es)?|senden|envia(-o)?)$/;
@@ -1729,6 +1780,8 @@
   // devuelve el texto sin la orden y la orden («… Un abrazo. Enviar.» → «… Un abrazo.» + enviar)
   function splitCommand(raw) {
     if (!on('optVoiceCmd') || !raw) return { text: raw, cmd: null };
+    const cl = on('optVoiceCmd') && !text.value.trim() ? matchCall(raw) : null;
+    if (cl) { if (cl.f) callWho = cl.f; else callMiss = cl.miss; return { text: '', cmd: cl.f ? 'call' : 'nocontact' }; }
     const whole = matchCmd(raw); if (whole) { editPending = /^(fix|formal|warm|short|emoji|clearer|tr:)/.test(whole); return { text: '', cmd: whole }; }
     const m = /^([\s\S]*[.!?…])\s*([^.!?…]+)[.!?…]?\s*$/.exec(raw.trim());
     if (m) { const c = matchCmd(m[2]); if (c) { editPending = /^(fix|formal|warm|short|emoji|clearer|tr:)/.test(c); return { text: m[1], cmd: c }; } }
@@ -1740,6 +1793,8 @@
   function runCmd(cmd) {
     if (cmd === 'send') { pendingSend = true; if (recording) stop(); else doSend(); return; }
     if (cmd === 'stop') { if (recording) stop(); return; }
+    if (cmd === 'call') { const f = callWho; callWho = null; if (!f) return; if (recording) stop(); const m = t('Llamando a {0}', f.n); speak(m, ui()); setStatus(m); setTimeout(() => { location.href = 'tel:' + intlTel(f.t); }, 1100); return; }
+    if (cmd === 'nocontact') { const m = t('No encuentro a {0} en tus contactos', callMiss); callMiss = ''; if (recording) stop(); speak(m, ui()); setStatus(m, true); return; }
     if (cmd === 'clear') { if (text.value) { saveHist(); setText(''); } say('clear'); toast('🗑️ ' + t('Borrado')); return; }
     if (cmd === 'undo') { $('undo').click(); say('undo'); return; }
     if (cmd === 'read') { speak(text.value.trim()); }
@@ -2070,8 +2125,8 @@
   async function copy(silent) {
     const v = text.value.trim(); if (!v) { if (!silent) toast('No hay texto'); return; }
     saveHist();
-    try { await navigator.clipboard.writeText(v); markSent(); if (!silent || !driving()) toast('✓ Copiado'); if (!silent) confetti(driving() ? $('wa2') : $('copy')); }
-    catch { text.focus(); text.select(); try { if (!document.execCommand('copy')) throw 0; markSent(); toast('✓ Copiado'); } catch { if (!silent) toast('Mantén pulsado el texto para copiar'); } finally { text.setSelectionRange(text.value.length, text.value.length); text.blur(); } }
+    try { await navigator.clipboard.writeText(v); markSent(false); if (!silent || !driving()) toast('✓ Copiado'); if (!silent) confetti(driving() ? $('wa2') : $('copy')); }
+    catch { text.focus(); text.select(); try { if (!document.execCommand('copy')) throw 0; markSent(false); toast('✓ Copiado'); } catch { if (!silent) toast('Mantén pulsado el texto para copiar'); } finally { text.setSelectionRange(text.value.length, text.value.length); text.blur(); } }
   }
   $('copy').onclick = () => copy(false);
   $('dRead').onclick = () => { endAsk(); $('speak').click(); };
@@ -2081,7 +2136,7 @@
   for (const id of ['tg', 'sms', 'mail']) $(id).addEventListener('click', () => { if (text.value.trim()) { saveHist(); markSent(); flyPlane(); } }); $('wa2').addEventListener('click', () => { saveHist(); markSent(); confetti($('wa2')); });
   for (const id of ['tg', 'sms', 'mail', 'google']) $(id).addEventListener('click', (e) => {
     if (!text.value.trim()) { e.preventDefault(); toast('No hay texto'); return; }
-    saveHist(); markSent();
+    saveHist(); markSent(id !== 'google');
   });
   $('share').onclick = async () => {
     const v = text.value.trim(); if (!v) { toast('No hay texto'); return; }
@@ -2110,7 +2165,35 @@
 
   // ---------- modo conducción ----------
   function drive(o) { if (!o) { endAsk(); speechSynthesis && speechSynthesis.cancel(); } document.body.classList.toggle('driving', o); $('drive').setAttribute('aria-hidden', !o); keepAwake(); refresh(); if (o) document.documentElement.requestFullscreen?.().catch(() => {}); else if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); }
-  $('driveBtn').onclick = () => drive(true); $('driveExit').onclick = () => drive(false);
+  $('driveBtn').onclick = () => drive(true); $('driveExit').onclick = () => { drive(false); if (geoWatch !== null) autoOff = Date.now(); };
+  // modo conducción automático: con el GPS (solo con la app abierta) detecta que vas a más de 20 km/h
+  let geoWatch = null, fastN = 0, autoOff = 0, lastFix = null;
+  function autoDrive() {
+    const want = on('optAutoDrive') && !document.hidden && licensed && 'geolocation' in navigator;
+    if (want && geoWatch === null) {
+      geoWatch = navigator.geolocation.watchPosition((p) => {
+        const c = p.coords, now = p.timestamp || Date.now();
+        let v = c.speed;
+        if ((v == null || isNaN(v)) && lastFix && c.accuracy < 60) {   // sin velocidad del GPS: la calculo con la posición anterior
+          const R0 = 6371000, rad = Math.PI / 180, dLat = (c.latitude - lastFix.la) * rad, dLon = (c.longitude - lastFix.lo) * rad;
+          const a = Math.sin(dLat / 2) ** 2 + Math.cos(lastFix.la * rad) * Math.cos(c.latitude * rad) * Math.sin(dLon / 2) ** 2;
+          const dt = (now - lastFix.t) / 1000; v = dt > 1 ? (2 * R0 * Math.asin(Math.sqrt(a))) / dt : null;
+        }
+        lastFix = { la: c.latitude, lo: c.longitude, t: now };
+        if (v != null && v > 5.6) fastN++; else fastN = 0;
+        if (fastN >= 2 && !driving() && Date.now() - autoOff > 30 * 60000 && !$('sheetRoot').classList.contains('open')) {
+          drive(true); const m = t('Modo conducción activado'); toast('🚗 ' + m, 3000); speak(m, ui());
+        }
+      }, () => {}, { enableHighAccuracy: true, maximumAge: 3000, timeout: 30000 });
+    } else if (!want && geoWatch !== null) { navigator.geolocation.clearWatch(geoWatch); geoWatch = null; fastN = 0; lastFix = null; }
+  }
+  $('optAutoDrive').addEventListener('change', () => {
+    if (!on('optAutoDrive')) { autoDrive(); return; }
+    if (!('geolocation' in navigator)) { $('optAutoDrive').checked = false; store.set('optAutoDrive', false); return; }
+    navigator.geolocation.getCurrentPosition(() => { toast('🚗 ' + t('Se activará solo al ponerte en marcha'), 2500); autoDrive(); },
+      () => { $('optAutoDrive').checked = false; store.set('optAutoDrive', false); toast(t('Sin permiso de ubicación'), 2500); }, { timeout: 20000 });
+  });
+  document.addEventListener('visibilitychange', autoDrive);
 
   // ---------- modo Rápido: Google (Web Speech API) ----------
   let rec = null, liveLast = '';
@@ -2155,7 +2238,7 @@
   let worker = null, mediaRec = null, chunks = [], asrReady = false;
   function getWorker() {
     if (worker) return worker;
-    worker = new Worker('worker.js?v=2026.11.22-24', { type: 'module' });
+    worker = new Worker('worker.js?v=2026.11.22-25', { type: 'module' });
     worker.onmessage = ({ data }) => {
       if (model() === 'groq' && /progress|ready|status/.test(data.type)) { bar.style.display = 'none'; return; }
       if (data.type === 'progress') { bar.style.display = 'block'; barFill.style.width = data.pct + '%'; setStatus(data.kind === 'tr' ? t('Descargando el traductor (solo la primera vez): {0}% de {1} MB', data.pct, data.mb) : t('Descargando {0} (solo la primera vez): {1}% de {2} MB', NAMES[offlinePrep || model()], data.pct, data.mb)); }
@@ -2388,6 +2471,7 @@
       else { setStatus('Sin cobertura. Para dictar sin internet, en Ajustes pulsa «Descargar» en «Usar sin cobertura».', true); return; }
     }
     speechSynthesis && speechSynthesis.cancel(); endAsk();
+    if (sentMark) freshAfterSend();
     insertAt = null;
     if (lastSel && Date.now() - lastSel.t < 20000 && text.value.trim() && (lastSel.s !== lastSel.e || lastSel.s < text.value.trimEnd().length)) insertAt = { s: lastSel.s, e: lastSel.e };
     lastSel = null;
@@ -2425,11 +2509,24 @@
     m.onclick = (e) => { if (e.detail === 0) { recording ? stop() : start(); } };   // teclado
   }
 
-  I.translateDom(); paintDay(); refresh(); drawHist(); showOffline(); nameControls();
+  I.translateDom(); paintDay(); refresh(); drawHist(); showOffline(); nameControls(); paintStats();
+  // accesos directos del icono: «Dictar ahora» y «Modo conducción»
+  {
+    const go = new URLSearchParams(location.search).get('go');
+    if (go) {
+      window.history.replaceState(null, '', location.pathname + location.hash);
+      setTimeout(() => {
+        if (!licensed) return;
+        if (go === 'conducir') drive(true);
+        if (go === 'dictar' && !recording && !busy) start();
+      }, reduce ? 300 : 1000);
+    }
+    setTimeout(autoDrive, 1500);
+  }
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === '127.0.0.1' || location.hostname === 'localhost')) navigator.serviceWorker.register('sw.js').catch(() => {});
   requestAnimationFrame(() => { setLang(lang); setEngine(engine); keepAwake(); });
   setTimeout(() => $('splash').classList.add('gone'), reduce ? 0 : 900);
-})();
+});
 </script>
 </body>
 </html>

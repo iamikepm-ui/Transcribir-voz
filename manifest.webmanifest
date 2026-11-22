@@ -10,10 +10,56 @@
   "orientation": "any",
   "background_color": "#0b141a",
   "theme_color": "#0b141a",
-  "categories": ["productivity", "utilities"],
+  "categories": [
+    "productivity",
+    "utilities"
+  ],
   "icons": [
-    { "src": "pz-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "pz-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "pz-icon-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "pz-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "pz-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "pz-icon-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dictar ahora",
+      "short_name": "Dictar",
+      "description": "Abre PerezApp escuchando",
+      "url": "./?go=dictar",
+      "icons": [
+        {
+          "src": "pz-sc-mic.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Modo conducción",
+      "short_name": "Conducir",
+      "description": "Pantalla grande para el coche o la moto",
+      "url": "./?go=conducir",
+      "icons": [
+        {
+          "src": "pz-sc-drive.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
   ]
 }
