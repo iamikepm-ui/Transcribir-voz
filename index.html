@@ -48,7 +48,7 @@
   @keyframes turn { to { --ang:360deg; } }
 
   /* estructura: todo en una pantalla */
-  .app { height:100dvh; max-width:560px; margin:0 auto; display:grid; grid-template-rows:auto auto minmax(0,1fr) auto auto auto auto; gap:8px;
+  .app { height:100dvh; max-width:560px; margin:0 auto; display:grid; grid-template-rows:auto minmax(0,1fr) auto auto auto auto; gap:8px;
          padding:calc(env(safe-area-inset-top) + 8px) 12px calc(env(safe-area-inset-bottom) + 10px); }
   .glass { background:var(--glass); border:1px solid var(--line); backdrop-filter:blur(18px) saturate(1.5); -webkit-backdrop-filter:blur(18px) saturate(1.5); }
 
@@ -389,7 +389,7 @@
   /* ===== horizontal (móvil en el soporte del coche) ===== */
   @media (orientation:landscape) and (max-height:600px) {
     .app { max-width:1100px; grid-template-columns:minmax(0,1.2fr) minmax(290px,.8fr); grid-template-rows:auto minmax(0,1fr) auto auto;
-           grid-template-areas:"head mode" "chat dock" "chat status" "magic dest"; column-gap:16px; row-gap:6px;
+           grid-template-areas:"head head" "chat dock" "chat status" "magic dest"; column-gap:16px; row-gap:6px;
            padding-left:calc(env(safe-area-inset-left) + 14px); padding-right:calc(env(safe-area-inset-right) + 14px); }
     .app > header { grid-area:head; } .app > .bar2 { grid-area:mode; } .app > .chat { grid-area:chat; } .app > .magic { grid-area:magic; }
     .app > #status { grid-area:status; } .app > .dock { grid-area:dock; align-self:center; } .app > .dest { grid-area:dest; align-self:end; }
@@ -482,6 +482,31 @@
   .app > header .logo { animation:logobreath 4.5s ease-in-out infinite; }
   @keyframes logobreath { 50% { transform:translateY(-1.5px) scale(1.04); filter:drop-shadow(0 6px 14px color-mix(in srgb,var(--a1) 45%,transparent)); } }
   @media (prefers-reduced-motion: reduce) { .chat.rec .bubble::after, .chat.busy .bubble::after, .bubble.sent, .brand .name span, .app > header .logo { animation:none !important; } }
+
+  /* ===== «wao»: aurora viva, ondas del micro, consola de cristal ===== */
+  .aurora { opacity:.55; filter:blur(70px); }
+  [data-theme="light"] .aurora { opacity:.32; }
+  .aurora i:nth-child(3) { opacity:.6; }
+  .aurora::before { content:''; position:absolute; width:46vmax; height:46vmax; border-radius:50%; background:#a46bff; top:52%; left:-22%; opacity:.4; animation:float 40s ease-in-out infinite alternate; animation-delay:-20s; }
+  /* ondas de sónar alrededor del micro (pantalla principal) */
+  .dock .mic-wrap::before, .dock .mic-wrap::after { content:''; position:absolute; width:66%; aspect-ratio:1; border-radius:50%; border:2px solid color-mix(in srgb,var(--a1) 75%,transparent); pointer-events:none; animation:ripple 3s cubic-bezier(.2,.6,.3,1) infinite; }
+  .dock .mic-wrap::after { animation-delay:1.5s; }
+  .dock .rec-on::before, .dock .rec-on::after { border-color:#ff5a7a; animation-duration:1.3s; }
+  .dock .busy-on::before, .dock .busy-on::after { animation:none; opacity:0; }
+  @keyframes ripple { from { transform:scale(1); opacity:.85; } to { transform:scale(1.8); opacity:0; } }
+  /* consola de cristal con reflejo */
+  .dock { position:relative; padding:8px 10px; border-radius:30px; border:1px solid var(--line);
+          background:radial-gradient(120% 90% at 50% 0%, color-mix(in srgb,var(--a1) 16%,transparent), transparent 70%), var(--glass);
+          box-shadow:inset 0 1px 0 rgba(255,255,255,.09), 0 18px 44px rgba(0,0,0,.28); backdrop-filter:blur(18px) saturate(1.4); -webkit-backdrop-filter:blur(18px) saturate(1.4); }
+  .dock::before { content:''; position:absolute; left:18%; right:18%; top:-1px; height:2px; border-radius:2px; background:linear-gradient(90deg, transparent, var(--a1), #7dffb3, var(--a1), transparent); opacity:.85; }
+  [data-theme="light"] .dock { box-shadow:inset 0 1px 0 rgba(255,255,255,.7), 0 14px 34px rgba(0,0,0,.08); }
+  /* destello en el selector de modo */
+  .seg .thumb { overflow:hidden; }
+  .seg .thumb::after { content:''; position:absolute; inset:0; background:linear-gradient(105deg, transparent 35%, rgba(255,255,255,.38) 50%, transparent 65%) no-repeat; background-size:260% 100%; animation:sheen 4s ease-in-out infinite; }
+  /* destinos con reflejo de cristal */
+  .dest .d { box-shadow:inset 0 1px 0 rgba(255,255,255,.08), 0 6px 16px rgba(0,0,0,.18); }
+  @media (prefers-reduced-motion: reduce) { .aurora::before, .dock .mic-wrap::before, .dock .mic-wrap::after, .seg .thumb::after { animation:none !important; } .dock .mic-wrap::before, .dock .mic-wrap::after { opacity:0; } }
+  .app > .bar2 { display:none; }
 </style>
 </head>
 <body>
@@ -598,7 +623,7 @@
       <button class="btn primary" id="licGo">Activar</button>
     </div>
     <a class="wpriv" href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones</a>
-    <small class="wver">v2026.11.22-12</small>
+    <small class="wver">v2026.11.22-14</small>
   </div>
 </div>
 
@@ -723,6 +748,8 @@
       <div class="opt groq"><a class="btn small glass" style="flex:1;font-size:14px;padding:11px 6px" href="https://console.groq.com/keys" target="_blank" rel="noopener">🔑 Conseguir clave gratis</a><button class="btn small primary" style="flex:1;font-size:14px;padding:11px 6px" id="pasteKey">📋 Pegar clave</button></div>
       <div class="opt"><div class="lbl">Mis palabras<small>Nombres y lugares que debe escribir bien</small></div><input type="text" id="optVocab" placeholder="Vilafranca, Jordi, Barça" autocomplete="off"></div>
       <label class="opt"><div class="lbl">Corregir con IA al terminar<small>Ortografía, tildes y palabras mal oídas (con clave de Groq)</small></div><span class="switch"><input type="checkbox" id="optAiFix"><span></span></span></label>
+      <div class="opt"><div class="lbl">Modo de dictado<small>Preciso: el mejor resultado. Rápido: ves el texto mientras hablas</small></div>
+        <select id="optEngine"><option value="whisper">🎯 Preciso</option><option value="live">⚡ Rápido</option></select></div>
       <div class="opt"><div class="lbl">Parar al dejar de hablar<small>Sin tocar la pantalla</small></div>
         <select id="optSilence"><option value="auto">Solo al conducir</option><option value="0">No</option><option value="2">Tras 2 s</option><option value="3">Tras 3 s</option><option value="5">Tras 5 s</option></select></div>
       <label class="opt"><div class="lbl">Saludo y despedida en su línea<small>«Hola Marta,» arriba, el mensaje debajo y «Un abrazo.» al final</small></div><span class="switch"><input type="checkbox" id="optFormat"><span></span></span></label>
@@ -770,16 +797,16 @@
       <p>⚠️ Con el vehículo en marcha no manipules el móvil: usa la voz o el botón del casco, o detente en un lugar seguro. Respeta siempre las normas de tráfico.</p>
       <p>Consejo: menú ⋮ de Chrome → «Añadir a pantalla de inicio».</p>
       <p><a href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones de uso</a></p>
-      <p style="opacity:.6">PerezApp v2026.11.22-12</p>
+      <p style="opacity:.6">PerezApp v2026.11.22-14</p>
     </div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
-<script src="i18n.js?v=2026.11.22-12"></script>
-<script src="licencia.js?v=2026.11.22-12"></script>
-<script src="format.js?v=2026.11.22-12"></script>
+<script src="i18n.js?v=2026.11.22-14"></script>
+<script src="licencia.js?v=2026.11.22-14"></script>
+<script src="format.js?v=2026.11.22-14"></script>
 <script>
 (() => {
   const $ = (id) => document.getElementById(id);
@@ -815,7 +842,8 @@
   const dictPref = () => store.get('dictLang', 'auto');
   const liveLang = () => dictPref() !== 'auto' ? dictPref() : ui();          // Google necesita saber el idioma
   const whisperLang = () => dictPref() !== 'auto' ? dictPref() : null;        // Whisper lo detecta solo
-  let engine = store.get('engine', 'live'), lang = dictPref() !== 'auto' ? dictPref() : ui();
+  if (!store.get('engineV2', false)) { store.set('engine', 'whisper'); store.set('engineV2', true); }
+  let engine = store.get('engine', 'whisper'), lang = dictPref() !== 'auto' ? dictPref() : ui();
   let recording = false, busy = false, history = [], licensed = !(window.PerezappLicense && window.PerezappLicense.enabled);
 
   // ---------- segmentados con «pastilla» animada ----------
@@ -946,16 +974,18 @@
   $('optDictLang').onchange = () => { store.set('dictLang', $('optDictLang').value); setLang(dictPref() !== 'auto' ? dictPref() : ui()); preloadAsr(); };
   function setEngine(e) {
     if (recording || busy) return;
-    engine = e; store.set('engine', e); segSet($('modeSeg'), e);
+    engine = e; store.set('engine', e); segSet($('modeSeg'), e); if ($('optEngine')) $('optEngine').value = e;
     if (e === 'live' && !SR) setStatus('Este navegador no tiene el modo Rápido. Usa Chrome, o el modo Preciso.', true);
-    else setStatus(e === 'live' ? 'Pulsa el micrófono y habla' : 'Modo Preciso: pulsa, habla y vuelve a pulsar');
+    else setStatus(e === 'live' ? 'Pulsa el micrófono y habla' : 'Pulsa el micro, habla y vuelve a pulsar');
     if (e === 'whisper') { checkModelLang(); preloadAsr(); }
   }
   $$('#modeSeg button').forEach(b => b.onclick = () => setEngine(b.dataset.v));
+  $('optEngine').value = engine;
+  $('optEngine').onchange = () => { if (recording || busy) { $('optEngine').value = engine; return; } setEngine($('optEngine').value); };
 
   // ---------- utilidades de interfaz ----------
   const driving = () => document.body.classList.contains('driving');
-  const IDLE = ['Pulsa el micrófono y habla'];
+  const IDLE = ['Pulsa el micrófono y habla', 'Pulsa el micro, habla y vuelve a pulsar'];
   status.addEventListener('click', () => { if (status.scrollWidth > status.clientWidth + 1) toast(status.textContent, 9000); });
   function setStatus(msg, err) { const k = msg; msg = t(msg); status.textContent = msg; status.title = msg; status.classList.toggle('err', !!err); $('dstatus').textContent = IDLE.includes(k) ? '' : msg; }
   function toast(msg, ms = 1700) { msg = I.t(msg); const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), ms); }
@@ -1784,7 +1814,7 @@
   let worker = null, mediaRec = null, chunks = [], asrReady = false;
   function getWorker() {
     if (worker) return worker;
-    worker = new Worker('worker.js?v=2026.11.22-12', { type: 'module' });
+    worker = new Worker('worker.js?v=2026.11.22-14', { type: 'module' });
     worker.onmessage = ({ data }) => {
       if (model() === 'groq' && /progress|ready|status/.test(data.type)) { bar.style.display = 'none'; return; }
       if (data.type === 'progress') { bar.style.display = 'block'; barFill.style.width = data.pct + '%'; setStatus(data.kind === 'tr' ? t('Descargando el traductor (solo la primera vez): {0}% de {1} MB', data.pct, data.mb) : t('Descargando {0} (solo la primera vez): {1}% de {2} MB', NAMES[offlinePrep || model()], data.pct, data.mb)); }
