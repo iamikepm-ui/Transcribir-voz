@@ -507,6 +507,12 @@
   .dest .d { box-shadow:inset 0 1px 0 rgba(255,255,255,.08), 0 6px 16px rgba(0,0,0,.18); }
   @media (prefers-reduced-motion: reduce) { .aurora::before, .dock .mic-wrap::before, .dock .mic-wrap::after, .seg .thumb::after { animation:none !important; } .dock .mic-wrap::before, .dock .mic-wrap::after { opacity:0; } }
   .app > .bar2 { display:none; }
+
+  /* ===== carrusel sin fin de acciones ===== */
+  .magic { -webkit-mask:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent); mask:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent); scroll-behavior:auto; touch-action:pan-x; padding:6px 2px; }
+  .magic.carousel button { transition:opacity .2s, filter .2s; will-change:transform; }
+  .magic.carousel button.mid { box-shadow:0 8px 22px color-mix(in srgb,var(--a1) 38%,transparent); }
+  .magic.carousel button.mid::before { opacity:1; }
 </style>
 </head>
 <body>
@@ -623,7 +629,7 @@
       <button class="btn primary" id="licGo">Activar</button>
     </div>
     <a class="wpriv" href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones</a>
-    <small class="wver">v2026.11.22-14</small>
+    <small class="wver">v2026.11.22-15</small>
   </div>
 </div>
 
@@ -797,16 +803,16 @@
       <p>⚠️ Con el vehículo en marcha no manipules el móvil: usa la voz o el botón del casco, o detente en un lugar seguro. Respeta siempre las normas de tráfico.</p>
       <p>Consejo: menú ⋮ de Chrome → «Añadir a pantalla de inicio».</p>
       <p><a href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones de uso</a></p>
-      <p style="opacity:.6">PerezApp v2026.11.22-14</p>
+      <p style="opacity:.6">PerezApp v2026.11.22-15</p>
     </div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
-<script src="i18n.js?v=2026.11.22-14"></script>
-<script src="licencia.js?v=2026.11.22-14"></script>
-<script src="format.js?v=2026.11.22-14"></script>
+<script src="i18n.js?v=2026.11.22-15"></script>
+<script src="licencia.js?v=2026.11.22-15"></script>
+<script src="format.js?v=2026.11.22-15"></script>
 <script>
 (() => {
   const $ = (id) => document.getElementById(id);
@@ -1352,6 +1358,58 @@
   function showMagic() { $('magicSetup').style.display = hasKey() || API ? 'none' : ''; $('magic').classList.toggle('locked', !hasKey()); }
   showMagic();
 
+  // ---------- carrusel sin fin: avanza solo, se para al tocarlo y el del centro destaca ----------
+  (function carousel() {
+    const row = $('magic'), orig = [...row.children];
+    if (orig.length < 3) return;
+    row.classList.add('carousel');
+    let clones = [];
+    function build() {            // copia de los botones para que la vuelta no tenga final
+      clones.forEach((c) => c.remove()); clones = [];
+      for (const b of orig) {
+        const c = b.cloneNode(true); c.removeAttribute('id'); c.querySelectorAll('[id]').forEach((x) => x.removeAttribute('id'));
+        c.setAttribute('aria-hidden', 'true'); c.tabIndex = -1; c.onclick = (e) => { e.preventDefault(); b.click(); };
+        c.style.display = getComputedStyle(b).display === 'none' ? 'none' : '';
+        row.append(c); clones.push(c);
+      }
+    }
+    build();
+    let syncT = 0;
+    const mo = new MutationObserver(() => { clearTimeout(syncT); syncT = setTimeout(build, 60); });
+    for (const b of orig) mo.observe(b, { subtree: true, characterData: true, childList: true, attributes: true, attributeFilter: ['hidden'] });
+    const half = () => { const i = orig.findIndex((b) => b.offsetWidth > 0); return i < 0 || !clones[i] ? 0 : clones[i].offsetLeft - orig[i].offsetLeft; };
+    let paused = 0, last = performance.now(), pos = 0;
+    const hold = (ms) => { paused = performance.now() + ms; };
+    row.addEventListener('pointerdown', () => hold(4000), { passive: true });
+    row.addEventListener('touchstart', () => hold(4000), { passive: true });
+    row.addEventListener('wheel', () => hold(4000), { passive: true });
+    row.addEventListener('scroll', () => { if (performance.now() < paused) pos = row.scrollLeft; }, { passive: true });
+    function frame(now) {
+      const dt = Math.min(64, now - last); last = now;
+      clones.forEach((c, i) => { const want = orig[i].style.display === 'none' ? 'none' : ''; if (c.style.display !== want) c.style.display = want; });
+      const h = half();
+      if (h > 0) {
+        if (!reduce && now > paused && !document.hidden) { pos += dt * 0.028; row.scrollLeft = pos; }
+        if (row.scrollLeft >= h) { row.scrollLeft -= h; pos = row.scrollLeft; }
+        else if (row.scrollLeft <= 0 && now < paused) { row.scrollLeft += h; pos = row.scrollLeft; }
+        // efecto escaparate: el del centro grande y nítido, los de los bordes más pequeños
+        const box = row.getBoundingClientRect(), cx = box.left + box.width / 2;
+        let best = null, bd = 1e9;
+        for (const b of row.children) {
+          if (b.style.display === 'none' || !b.offsetWidth) continue;
+          const r = b.getBoundingClientRect(), d = Math.abs(r.left + r.width / 2 - cx) / (box.width / 2);
+          if (d > 1.4) continue;
+          b.style.transform = 'scale(' + (1.06 - Math.min(d, 1) * 0.16).toFixed(3) + ')';
+          b.style.opacity = (1 - Math.min(d, 1) * 0.35).toFixed(2);
+          if (d < bd) { bd = d; best = b; }
+        }
+        for (const b of row.children) b.classList.toggle('mid', b === best);
+      }
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  })();
+
   async function afterDictation(lastChunk) {
     insertAt = null;
     if (vocab()) { const v = DictadoFormat.fixVocab(text.value, vocab()); if (v !== text.value) setText(v); }
@@ -1814,7 +1872,7 @@
   let worker = null, mediaRec = null, chunks = [], asrReady = false;
   function getWorker() {
     if (worker) return worker;
-    worker = new Worker('worker.js?v=2026.11.22-14', { type: 'module' });
+    worker = new Worker('worker.js?v=2026.11.22-15', { type: 'module' });
     worker.onmessage = ({ data }) => {
       if (model() === 'groq' && /progress|ready|status/.test(data.type)) { bar.style.display = 'none'; return; }
       if (data.type === 'progress') { bar.style.display = 'block'; barFill.style.width = data.pct + '%'; setStatus(data.kind === 'tr' ? t('Descargando el traductor (solo la primera vez): {0}% de {1} MB', data.pct, data.mb) : t('Descargando {0} (solo la primera vez): {1}% de {2} MB', NAMES[offlinePrep || model()], data.pct, data.mb)); }
