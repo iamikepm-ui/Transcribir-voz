@@ -465,14 +465,46 @@
   }
   // traduce el documento: textos y atributos cuyo original (en español) esté en el diccionario
   const orig = new WeakMap();
+  // «PerezApp» con «App» en el color de la app: el texto se parte en «Perez» + <span class="pzapp">App</span>
+  const BRAND = 'PerezApp', extra = new WeakMap();
+  const noBrand = (n) => !n.parentElement || !!n.parentElement.closest('textarea,option,script,style,title,.name,.pzname,[data-nobrand]');
+  function brandEl() { const s = document.createElement('span'); s.className = 'pzname'; const a = document.createElement('span'); a.className = 'pzapp'; a.textContent = 'App'; s.append('Perez', a); return s; }
+  function setText(n, val) {
+    for (const x of extra.get(n) || []) x.remove(); extra.delete(n);
+    if (!val.includes(BRAND) || noBrand(n)) { if (n.nodeValue !== val) n.nodeValue = val; return; }
+    const parts = val.split(BRAND), add = []; let after = n;
+    n.nodeValue = parts[0];
+    for (let i = 1; i < parts.length; i++) {
+      const b = brandEl(); after.after(b); add.push(b); after = b;
+      if (parts[i]) { const tx = document.createTextNode(parts[i]); after.after(tx); add.push(tx); after = tx; }
+    }
+    extra.set(n, add);
+  }
+  // pinta el nombre en un elemento cuyo texto se ha puesto desde el código (avisos, estado…)
+  function brand(rootEl) {
+    const walk = document.createTreeWalker(rootEl || document.body, NodeFilter.SHOW_TEXT), list = [];
+    for (let n = walk.nextNode(); n; n = walk.nextNode()) if (n.nodeValue.includes(BRAND) && !orig.has(n) && !noBrand(n)) list.push(n);
+    for (const n of list) setText(n, n.nodeValue);
+  }
+  let watching = false;
+  function watchBrand() {
+    if (watching || typeof MutationObserver === 'undefined') return; watching = true;
+    new MutationObserver((ms) => {
+      for (const m of ms) {
+        if (m.type === 'characterData') { const n = m.target; if (n.nodeValue && n.nodeValue.includes(BRAND) && !orig.has(n) && !noBrand(n)) setText(n, n.nodeValue); }
+        else for (const a of m.addedNodes) { if (a.nodeType === 3) { if (a.nodeValue.includes(BRAND) && !orig.has(a) && !noBrand(a)) setText(a, a.nodeValue); } else if (a.nodeType === 1 && a.textContent.includes(BRAND)) brand(a); }
+      }
+    }).observe(document.body, { subtree: true, childList: true, characterData: true });
+  }
   function translateDom(rootEl) {
-    const walk = document.createTreeWalker(rootEl || document.body, NodeFilter.SHOW_TEXT);
+    const walk = document.createTreeWalker(rootEl || document.body, NodeFilter.SHOW_TEXT), todo = [];
     for (let n = walk.nextNode(); n; n = walk.nextNode()) {
       if (n.parentElement && /^(SCRIPT|STYLE|TEXTAREA)$/.test(n.parentElement.tagName)) continue;
-      if (!orig.has(n)) { const k = n.nodeValue.trim(); if (!T[k]) continue; orig.set(n, n.nodeValue); }
+      if (!orig.has(n)) { const k = n.nodeValue.trim(); if (!T[k]) { if (n.nodeValue.includes(BRAND)) todo.push([n, n.nodeValue]); continue; } orig.set(n, n.nodeValue); }
       const o = orig.get(n), k = o.trim();
-      n.nodeValue = o.replace(k, t(k));
+      todo.push([n, o.replace(k, t(k))]);
     }
+    for (const [n, v] of todo) setText(n, v);   // después de recorrer: partir el texto no estorba al recorrido
     for (const el of (rootEl || document.body).querySelectorAll('[placeholder],[title],[aria-label]')) {
       for (const at of ['placeholder', 'title', 'aria-label']) {
         if (!el.hasAttribute(at)) continue;
@@ -483,5 +515,5 @@
     }
     document.documentElement.lang = ui;
   }
-  root.I18N = { t, translateDom, pickUi, LOCALES, setUi: (l) => { ui = l; }, get ui() { return ui; }, locale: () => LOCALES[ui] };
+  root.I18N = { t, translateDom, brand, watchBrand, pickUi, LOCALES, setUi: (l) => { ui = l; }, get ui() { return ui; }, locale: () => LOCALES[ui] };
 })(typeof window !== 'undefined' ? window : globalThis);

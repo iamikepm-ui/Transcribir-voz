@@ -252,7 +252,6 @@
   .wcard { width:100%; max-width:420px; max-height:100%; overflow:auto; background:var(--bg2); border:1px solid var(--line); border-radius:28px; padding:22px 20px 16px; box-shadow:var(--shadow); text-align:center; animation:pop-in .5s cubic-bezier(.2,1.2,.4,1) both; }
   .wlogo { width:76px; height:76px; border-radius:22px; box-shadow:0 12px 30px color-mix(in srgb,var(--a1) 40%,transparent); }
   .wcard h2 { margin:12px 0 2px; font-size:23px; letter-spacing:-.02em; }
-  .wcard h2 span { background:linear-gradient(90deg,var(--a1),var(--a2)); -webkit-background-clip:text; background-clip:text; color:transparent; }
   .wsub { margin:0 0 12px; color:var(--mut); font-weight:600; }
   .wlist { list-style:none; margin:0 0 12px; padding:0; text-align:left; display:flex; flex-direction:column; gap:8px; }
   .wlist li { display:flex; gap:10px; align-items:flex-start; font-size:14.5px; }
@@ -662,13 +661,19 @@
   .mic { touch-action:none; -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; }
   html, body { overscroll-behavior:none; }
   .toast, .snack { z-index:70; }   /* también encima de la pantalla de clave */
+
+  /* «PerezApp»: «Perez» en el color del texto y «App» en el verde de la app, en todos los sitios */
+  .pzname { white-space:nowrap; }
+  .pzapp { background:linear-gradient(90deg,var(--a1),var(--a2)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  /* sobre fondo verde (avisos, botones) el verde no se vería: ahí «App» va en blanco */
+  .toast .pzapp, .btn.primary .pzapp { background:none; -webkit-background-clip:border-box; background-clip:border-box; color:#fff; text-shadow:0 1px 0 rgba(0,0,0,.15); }
 </style>
 </head>
 <body>
 <div class="aurora"><i></i><i></i><i></i></div>
 <canvas id="stars" aria-hidden="true"></canvas>
 <canvas id="fx" aria-hidden="true"></canvas>
-<div id="splash"><div class="in"><div class="ring"><img class="logo" src="logo.svg" alt=""></div><b>PerezApp</b><small>Tú habla, que yo escribo</small></div></div>
+<div id="splash"><div class="in"><div class="ring"><img class="logo" src="logo.svg" alt=""></div><b><span class="pzname">Perez<span class="pzapp">App</span></span></b><small>Tú habla, que yo escribo</small></div></div>
 
 <main class="app">
   <h1 class="sr">PerezApp</h1>
@@ -697,7 +702,7 @@
       <div class="bubble paper" id="bubble">
         <div class="tochip" id="toChip" hidden>👤 <span id="toName"></span><button id="toClear" aria-label="Quitar destinatario" title="Quitar destinatario">✕</button></div>
         <textarea id="text" rows="1" placeholder="Escribe o dicta…"></textarea>
-        <div id="interim"></div>
+        <div id="interim" data-nobrand></div>
         <div class="bmeta">
           <span id="count">0 palabras</span>
           <button class="chip" id="edit" title="Editar" aria-label="Editar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
@@ -762,7 +767,7 @@
 <div id="lock" class="welcome lock" hidden>
   <div class="wcard">
     <img src="logo.svg" alt="" class="wlogo">
-    <h2>Activa <span>PerezApp</span></h2>
+    <h2>Activa <span class="pzname">Perez<span class="pzapp">App</span></span></h2>
     <p class="wref" id="lockRef" hidden></p>
     <div class="ltrial" id="trialBox" hidden>
       <button class="btn primary" id="trialGo">🎁 <span id="trialGoTxt">Pruébala gratis 7 días</span></button>
@@ -791,7 +796,7 @@
       <button class="btn primary" id="licGo">Activar</button>
     </div>
     <a class="wpriv" href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones</a>
-    <small class="wver">v2026.11.22-27</small>
+    <small class="wver">v2026.11.22-28</small>
   </div>
 </div>
 
@@ -799,7 +804,7 @@
 <div id="welcome" class="welcome" hidden>
   <div class="wcard">
     <img src="logo.svg" alt="" class="wlogo">
-    <h2>Bienvenido a <span>PerezApp</span></h2>
+    <h2>Bienvenido a <span class="pzname">Perez<span class="pzapp">App</span></span></h2>
     <p class="wsub">Tú habla, que yo escribo.</p>
     <ul class="wlist">
       <li><b>🎤</b><span>Dicta tus mensajes en 7 idiomas y salen bien escritos.</span></li>
@@ -873,7 +878,7 @@
   <div class="sheet" role="dialog" aria-label="Mensajes recientes">
     <div class="grab"></div>
     <h2>🕘 Mensajes recientes <button class="round" id="histClose" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></h2>
-    <ul class="hist" id="hist"></ul>
+    <ul class="hist" id="hist" data-nobrand></ul>
     <button class="btn ghost histall" id="histAll" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg><span>Borrar todo el historial</span></button>
   </div>
 </div>
@@ -884,7 +889,7 @@
     <div class="brand"><img class="logo" src="logo.svg" alt=""><div>Modo conducción<small>Coche y moto · manos libres</small></div></div>
     <button class="round" id="driveExit" aria-label="Salir del modo conducción"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
   </header>
-  <div class="dtext empty" id="dtext"></div>
+  <div class="dtext empty" id="dtext" data-nobrand></div>
   <div class="dstatus" id="dstatus" aria-live="polite"></div>
   <div class="mic-wrap">
     <div class="halo"></div>
@@ -1007,7 +1012,7 @@
       <p>⚠️ Con el vehículo en marcha no manipules el móvil: usa la voz o el botón del casco, o detente en un lugar seguro. Respeta siempre las normas de tráfico.</p>
       <p>Consejo: menú ⋮ de Chrome → «Añadir a pantalla de inicio».</p>
       <p><a href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones de uso</a></p>
-      <p style="opacity:.6">PerezApp v2026.11.22-27</p>
+      <p style="opacity:.6">PerezApp v2026.11.22-28</p>
     </div>
   </div>
 </div>
@@ -1015,9 +1020,9 @@
 <div class="toast" id="toast"></div>
 <div class="snack" id="snack" role="status"><span id="snackMsg"></span><button id="snackBtn">Deshacer</button></div>
 
-<script src="i18n.js?v=2026.11.22-27" defer></script>
-<script src="licencia.js?v=2026.11.22-27" defer></script>
-<script src="format.js?v=2026.11.22-27" defer></script>
+<script src="i18n.js?v=2026.11.22-28" defer></script>
+<script src="licencia.js?v=2026.11.22-28" defer></script>
+<script src="format.js?v=2026.11.22-28" defer></script>
 <script>
 // se ejecuta cuando ya se han cargado i18n.js, licencia.js y format.js (defer): la pantalla se pinta antes
 document.addEventListener('DOMContentLoaded', () => {
@@ -2428,7 +2433,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   function getWorker() {
     if (worker) return worker;
-    worker = new Worker('worker.js?v=2026.11.22-27', { type: 'module' });
+    worker = new Worker('worker.js?v=2026.11.22-28', { type: 'module' });
     worker.onerror = () => { if (busy && !recording) { busy = false; setMic('idle'); bar.style.display = 'none'; setStatus('El modelo del móvil ha fallado. Prueba otra vez o usa la nube.', true); } };
     worker.onmessage = ({ data }) => {
       if (model() === 'groq' && !offlinePrep && data.kind !== 'tr' && /progress|ready|status/.test(data.type)) { bar.style.display = 'none'; return; }
@@ -2712,7 +2717,7 @@ document.addEventListener('DOMContentLoaded', () => {
     m.onclick = (e) => { if (e.detail === 0) { recording ? stop() : start(); } };   // teclado
   }
 
-  I.translateDom(); paintDay(); refresh(); drawHist(); showOffline(); nameControls(); paintStats();
+  I.translateDom(); I.watchBrand && I.watchBrand(); I.brand && I.brand(); paintDay(); refresh(); drawHist(); showOffline(); nameControls(); paintStats();
   // accesos directos del icono: «Dictar ahora» y «Modo conducción»
   {
     const go = new URLSearchParams(location.search).get('go');
