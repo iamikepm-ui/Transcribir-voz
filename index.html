@@ -348,6 +348,67 @@
   .drive .waLabel { max-width:none; }
   .gloves .drive .actions .btn { padding:26px 10px; font-size:23px; }
   @media (max-height:700px) { .gloves .side .ico { width:66px; height:66px; } .gloves .mic-wrap { width:128px; } .gloves .dest .d { height:54px; } .gloves .dest span:not(.d) { display:none; } }
+
+  /* ===== modo conducción (rediseño) ===== */
+  .drive .dtext { font-size:var(--dfs,26px); }
+  .drive .dtext.empty { font-size:19px; }
+  .dguide { margin:0; padding:0; list-style:none; counter-reset:g; display:flex; flex-direction:column; gap:16px; text-align:left; font-size:19px; font-weight:600; color:rgba(255,255,255,.8); line-height:1.3; }
+  .dguide li { display:flex; align-items:center; gap:14px; counter-increment:g; }
+  .dguide li::before { content:counter(g); flex:none; width:36px; height:36px; border-radius:50%; display:grid; place-items:center; background:linear-gradient(135deg,var(--a1),var(--a2)); color:#04210f; font-weight:800; font-size:17px; }
+  .drive .dstatus { font-weight:600; }
+  .drive .dstatus:empty { min-height:0; }
+  .drive .dact { display:flex; flex-direction:column; gap:10px; transition:opacity .2s; }
+  .drive .dact.off { opacity:.3; pointer-events:none; }
+  .drive .drow { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+  .dbtn { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; min-height:66px; padding:6px 2px; border-radius:18px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.08); color:#fff; font:inherit; font-weight:700; font-size:13.5px; cursor:pointer; }
+  .dbtn svg { width:26px; height:26px; }
+  .dbtn:active { transform:scale(.94); background:rgba(255,255,255,.16); }
+  .drive .dsend { padding:19px 10px; font-size:21px; gap:10px; border-radius:20px; }
+  .drive .dsend svg { width:28px; height:28px; flex:none; }
+  .gloves .dbtn { min-height:78px; font-size:15px; } .gloves .dbtn svg { width:31px; height:31px; }
+  .gloves .drive .dsend { padding:24px 10px; font-size:23px; } .gloves .drive .dsend svg { width:32px; height:32px; }
+  /* el texto nunca se corta por arriba: se centra si cabe y, si no, se desplaza */
+  .drive .dtext { display:flex; flex-direction:column; align-items:stretch; justify-content:flex-start; }
+  .drive .dtext > * { margin:auto 0; }
+  .drive .dmsg { display:block; }
+  .drive .dguide { align-self:center; }
+  .drive .mic-wrap, .gloves .drive .mic-wrap { width:min(70vw,320px,35dvh); }
+  .drive .dstatus { font-size:16.5px; line-height:1.3; }
+  .drive .dtext.more { -webkit-mask:linear-gradient(#000 80%,transparent); mask:linear-gradient(#000 80%,transparent); }
+  @media (max-height:720px) and (orientation:portrait) {
+    .drive .mic-wrap, .gloves .drive .mic-wrap { width:min(64vw,29dvh); }
+    .dbtn, .gloves .dbtn { min-height:64px; } .drive .dsend, .gloves .drive .dsend { padding:17px 10px; }
+    .drive { gap:10px; }
+  }
+  /* esperando la respuesta: «¿Lo envío?» */
+  .drive.asking .mic-wrap::after { content:''; position:absolute; inset:2%; border-radius:50%; border:3px solid #ffb547; pointer-events:none; animation:askp 1.1s ease-in-out infinite; }
+  .drive.asking .dstatus { color:#ffd59a; }
+  @keyframes askp { 50% { transform:scale(1.07); opacity:.35; } }
+  @media (prefers-reduced-motion: reduce) { .drive.asking .mic-wrap::after { animation:none; } }
+
+  /* ===== horizontal (móvil en el soporte del coche) ===== */
+  @media (orientation:landscape) and (max-height:600px) {
+    .app { max-width:1100px; grid-template-columns:minmax(0,1.2fr) minmax(290px,.8fr); grid-template-rows:auto minmax(0,1fr) auto auto;
+           grid-template-areas:"head mode" "chat dock" "chat status" "magic dest"; column-gap:16px; row-gap:6px;
+           padding-left:calc(env(safe-area-inset-left) + 14px); padding-right:calc(env(safe-area-inset-right) + 14px); }
+    .app > header { grid-area:head; } .app > .bar2 { grid-area:mode; } .app > .chat { grid-area:chat; } .app > .magic { grid-area:magic; }
+    .app > #status { grid-area:status; } .app > .dock { grid-area:dock; align-self:center; } .app > .dest { grid-area:dest; align-self:end; }
+    .dest span:not(.d) { display:none; }
+    .mic-wrap, .gloves .mic-wrap { width:min(150px,36dvh); }
+    .side .ico, .gloves .side .ico { width:min(66px,17dvh); height:min(66px,17dvh); }
+    .dest .d, .gloves .dest .d { height:min(52px,13dvh); }
+    .driving .drive { display:grid; grid-template-columns:minmax(0,1fr) auto minmax(180px,26vw); grid-template-rows:auto minmax(0,1fr) auto;
+           grid-template-areas:"head head head" "text mic act" "status mic act"; column-gap:20px; row-gap:6px;
+           padding:calc(env(safe-area-inset-top) + 10px) calc(env(safe-area-inset-right) + 16px) calc(env(safe-area-inset-bottom) + 12px) calc(env(safe-area-inset-left) + 16px); }
+    .drive > header { grid-area:head; } .drive .dtext { grid-area:text; font-size:calc(var(--dfs,26px) * .82); }
+    .drive .dstatus { grid-area:status; } .drive .dact { grid-area:act; justify-content:center; }
+    .drive .mic-wrap, .gloves .drive .mic-wrap { grid-area:mic; width:min(32vw,56dvh); align-self:center; }
+    .drive .drow { grid-template-columns:1fr 1fr; }
+    .dbtn, .gloves .dbtn { min-height:min(66px,15dvh); }
+    .drive .dsend, .gloves .drive .dsend { padding:14px 8px; font-size:19px; }
+    .drive .round, .gloves .drive .round { width:56px; height:56px; }
+    .dguide { gap:10px; font-size:17px; }
+  }
 </style>
 </head>
 <body>
@@ -461,7 +522,7 @@
       <button class="btn primary" id="licGo">Activar</button>
     </div>
     <a class="wpriv" href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones</a>
-    <small class="wver">v2026.11.22-1</small>
+    <small class="wver">v2026.11.22-2</small>
   </div>
 </div>
 
@@ -475,7 +536,7 @@
       <li><b>🎤</b><span>Dicta tus mensajes en 7 idiomas y salen bien escritos.</span></li>
       <li><b>✨</b><span>La IA corrige, ordena el saludo y la despedida, y los retoca.</span></li>
       <li><b>📤</b><span>Envíalos a WhatsApp, Telegram, SMS, correo o cualquier app.</span></li>
-      <li><b>🏍️</b><span>Manos libres: órdenes de voz y botón del casco o los auriculares.</span></li>
+      <li><b>🏍️</b><span>Manos libres: te lee el mensaje y lo envías diciendo «sí». En el coche o en la moto, con guantes.</span></li>
     </ul>
     <div class="wsafe"><b>⚠️ Seguridad al volante</b>Con el vehículo en marcha no toques el móvil: usa la voz («enviar», «borrar todo»…), el botón del casco o detente en un lugar seguro. Respeta siempre las normas de tráfico.</div>
     <button class="btn primary" id="welcomeOk">Entendido, ¡a dictar!</button>
@@ -506,12 +567,11 @@
 <!-- Modo conducción -->
 <div class="drive" id="drive" aria-hidden="true">
   <header>
-    <div class="brand"><img class="logo" src="logo.svg" alt=""><div>Modo conducción<small>Coche o moto · también con la voz</small></div></div>
-    <button class="round" id="driveEdit" aria-label="Editar" style="margin-right:6px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
+    <div class="brand"><img class="logo" src="logo.svg" alt=""><div>Modo conducción<small>Coche y moto · manos libres</small></div></div>
     <button class="round" id="driveExit" aria-label="Salir del modo conducción"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
   </header>
-  <div class="dtext empty" id="dtext">Toca el círculo y habla</div>
-  <div class="dstatus" id="dstatus"></div>
+  <div class="dtext empty" id="dtext"></div>
+  <div class="dstatus" id="dstatus" aria-live="polite"></div>
   <div class="mic-wrap">
     <div class="halo"></div>
     <canvas id="wave2"></canvas>
@@ -520,9 +580,14 @@
       <span class="micLabel">Hablar</span>
     </button>
   </div>
-  <div class="actions">
-    <button class="btn primary" id="copy2">Copiar</button>
-    <a class="btn wa" id="wa2" href="https://wa.me/" target="_blank" rel="noopener"><span class="waLabel">WhatsApp</span></a>
+  <div class="dact off" id="dact">
+    <div class="drow">
+      <button class="dbtn" id="dRead"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4V5Z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg><span>Leer</span></button>
+      <button class="dbtn" id="dUndo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg><span>Deshacer</span></button>
+      <button class="dbtn" id="dClear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg><span>Borrar</span></button>
+      <button class="dbtn" id="driveEdit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg><span>Editar</span></button>
+    </div>
+    <a class="btn wa dsend" id="wa2" href="https://wa.me/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm5.4 14.1c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.1-4.5-3.9-4.7-4.1-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.9 2.1c.1.2.1.4 0 .5l-.3.5-.4.4c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.1 1 2.1 1.3 2.4 1.5.3.1.5.1.6-.1l.9-1c.2-.3.4-.2.6-.1l2 .9c.3.1.5.2.5.3.1.2.1.7-.1 1.3Z"/></svg><span class="waLabel">WhatsApp</span></a>
   </div>
 </div>
 
@@ -565,7 +630,7 @@
       <div class="opt"><div class="lbl">Mis palabras<small>Nombres y lugares que debe escribir bien</small></div><input type="text" id="optVocab" placeholder="Vilafranca, Jordi, Barça" autocomplete="off"></div>
       <label class="opt"><div class="lbl">Corregir con IA al terminar<small>Ortografía, tildes y palabras mal oídas (con clave de Groq)</small></div><span class="switch"><input type="checkbox" id="optAiFix"><span></span></span></label>
       <div class="opt"><div class="lbl">Parar al dejar de hablar<small>Sin tocar la pantalla</small></div>
-        <select id="optSilence"><option value="0">No</option><option value="2">Tras 2 s</option><option value="3">Tras 3 s</option><option value="5">Tras 5 s</option></select></div>
+        <select id="optSilence"><option value="auto">Solo en modo conducción</option><option value="0">No</option><option value="2">Tras 2 s</option><option value="3">Tras 3 s</option><option value="5">Tras 5 s</option></select></div>
       <label class="opt"><div class="lbl">Saludo y despedida en su línea<small>«Hola Marta,» arriba, el mensaje debajo y «Un abrazo.» al final</small></div><span class="switch"><input type="checkbox" id="optFormat"><span></span></span></label>
       <label class="opt"><div class="lbl">Puntuación por voz<small>«coma», «punto», «punto y aparte»… (modo Rápido, español y catalán)</small></div><span class="switch"><input type="checkbox" id="optPunct"><span></span></span></label>
       <label class="opt"><div class="lbl">Pitido y vibración<small>Al empezar y al parar</small></div><span class="switch"><input type="checkbox" id="optBeep"><span></span></span></label>
@@ -575,6 +640,7 @@
     <h3>Manos libres · coche y moto</h3>
     <div class="group">
       <label class="opt"><div class="lbl">Órdenes por voz<small>Di «enviar», «borrar todo», «deshacer», «léelo» o «para»</small></div><span class="switch"><input type="checkbox" id="optVoiceCmd"><span></span></span></label>
+      <label class="opt"><div class="lbl">Preguntar «¿Lo envío?»<small>En modo conducción te lee el mensaje y respondes «sí», «no», «léelo» o «sigue»</small></div><span class="switch"><input type="checkbox" id="optAsk"><span></span></span></label>
       <label class="opt"><div class="lbl">Modo guantes<small>Botones extra grandes para usar con guantes (moto)</small></div><span class="switch"><input type="checkbox" id="optGloves"><span></span></span></label>
       <label class="opt"><div class="lbl">Botón del casco o auriculares<small>El botón de reproducir/pausa del intercomunicador o los auriculares Bluetooth empieza y para el dictado (experimental)</small></div><span class="switch"><input type="checkbox" id="optHeadset"><span></span></span></label>
     </div>
@@ -604,22 +670,22 @@
       <p><b>⚡ Rápido</b>: reconocimiento de voz de Google (Chrome). Ves el texto mientras hablas; necesita conexión.</p>
       <p><b>🎯 Preciso</b>: Whisper (OpenAI) o Cohere Transcribe, modelos abiertos de Hugging Face, en el móvil o en la nube. Detectan el idioma solos, ponen tildes y signos y aguantan bien el ruido del coche. En el móvil, la primera vez descargan el modelo (con wifi) y después funcionan sin cobertura.</p>
       <p><b>🌐 Traducir</b>: entre 7 idiomas, con la IA (Groq), el traductor integrado de Chrome u Opus-MT (español ↔ catalán) dentro del móvil. Revisa la traducción; puedes deshacerla.</p>
-      <p><b>🚗 Modo conducción</b>: pantalla simple con un botón enorme. Combínalo con «Parar al dejar de hablar» y «Leer en voz alta» para no tener que mirar.</p>
+      <p><b>🚗 Modo conducción</b>: botón enorme y letra grande que se ajusta a la pantalla, también en horizontal en el soporte del coche. Cuando te callas, para solo, te lee el mensaje y te pregunta «¿Lo envío?».</p>
       <p><b>📤 Enviar</b>: WhatsApp (botón verde), Telegram, SMS, correo, búsqueda en Google o «Más» para cualquier otra app del móvil. Los ✓✓ se ponen azules cuando lo copias o lo envías.</p>
-      <p><b>🏍️ Manos libres</b>: con «Órdenes por voz», «Parar al dejar de hablar» y «Leer el texto en voz alta» puedes dictar, revisar y mandar el mensaje sin mirar. Al decir «enviar» se abre WhatsApp con el mensaje escrito; el último toque en «Enviar» de WhatsApp es tuyo, porque WhatsApp no deja que ninguna app envíe por ti.</p>
+      <p><b>🏍️ Manos libres</b>: en modo conducción no hace falta mirar ni tocar. Responde «sí» para abrir WhatsApp con el mensaje, «no» para guardarlo, «léelo» para oírlo otra vez o «sigue» para añadir más. Mientras dictas también valen «enviar», «borrar todo» y «deshacer». El último toque en «Enviar» de WhatsApp es tuyo, porque WhatsApp no deja que ninguna app envíe por ti.</p>
       <p>⚠️ Con el vehículo en marcha no manipules el móvil: usa la voz o el botón del casco, o detente en un lugar seguro. Respeta siempre las normas de tráfico.</p>
       <p>Consejo: menú ⋮ de Chrome → «Añadir a pantalla de inicio».</p>
       <p><a href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones de uso</a></p>
-      <p style="opacity:.6">PerezApp v2026.11.22-1</p>
+      <p style="opacity:.6">PerezApp v2026.11.22-2</p>
     </div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
-<script src="i18n.js?v=2026.11.22-1"></script>
-<script src="licencia.js?v=2026.11.22-1"></script>
-<script src="format.js?v=2026.11.22-1"></script>
+<script src="i18n.js?v=2026.11.22-2"></script>
+<script src="licencia.js?v=2026.11.22-2"></script>
+<script src="format.js?v=2026.11.22-2"></script>
 <script>
 (() => {
   const $ = (id) => document.getElementById(id);
@@ -668,13 +734,13 @@
   window.addEventListener('resize', () => { segSet($('modeSeg'), engine); });
 
   // ---------- ajustes ----------
-  const CHECKS = { optGloves: true, optVoiceCmd: true, optHeadset: false, optAiFix: true, optGpu: !isMobile, optFormat: true, optPunct: true, optBeep: true, optAwake: false, optAutoCopy: true, optReadBack: false, optAutoWa: false };
+  const CHECKS = { optGloves: true, optVoiceCmd: true, optHeadset: false, optAiFix: true, optGpu: !isMobile, optFormat: true, optPunct: true, optBeep: true, optAwake: false, optAutoCopy: true, optReadBack: false, optAutoWa: false, optAsk: true };
   for (const [id, def] of Object.entries(CHECKS)) { $(id).checked = store.get(id, def); $(id).onchange = () => { store.set(id, $(id).checked); if (id === 'optAwake') keepAwake(); }; }
   const on = (id) => $(id).checked;
   const applyGloves = () => { document.documentElement.classList.toggle('gloves', on('optGloves')); requestAnimationFrame(() => { segSet($('modeSeg'), engine); }); };
   $('optGloves').addEventListener('change', applyGloves); applyGloves();
-  $('optSilence').value = String(store.get('silence', 0));
-  $('optSilence').onchange = () => store.set('silence', +$('optSilence').value);
+  $('optSilence').value = String(store.get('silence', 'auto'));
+  $('optSilence').onchange = () => { const v = $('optSilence').value; store.set('silence', v === 'auto' ? 'auto' : +v); };
 
   // tema, color y tamaño
   const COLORS = [['#25d366', '#00a884'], ['#8b7bff', '#45d4ff'], ['#34b7f1', '#2a7fff'], ['#ff6b9d', '#ffb86b'], ['#ffb547', '#ff6b6b'], ['#a3aab5', '#5f6b78']];
@@ -775,7 +841,9 @@
   $$('#modeSeg button').forEach(b => b.onclick = () => setEngine(b.dataset.v));
 
   // ---------- utilidades de interfaz ----------
-  function setStatus(msg, err) { msg = t(msg); status.textContent = msg; status.classList.toggle('err', !!err); $('dstatus').textContent = msg; }
+  const driving = () => document.body.classList.contains('driving');
+  const IDLE = ['Pulsa el micrófono y habla'];
+  function setStatus(msg, err) { const k = msg; msg = t(msg); status.textContent = msg; status.classList.toggle('err', !!err); $('dstatus').textContent = IDLE.includes(k) ? '' : msg; }
   function toast(msg, ms = 1700) { msg = I.t(msg); const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), ms); }
   function setMic(state) {
     $('chat').classList.toggle('busy', state === 'busy');
@@ -805,8 +873,25 @@
     $('mail').href = 'mailto:?body=' + enc;
     $('google').href = 'https://www.google.com/search?q=' + enc;
     $('chat').classList.toggle('has-text', !!text.value.trim());
-    const d = $('dtext'); d.textContent = text.value.trim() || t('Toca el círculo y habla'); d.classList.toggle('empty', !text.value.trim());
+    const d = $('dtext'), v = text.value.trim();
+    d.classList.toggle('empty', !v); $('dact').classList.toggle('off', !v);
+    if (v) { d.textContent = ''; const m = document.createElement('span'); m.className = 'dmsg'; m.textContent = v; d.append(m); const L = v.length; d.style.setProperty('--dfs', L < 60 ? '34px' : L < 120 ? '29px' : L < 200 ? '25px' : L < 320 ? '22px' : '19px'); }
+    else {
+      d.textContent = ''; const ol = document.createElement('ol'); ol.className = 'dguide';
+      for (const g of ['Toca el botón y di tu mensaje', 'Cuando dejes de hablar, te lo leo en voz alta', on('optAsk') && SR ? 'Di «sí» y se abre WhatsApp para enviarlo' : 'Pulsa WhatsApp para enviarlo']) { const li = document.createElement('li'); li.textContent = t(g); ol.append(li); }
+      d.append(ol);
+    }
+    requestAnimationFrame(fitDrive);
   }
+  // modo conducción: la letra más grande que quepa (mínimo 17 px); si aun así no cabe, se desvanece abajo
+  function fitDrive() {
+    const d = $('dtext'); if (!driving() || d.classList.contains('empty')) { d.classList.remove('more'); return; }
+    let fs = parseFloat(d.style.getPropertyValue('--dfs')) || 26;
+    while (fs > 17 && d.scrollHeight > d.clientHeight + 1) { fs -= 1; d.style.setProperty('--dfs', fs + 'px'); }
+    const more = d.scrollHeight > d.clientHeight + 1; d.classList.toggle('more', more);
+    if (more && recording) d.scrollTop = d.scrollHeight;
+  }
+  addEventListener('resize', () => { if (driving()) refresh(); });
   function setText(v, undoable = true) {
     if (undoable && v !== text.value) history.push({ v: text.value, l: lang });
     const grew = v.length > text.value.length;
@@ -843,11 +928,20 @@
     const t0 = Date.now(), tick = () => { const s = Math.floor((Date.now() - t0) / 1000); timer.textContent = '● ' + Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
     tick(); tInt = setInterval(tick, 500);
   }
-  function speak(say, inLang) {
-    if (!('speechSynthesis' in window) || !say) return;
+  function speak(say, inLang) { speakSeq([[say, inLang]]); }
+  // varias frases seguidas (p. ej. el mensaje en su idioma y la pregunta en el del móvil); done() al acabar
+  function speakSeq(parts, done) {
+    parts = parts.filter((x) => x[0]);
+    if (!('speechSynthesis' in window) || !parts.length) { done && done(); return; }
     speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(say); u.lang = LANGS[inLang || lang].sr; u.rate = 1.05;
-    speechSynthesis.speak(u);
+    let left = parts.length, fired = false;
+    const fin = () => { if (!fired) { fired = true; clearTimeout(guard); done && done(); } };
+    const guard = done ? setTimeout(fin, 2500 + parts.reduce((n, x) => n + x[0].length, 0) * 85) : 0;   // por si el móvil no avisa al terminar
+    for (const [say, inLang] of parts) {
+      const u = new SpeechSynthesisUtterance(say); u.lang = (LANGS[inLang || lang] || LANGS.es).sr; u.rate = 1.05;
+      u.onend = u.onerror = () => { if (--left === 0) fin(); };
+      speechSynthesis.speak(u);
+    }
   }
   $('speak').onclick = () => { if (speechSynthesis.speaking) speechSynthesis.cancel(); else speak(text.value.trim()); };
 
@@ -979,7 +1073,7 @@
     meterStream = null;
   }
   function checkSilence() {
-    const secs = store.get('silence', 0);
+    const v = store.get('silence', 'auto'), secs = v === 'auto' ? (driving() ? 3 : 0) : +v;
     if (!recording || !secs || !heardVoice) return;
     if (Date.now() - lastVoice > secs * 1000) stop();
   }
@@ -1030,7 +1124,7 @@
   async function apiFetch(path, init) {
     let res;
     try { res = await fetch(API + path, { ...init, headers: { ...(init.headers || {}), ...(await PZ.headers()) } }); }
-    catch (e) { throw new Error(t('No se pudo conectar con la nube: {0}', e.message)); }
+    catch (e) { throw new Error('Sin conexión con la nube: revisa la cobertura.'); }
     const d = await res.json().catch(() => ({}));
     if (res.ok) return d;
     const code = d.error && d.error.code;
@@ -1042,7 +1136,7 @@
     if (res.status === 429 && code === 'slow_down') throw new Error('Demasiadas peticiones seguidas: espera un minuto.');
     if (res.status === 429) throw new Error('Has llegado al límite diario de tu licencia. Vuelve mañana.');
     if (res.status === 503) throw new Error('La nube está saturada: prueba en un momento.');
-    throw new Error(t('No se pudo conectar con la nube: {0}', res.status));
+    throw new Error('La nube no responde ahora. Prueba en un momento.');
   }
   // una tarea de IA (corregir, retocar, traducir): por el servidor si hay licencia, o directo a Groq con la clave propia
   async function aiTask(task, src, text, tgt) {
@@ -1111,6 +1205,7 @@
     if (!fixed && on('optFormat')) { const f = DictadoFormat.formatMessage(text.value, lang); if (f !== text.value.trim()) setText(f); }
     if (pendingSend) { doSend(); return; }
     if (on('optAutoCopy')) copy(true);
+    if (askToSend()) return;          // modo conducción: te lo lee y pregunta «¿Lo envío?»
     if (on('optReadBack')) speak(text.value.trim());
     if (on('optAutoWa') && text.value.trim()) { saveHist(); const w = window.open(waUrl(), '_blank'); if (!w) toast('Pulsa WhatsApp para enviarlo'); }
   }
@@ -1154,9 +1249,56 @@
   function doSend() {
     pendingSend = false;
     if (!text.value.trim()) { say('empty'); return; }
-    saveHist(); markSent(); say('send');
+    saveHist(); markSent(); say('send'); setStatus('Abriendo WhatsApp');
     const url = waUrl();
     setTimeout(() => { const w = window.open(url, '_blank'); if (!w) location.href = url; }, 700);
+  }
+
+  // ---------- manos libres en conducción: te lee el mensaje y pregunta «¿Lo envío?» ----------
+  const ASK = {
+    es: { yes: /^(s[ií]|s[ií] s[ií]|vale|ok|okay|claro|venga|env[ií]a(lo)?|enviar|manda(lo)?|adelante|perfecto|correcto)$/, no: /^(no|no no|cancela(r)?|d[eé]jalo|espera)$/, more: /^(sigue|seguir|contin[uú]a|a[ñn]ade|a[ñn]adir|m[aá]s)$/, again: /^(rep[ií]te(lo)?|otra vez|l[eé]e(lo)?( otra vez)?|l[eé]emelo)$/ },
+    ca: { yes: /^(s[ií]|val|d'acord|ok|endavant|envia(-ho|'l)?|enviar)$/, no: /^(no|cancel·la|deixa-ho|espera)$/, more: /^(continua|segueix|afegeix|m[eé]s)$/, again: /^(repeteix(-ho)?|un altre cop|llegeix(-ho)?)$/ },
+    en: { yes: /^(yes|yeah|yep|ok|okay|sure|send|send it|go ahead)$/, no: /^(no|nope|cancel|wait)$/, more: /^(continue|keep going|add more|more)$/, again: /^(repeat|again|read it( again)?)$/ },
+    fr: { yes: /^(oui|ouais|ok|d'accord|vas-y|envoie|envoyer)$/, no: /^(non|annule|attends)$/, more: /^(continue|ajoute|encore)$/, again: /^(répète|encore une fois|relis|lis-le)$/ },
+    it: { yes: /^(s[ìi]|ok|va bene|certo|invia|invialo|manda)$/, no: /^(no|annulla|aspetta)$/, more: /^(continua|aggiungi|ancora)$/, again: /^(ripeti|di nuovo|rileggi|leggilo)$/ },
+    de: { yes: /^(ja|jawohl|ok|okay|klar|senden|schick es|abschicken)$/, no: /^(nein|abbrechen|warte)$/, more: /^(weiter|mehr|ergänzen)$/, again: /^(wiederholen|nochmal|lies vor|vorlesen)$/ },
+    pt: { yes: /^(sim|ok|pode|claro|envia|enviar|manda)$/, no: /^(não|nao|cancela(r)?|espera)$/, more: /^(continua(r)?|acrescenta|mais)$/, again: /^(repete|outra vez|lê|ler)$/ },
+  };
+  function matchAsk(x) {
+    const n = normCmd(x);
+    for (const l of [ui(), lang, ...Object.keys(ASK)]) for (const [k, re] of Object.entries(ASK[l] || {})) if (re.test(n)) return k;
+    return matchCmd(x);   // también valen «enviar», «borra todo», «deshacer», «léelo»…
+  }
+  let asking = null, askTries = 0;
+  function endAsk() { $('drive').classList.remove('asking'); const a = asking; asking = null; if (a) { a.onend = null; try { a.abort(); } catch {} } }
+  function askToSend(again) {
+    if (!driving() || !on('optAsk') || !SR || !text.value.trim()) return false;
+    if (!again) askTries = 0;
+    $('drive').classList.add('asking'); setStatus('🗣️ ¿Lo envío? Di «sí», «no», «léelo» o «sigue».');
+    speakSeq([[text.value.trim(), lang], [t('¿Lo envío?'), ui()]], listenAnswer);
+    return true;
+  }
+  function listenAnswer() {
+    if (!driving() || recording || !$('drive').classList.contains('asking')) return;
+    const r = new SR(); asking = r;
+    r.lang = (LANGS[ui()] || LANGS[lang]).sr; r.interimResults = false; r.continuous = false; r.maxAlternatives = 4;
+    let got = false;
+    const to = setTimeout(() => { try { r.stop(); } catch {} }, 7000);
+    r.onresult = (e) => { got = true; const res = e.results[0]; handleAnswer([...Array(res.length)].map((_, i) => res[i].transcript)); };
+    r.onerror = () => {};
+    r.onend = () => { clearTimeout(to); if (asking === r) asking = null; if (!got) { $('drive').classList.remove('asking'); setStatus('Pulsa WhatsApp o di «enviar» cuando quieras.'); } };
+    try { r.start(); if (navigator.vibrate) navigator.vibrate(30); } catch { $('drive').classList.remove('asking'); }
+  }
+  function handleAnswer(alts) {
+    let k = null; for (const a of alts) { k = matchAsk(a); if (k) break; }
+    endAsk();
+    if (k === 'yes' || k === 'send') { doSend(); return; }
+    if (k === 'more') { start(); return; }
+    if (k === 'again' || k === 'read') { askToSend(true); return; }
+    if (k === 'clear' || k === 'undo') { runCmd(k); return; }
+    if (k === 'stop' || k === 'no') { speak(t('Vale, no lo envío.'), ui()); setStatus('Vale, no lo envío. Pulsa WhatsApp o di «enviar» cuando quieras.'); return; }
+    if (++askTries < 2) { $('drive').classList.add('asking'); speakSeq([[t('No te he entendido. ¿Lo envío?'), ui()]], listenAnswer); return; }
+    speak(t('No te he entendido.'), ui()); setStatus('Pulsa WhatsApp o di «enviar» cuando quieras.');
   }
 
   // ---------- botón del casco / auriculares (Media Session) ----------
@@ -1363,10 +1505,13 @@
   async function copy(silent) {
     const v = text.value.trim(); if (!v) { if (!silent) toast('No hay texto'); return; }
     saveHist();
-    try { await navigator.clipboard.writeText(v); markSent(); toast('✓ Copiado'); if (!silent) confetti(document.body.classList.contains('driving') ? $('copy2') : $('copy')); }
+    try { await navigator.clipboard.writeText(v); markSent(); if (!silent || !driving()) toast('✓ Copiado'); if (!silent) confetti(driving() ? $('wa2') : $('copy')); }
     catch { text.focus(); text.select(); try { if (!document.execCommand('copy')) throw 0; markSent(); toast('✓ Copiado'); } catch { if (!silent) toast('Mantén pulsado el texto para copiar'); } finally { text.setSelectionRange(text.value.length, text.value.length); text.blur(); } }
   }
-  $('copy').onclick = $('copy2').onclick = () => copy(false);
+  $('copy').onclick = () => copy(false);
+  $('dRead').onclick = () => { endAsk(); $('speak').click(); };
+  $('dUndo').onclick = () => { endAsk(); $('undo').click(); };
+  $('dClear').onclick = () => { endAsk(); $('clear').click(); };
   $('wa').addEventListener('click', () => { saveHist(); markSent(); confetti($('wa')); }); $('wa2').addEventListener('click', () => { saveHist(); markSent(); confetti($('wa2')); });
   for (const id of ['tg', 'sms', 'mail', 'google']) $(id).addEventListener('click', (e) => {
     if (!text.value.trim()) { e.preventDefault(); toast('No hay texto'); return; }
@@ -1398,7 +1543,7 @@
   };
 
   // ---------- modo conducción ----------
-  function drive(o) { document.body.classList.toggle('driving', o); $('drive').setAttribute('aria-hidden', !o); keepAwake(); refresh(); if (o) document.documentElement.requestFullscreen?.().catch(() => {}); else if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); }
+  function drive(o) { if (!o) { endAsk(); speechSynthesis && speechSynthesis.cancel(); } document.body.classList.toggle('driving', o); $('drive').setAttribute('aria-hidden', !o); keepAwake(); refresh(); if (o) document.documentElement.requestFullscreen?.().catch(() => {}); else if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); }
   $('driveBtn').onclick = () => drive(true); $('driveExit').onclick = () => drive(false);
 
   // ---------- modo Rápido: Google (Web Speech API) ----------
@@ -1443,7 +1588,7 @@
   let worker = null, mediaRec = null, chunks = [], asrReady = false;
   function getWorker() {
     if (worker) return worker;
-    worker = new Worker('worker.js?v=2026.11.22-1', { type: 'module' });
+    worker = new Worker('worker.js?v=2026.11.22-2', { type: 'module' });
     worker.onmessage = ({ data }) => {
       if (model() === 'groq' && /progress|ready|status/.test(data.type)) { bar.style.display = 'none'; return; }
       if (data.type === 'progress') { bar.style.display = 'block'; barFill.style.width = data.pct + '%'; setStatus(data.kind === 'tr' ? t('Descargando el traductor (solo la primera vez): {0}% de {1} MB', data.pct, data.mb) : t('Descargando {0} (solo la primera vez): {1}% de {2} MB', NAMES[offlinePrep || model()], data.pct, data.mb)); }
@@ -1612,7 +1757,7 @@
     text.focus(); const n = text.value.length; text.setSelectionRange(n, n);
     toast(t('Toca donde quieras corregir. Para cambiar una parte por voz, selecciónala y pulsa el micro.'), 4500);
   };
-  $('driveEdit').onclick = () => { drive(false); setTimeout(() => $('edit').click(), 350); };
+  $('driveEdit').onclick = () => { endAsk(); drive(false); setTimeout(() => $('edit').click(), 350); };
   // ---------- sin cobertura ----------
   let offlinePrep = null;
   function showOffline() {
@@ -1636,7 +1781,7 @@
       if (store.get('offlineModel', '')) { setEngine('whisper'); toast('Sin cobertura: uso el modo 🎯 Preciso del móvil.', 3500); }
       else { setStatus('Sin cobertura. Para dictar sin internet, en Ajustes pulsa «Descargar» en «Usar sin cobertura».', true); return; }
     }
-    speechSynthesis && speechSynthesis.cancel();
+    speechSynthesis && speechSynthesis.cancel(); endAsk();
     insertAt = null;
     if (lastSel && Date.now() - lastSel.t < 20000 && text.value.trim() && (lastSel.s !== lastSel.e || lastSel.s < text.value.trimEnd().length)) insertAt = { s: lastSel.s, e: lastSel.e };
     lastSel = null;
