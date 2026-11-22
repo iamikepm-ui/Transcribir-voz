@@ -616,6 +616,20 @@
   .statscard > div { padding:12px 6px 10px; border-radius:16px; text-align:center; background:color-mix(in srgb,var(--panel) 80%,transparent); border:1px solid var(--line); }
   .statscard b { display:block; font-size:22px; font-weight:800; letter-spacing:-.02em; background:linear-gradient(135deg,var(--a1),var(--a2)); -webkit-background-clip:text; background-clip:text; color:transparent; font-variant-numeric:tabular-nums; }
   .statscard small { display:block; margin-top:2px; font-size:12px; line-height:1.25; color:var(--soft); }
+
+  /* ===== prueba gratis ===== */
+  .ltrial { margin:14px 0 6px; padding:14px 14px 12px; border-radius:20px; background:linear-gradient(135deg,color-mix(in srgb,var(--a1) 22%,transparent),color-mix(in srgb,var(--a2) 10%,transparent)); border:1px solid color-mix(in srgb,var(--a1) 45%,transparent); }
+  .ltrial[hidden], .lback[hidden], .trialchip[hidden], .lwhy[hidden] { display:none; }
+  .lwhy { margin:12px 0 0; padding:10px 12px; border-radius:14px; background:color-mix(in srgb,#ffb547 16%,transparent); border:1px solid color-mix(in srgb,#ffb547 45%,transparent); font-weight:700; font-size:14.5px; line-height:1.4; }
+  .ltrial .btn { min-height:58px; font-size:18px; margin-bottom:8px; box-shadow:0 10px 26px color-mix(in srgb,var(--a1) 35%,transparent); }
+  .ltrial small { display:block; color:var(--soft); font-size:13px; line-height:1.4; }
+  .lback { display:block; width:100%; min-height:46px; margin:10px 0 0; border:1px solid var(--line); border-radius:14px; background:var(--glass); color:var(--txt); font:inherit; font-weight:800; font-size:15px; }
+  .trialchip { display:inline-flex; align-items:center; gap:8px; max-width:100%; margin-top:10px; min-height:40px; padding:6px 6px 6px 14px; border-radius:999px; border:1px solid color-mix(in srgb,var(--a1) 45%,transparent);
+    background:color-mix(in srgb,var(--a1) 14%,transparent); color:var(--txt); font:inherit; font-size:13.5px; font-weight:700; cursor:pointer; }
+  .trialchip span { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .trialchip b { flex:none; padding:6px 12px; border-radius:999px; background:linear-gradient(135deg,var(--a1),var(--a2)); color:#04210f; font-weight:800; }
+  .trialchip:active { transform:scale(.97); }
+  @media (max-height:720px) { .empty-hint:has(> .trialchip:not([hidden])) > img { display:none; } .trialchip { margin-top:6px; min-height:36px; } }
 </style>
 </head>
 <body>
@@ -647,7 +661,7 @@
   <div class="chat" id="chat">
     <div class="scroll" id="scroll">
       <div class="dayrow"><div class="day" id="sub"></div><button class="langpill" id="langPill" aria-label="Idioma del mensaje" title="Idioma del mensaje"></button></div>
-      <div class="empty-hint" id="hint"><img src="logo.svg" alt=""><b>Pulsa el micro y habla</b><span>Tu mensaje aparecerá aquí, bien escrito y listo para enviar.</span><div class="hintrow"><button class="hintwrite" id="hintWrite">✏️ <span>Escribir</span></button><button class="hintwrite" id="hintVoice">🗣️ <span>Qué puedo decir</span></button></div></div>
+      <div class="empty-hint" id="hint"><img src="logo.svg" alt=""><b>Pulsa el micro y habla</b><span>Tu mensaje aparecerá aquí, bien escrito y listo para enviar.</span><div class="hintrow"><button class="hintwrite" id="hintWrite">✏️ <span>Escribir</span></button><button class="hintwrite" id="hintVoice">🗣️ <span>Qué puedo decir</span></button></div><button class="trialchip" id="trialChip" hidden></button></div>
       <div class="bubble paper" id="bubble">
         <div class="tochip" id="toChip" hidden>👤 <span id="toName"></span><button id="toClear" aria-label="Quitar destinatario" title="Quitar destinatario">✕</button></div>
         <textarea id="text" rows="1" placeholder="Escribe o dicta…"></textarea>
@@ -718,6 +732,12 @@
     <img src="logo.svg" alt="" class="wlogo">
     <h2>Activa <span>PerezApp</span></h2>
     <p class="wref" id="lockRef" hidden></p>
+    <div class="ltrial" id="trialBox" hidden>
+      <button class="btn primary" id="trialGo">🎁 <span id="trialGoTxt">Pruébala gratis 7 días</span></button>
+      <small>Sin pagar y sin dar tus datos. Dictado con el modo Rápido de Google; la IA y la nube de PerezApp vienen con tu clave.</small>
+    </div>
+    <p class="lwhy" id="lockWhy" hidden></p>
+    <button class="lback" id="lockBack" hidden>← <span id="lockBackTxt">Seguir con la prueba</span></button>
     <div class="ltabs" role="tablist">
       <button id="tabWant" role="tab">Quiero mi clave</button>
       <button id="tabHave" role="tab">Ya tengo clave</button>
@@ -739,7 +759,7 @@
       <button class="btn primary" id="licGo">Activar</button>
     </div>
     <a class="wpriv" href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones</a>
-    <small class="wver">v2026.11.22-25</small>
+    <small class="wver">v2026.11.22-26</small>
   </div>
 </div>
 
@@ -866,7 +886,7 @@
       <button class="btn primary" id="installApp">Instalar</button>
     </div>
     <div class="sharecard">
-      <div class="sc-t"><b>🎁 Recomienda PerezApp</b><small>Envía el enlace a quien conduzca o vaya en moto. Desde la app podrá pedir su clave.</small></div>
+      <div class="sc-t"><b>🎁 Recomienda PerezApp</b><small id="shareSub">Envía el enlace a quien conduzca o vaya en moto. Desde la app podrá pedir su clave.</small></div>
       <button class="btn primary" id="shareApp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><path d="m16 6-4-4-4 4M12 2v13"/></svg><span>Compartir</span></button>
     </div>
 
@@ -955,7 +975,7 @@
       <p>⚠️ Con el vehículo en marcha no manipules el móvil: usa la voz o el botón del casco, o detente en un lugar seguro. Respeta siempre las normas de tráfico.</p>
       <p>Consejo: menú ⋮ de Chrome → «Añadir a pantalla de inicio».</p>
       <p><a href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones de uso</a></p>
-      <p style="opacity:.6">PerezApp v2026.11.22-25</p>
+      <p style="opacity:.6">PerezApp v2026.11.22-26</p>
     </div>
   </div>
 </div>
@@ -963,9 +983,9 @@
 <div class="toast" id="toast"></div>
 <div class="snack" id="snack" role="status"><span id="snackMsg"></span><button id="snackBtn">Deshacer</button></div>
 
-<script src="i18n.js?v=2026.11.22-25" defer></script>
-<script src="licencia.js?v=2026.11.22-25" defer></script>
-<script src="format.js?v=2026.11.22-25" defer></script>
+<script src="i18n.js?v=2026.11.22-26" defer></script>
+<script src="licencia.js?v=2026.11.22-26" defer></script>
+<script src="format.js?v=2026.11.22-26" defer></script>
 <script>
 // se ejecuta cuando ya se han cargado i18n.js, licencia.js y format.js (defer): la pantalla se pinta antes
 document.addEventListener('DOMContentLoaded', () => {
@@ -1121,6 +1141,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let m = $('optModel').value;
     if (lang === 'ca' && m === COHERE) m = TURBO;                                    // Cohere no tiene catalán
     if (!navigator.onLine && (m === 'groq' || m === 'pzcloud') && store.get('offlineModel', '')) m = store.get('offlineModel', '');   // sin cobertura: el del móvil
+    if (m === 'pzcloud' && typeof trial !== 'undefined' && trial) m = store.get('offlineModel', '') || SMALL;   // en la prueba, la nube de PerezApp no: el modelo del móvil
     return m;
   };
   function checkModelLang() { if (lang === 'ca' && $('optModel').value === COHERE && engine === 'whisper' && typeof setStatus === 'function') setStatus('Cohere no tiene catalán: se usará Whisper Turbo.'); }
@@ -1217,7 +1238,7 @@ document.addEventListener('DOMContentLoaded', () => {
     snack('✓ ' + t('Listo para el siguiente mensaje'), 'Recuperar', () => { setText(prev.v, false); toWho = prev.who; refresh(); }, 6000);
     return true;
   }
-  document.addEventListener('visibilitychange', () => { if (document.hidden) hiddenAt = Date.now(); else if (sentMark && Date.now() - hiddenAt > 1200) freshAfterSend(); });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) hiddenAt = Date.now(); else { if (sentMark && Date.now() - hiddenAt > 1200) freshAfterSend(); if (trial) { if (!trialLeft()) endTrial(); else paintTrial(); } } });
   // estadísticas: mensajes enviados y palabras dictadas
   function bumpStat(k, n) { const st = store.get('stats', { m: 0, w: 0 }); st[k] = (st[k] || 0) + n; store.set('stats', st); paintStats(); }
   function paintStats() {
@@ -1565,7 +1586,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!text.value.trim() && on('optVoiceCmd')) { const m = matchRecipient(s); if (m) { toWho = m.f; s = m.rest.charAt(0).toUpperCase() + m.rest.slice(1); paintTo(); } } if (!fromAI && on('optPunct')) s = voiceCommands(s); bumpStat('w', (s.match(/[\p{L}\p{N}]+/gu) || []).length); append(tidy(s, !fromAI)); }
   function endSentence() { const v = text.value.replace(/\s+$/, ''); if (v && !/[.?!…:;,]$/.test(v) && !/https?:\/\/\S+$/.test(v)) setText(v + '.'); }
   // ---------- IA de texto en Groq: corregir, retocar y traducir ----------
-  const cloud = () => !!(API && PZ.enabled && licensed);
+  var trial = false;   // prueba gratis: solo modo Rápido (Google) o modelos del móvil; nada del servidor
+  const cloud = () => !!(API && PZ.enabled && licensed && !trial);
   const hasKey = () => cloud() || !!store.get('groqKey', '');
   // errores del servidor de PerezApp
   const LIC_REASON = { invalid: 'La clave no es válida: no la ha creado el generador de esta app o está mal copiada.', device: 'Esta clave es para otro móvil.', expired: 'La licencia ha caducado.', revoked: 'Esta licencia ha sido anulada.', devices: 'Esta licencia ya se está usando en otros móviles.' };
@@ -1627,7 +1649,7 @@ document.addEventListener('DOMContentLoaded', () => {
   async function magic(act, btn, auto) {
     const v = text.value.trim();
     if (!v) { if (!auto) toast('No hay texto'); return false; }
-    if (!hasKey()) { openSheet(true); return false; }
+    if (!hasKey()) { if (trial) { if (!auto) trialUpsell(); } else openSheet(true); return false; }
     if (busy && !auto) return false;
     btn && btn.classList.add('work'); if (!auto) setStatus('✨ Retocando con IA…'); else setStatus('✨ Puliendo con IA…');
     try {
@@ -1927,16 +1949,81 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
-  async function showLock(reason) {
-    licensed = false;
+
+  // ---------- prueba gratis (por móvil, una sola vez; no usa el servidor) ----------
+  const TRIAL_DAYS = (LIC && LIC.TRIAL_DAYS) || 0, DAY = 86400000;
+  const ck = () => { const m = /(?:^|; )pzt=(\d+)/.exec(document.cookie); return m ? +m[1] : 0; };
+  function trialData() {
+    let d = null; try { d = JSON.parse(localStorage.getItem('perezapp.trial') || 'null'); } catch {}
+    const c = ck(); if (!d && c) d = { start: c, seen: c };   // si se borró solo una parte de los datos
+    return d;
+  }
+  function trialSave(d) {
+    try { localStorage.setItem('perezapp.trial', JSON.stringify(d)); } catch {}
+    try { document.cookie = 'pzt=' + d.start + '; max-age=63072000; path=' + location.pathname.replace(/[^/]*$/, '') + '; samesite=strict' + (location.protocol === 'https:' ? '; secure' : ''); } catch {}
+  }
+  // días que quedan (el reloj del móvil no puede ir hacia atrás: se usa la fecha más alta vista)
+  function trialLeft() {
+    const d = trialData(); if (!d || d.used) return 0;
+    const now = Math.max(Date.now(), d.seen || 0); if (now > (d.seen || 0)) { d.seen = now; trialSave(d); }
+    return Math.max(0, Math.ceil((d.start + TRIAL_DAYS * DAY - now) / DAY));
+  }
+  const canTrial = () => TRIAL_DAYS > 0 && !trialData();
+  function paintTrial() {
+    const n = trial ? trialLeft() : 0;
+    $('trialChip').hidden = !trial;
+    if (trial) {
+      $('trialChip').textContent = '';
+      const a = document.createElement('span'); a.textContent = '🎁 ' + t(n === 1 ? 'Último día gratis' : '{0} días gratis', n);
+      const b = document.createElement('b'); b.textContent = t('Pedir clave');
+      $('trialChip').append(a, b); $('trialChip').setAttribute('aria-label', a.textContent.slice(3) + ' · ' + b.textContent);
+      $('licRow').hidden = false; $('licInfo').textContent = t(n === 1 ? 'Prueba gratis · queda 1 día' : 'Prueba gratis · quedan {0} días', n);
+      $('licRenew').hidden = false; $('licRenew').textContent = t('Pedir clave'); $('licRenew').href = '#';
+      $('lockBackTxt').textContent = t(n === 1 ? 'Seguir con la prueba (queda 1 día)' : 'Seguir con la prueba (quedan {0} días)', n);
+    }
+    $('trialGoTxt').textContent = t('Pruébala gratis {0} días', TRIAL_DAYS);
+    $('shareSub').textContent = TRIAL_DAYS ? t('Envía el enlace a quien conduzca o vaya en moto: podrá probarla gratis {0} días y pedir su clave.', TRIAL_DAYS) : t('Envía el enlace a quien conduzca o vaya en moto. Desde la app podrá pedir su clave.');
+  }
+  function trialSession(first) {
+    trial = true; licensed = true; $('lock').hidden = true;
+    if (SR) { if (engine !== 'live') setEngine('live'); } else if (engine === 'live') setEngine('whisper');
+    showMagic(); paintTrial();
+    if (first) { toast('🎁 ' + t('Prueba gratis activada: tienes {0} días', TRIAL_DAYS), 4000); confetti($('mic')); }
+    else {
+      const n = trialLeft(), today = new Date().toDateString();
+      if (n <= 2 && store.get('trialWarn', '') !== today) { store.set('trialWarn', today); setTimeout(() => snack(t(n === 1 ? 'Tu prueba termina mañana' : 'Tu prueba termina en {0} días', n), 'Pedir clave', keyScreen, 8000), 1500); }
+    }
+    if (!store.get('welcomed', false)) $('welcome').hidden = false;
+  }
+  function endTrial() {
+    if (recording) stop();
+    trial = false; showLock({ reason: 'Tu prueba gratis ha terminado. Pide tu clave para seguir usando PerezApp.' }, 'want');
+  }
+  // pantalla de clave durante la prueba, con «Seguir con la prueba»
+  function keyScreen() {
+    $('sheetRoot').classList.remove('open');
+    showLock(null, 'want', true);
+  }
+  function trialUpsell() { snack('✨ ' + t('La IA (corregir, retocar y traducir) viene con tu clave'), 'Pedir clave', keyScreen, 7000); }
+  $('trialChip').onclick = keyScreen;
+  $('licRenew').addEventListener('click', (e) => { if (trial) { e.preventDefault(); keyScreen(); } });
+  $('lockBack').onclick = () => { $('lock').hidden = true; };
+  $('trialGo').onclick = () => {
+    if (!canTrial()) { $('trialBox').hidden = true; return; }
+    const now = Date.now(); trialSave({ start: now, seen: now }); trialSession(true);
+  };
+  async function showLock(reason, tab, keepTrial) {
+    if (!keepTrial) { licensed = false; trial = false; $('trialChip').hidden = true; }
     $('welcome').hidden = true; $('lock').hidden = false;
+    $('trialBox').hidden = !canTrial(); $('lockBack').hidden = !keepTrial; paintTrial();
     const code = await LIC.deviceCode();
     $('devCode').textContent = code;
     const why = !reason ? '' : typeof reason === 'object' ? (reason.reason ? t(reason.reason, ...(reason.args || [])) : '') : t(reason);
     $('licMsg').textContent = why; $('licMsg').className = '';
     const req = store.get('requested', null);
     if (!why && req) { $('licMsg').className = 'ok'; $('licMsg').textContent = t('Solicitud enviada el {0}. Cuando te llegue la clave, abre el enlace o pégala aquí.', new Date(req.ts).toLocaleDateString(I.locale())); }
-    lockTab(why || req ? 'have' : 'want');
+    lockTab(tab || (why || req ? 'have' : 'want'));
+    $('lockWhy').textContent = tab === 'want' ? why : ''; $('lockWhy').hidden = !(tab === 'want' && why);
     if (REF) { $('lockRef').hidden = false; $('lockRef').textContent = t('👋 {0} te recomienda PerezApp', REF); }
   }
   // ---------- pedir la clave ----------
@@ -2003,7 +2090,12 @@ document.addEventListener('DOMContentLoaded', () => {
     else if (s.reason === 'devices' && store.get('model', '') === 'pzcloud') toast(LIC_REASON.devices, 5000);
   }
   function unlocked(r, fromUser) {
-    licensed = true; $('lock').hidden = true; licInfo(r); licName = r.name || '';
+    const wasTrial = trial || !!trialData();
+    if (TRIAL_DAYS) { const d = trialData() || { start: Date.now(), seen: Date.now() }; if (!d.used) { d.used = true; trialSave(d); } }
+    trial = false; $('trialChip').hidden = true; $('lockBack').hidden = true;
+    if (wasTrial && engine === 'live' && fromUser) setEngine('whisper');
+    licensed = true; $('lock').hidden = true; licInfo(r); licName = r.name || ''; showMagic();
+    $('licRenew').textContent = t('Renovar');
     if (navigator.onLine) serverLicense(); else addEventListener('online', serverLicense, { once: true });
     if (fromUser) { toast(t('✓ PerezApp activada') + (r.name ? ' · ' + r.name : ''), 4000); confetti($('mic')); }
     if (!store.get('welcomed', false)) $('welcome').hidden = false;
@@ -2027,10 +2119,16 @@ document.addEventListener('DOMContentLoaded', () => {
       if (r.ok) { unlocked(r, true); return; }
       const had = await LIC.check();
       if (had.ok) { unlocked(had, false); toast(t(r.reason, ...(r.args || [])), 4000); return; }
+      if (TRIAL_DAYS && trialLeft() > 0) { trialSession(false); toast(t(r.reason, ...(r.args || [])), 5000); return; }
       showLock(r); return;
     }
     const r = await LIC.check();
-    if (r.ok) unlocked(r, false); else showLock(r);
+    if (r.ok) { unlocked(r, false); return; }
+    if (!r.reason && TRIAL_DAYS && trialData()) {
+      if (trialLeft() > 0) { trialSession(false); return; }
+      if (!trialData().used) { showLock({ reason: 'Tu prueba gratis ha terminado. Pide tu clave para seguir usando PerezApp.' }, 'want'); return; }
+    }
+    showLock(r);
   }
 
   // ---------- frases rápidas ----------
@@ -2081,7 +2179,8 @@ document.addEventListener('DOMContentLoaded', () => {
   $('shareApp').onclick = async () => {
     const me = (licName || '').split(/\s+/)[0];
     const url = APP_LINK + (/^[\p{L}][\p{L}.'-]{0,19}$/u.test(me) ? '?de=' + encodeURIComponent(me) : '');
-    const text = t('Te recomiendo PerezApp 🦥: hablas y te escribe los WhatsApp sin faltas. Ideal en el coche o en la moto. Ábrela y pide tu clave desde la app:');
+    const text = TRIAL_DAYS ? t('Te recomiendo PerezApp 🦥: hablas y te escribe los WhatsApp sin faltas. Ideal en el coche o en la moto. Pruébala gratis {0} días:', TRIAL_DAYS)
+      : t('Te recomiendo PerezApp 🦥: hablas y te escribe los WhatsApp sin faltas. Ideal en el coche o en la moto. Ábrela y pide tu clave desde la app:');
     if (navigator.share) {
       try { await navigator.share({ title: 'PerezApp', text, url }); return; } catch (e) { if (e && e.name === 'AbortError') return; }
     }
@@ -2238,7 +2337,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let worker = null, mediaRec = null, chunks = [], asrReady = false;
   function getWorker() {
     if (worker) return worker;
-    worker = new Worker('worker.js?v=2026.11.22-25', { type: 'module' });
+    worker = new Worker('worker.js?v=2026.11.22-26', { type: 'module' });
     worker.onmessage = ({ data }) => {
       if (model() === 'groq' && /progress|ready|status/.test(data.type)) { bar.style.display = 'none'; return; }
       if (data.type === 'progress') { bar.style.display = 'block'; barFill.style.width = data.pct + '%'; setStatus(data.kind === 'tr' ? t('Descargando el traductor (solo la primera vez): {0}% de {1} MB', data.pct, data.mb) : t('Descargando {0} (solo la primera vez): {1}% de {2} MB', NAMES[offlinePrep || model()], data.pct, data.mb)); }
@@ -2331,7 +2430,7 @@ document.addEventListener('DOMContentLoaded', () => {
         data = await res.json().catch(() => ({}));
         if (res.ok || !(res.status === 413 || res.status === 429 || res.status >= 500)) break;
       }
-      if (!res.ok && res.status !== 401 && API && PZ.enabled && licensed) { setStatus('Transcribiendo en la nube…'); return pzTranscribe(blob, mime, done); }
+      if (!res.ok && res.status !== 401 && cloud()) { setStatus('Transcribiendo en la nube…'); return pzTranscribe(blob, mime, done); }
       if (!res.ok) { done(res.status === 401 ? 'La clave de Groq no es válida.' : (res.status === 429 || res.status === 413) ? 'Groq no acepta más audio ahora (límite de su plan gratuito o grabación muy larga). Usa el modo ⚡ Rápido o prueba en un rato.' : t('Error de Groq: {0}', (data.error && data.error.message) || res.status), true); return; }
       done();
       const heard = (data.text || '').trim();
@@ -2433,7 +2532,7 @@ document.addEventListener('DOMContentLoaded', () => {
     viaAI.then((ai) => ai || nativeTranslate(src, tgt, v)).then((out) => {
       if (out) { busy = false; setMic('idle'); setLang(tgt); setText(on('optFormat') ? DictadoFormat.formatMessage(out, tgt) : out); setStatus('Traducido. «Deshacer» para volver al original.'); snack('🌐 ' + t('Traducido'), 'Deshacer', () => $('undo').click()); }
       else if ((src === 'es' && tgt === 'ca') || (src === 'ca' && tgt === 'es')) getWorker().postMessage({ type: 'translate', dir: src + '-' + tgt, text: v });
-      else { busy = false; setMic('idle'); setStatus(t('Para traducir a {0} activa la IA (gratis)', LANGS[tgt].n), true); }
+      else { busy = false; setMic('idle'); if (trial) trialUpsell(); else setStatus(t('Para traducir a {0} activa la IA (gratis)', LANGS[tgt].n), true); }
     });
   }
 
@@ -2464,6 +2563,7 @@ document.addEventListener('DOMContentLoaded', () => {
   addEventListener('offline', () => toast(store.get('offlineModel', '') ? 'Sin cobertura: uso el modo 🎯 Preciso del móvil.' : 'Sin cobertura. Para dictar sin internet, en Ajustes pulsa «Descargar» en «Usar sin cobertura».', 4500));
 
   function start() {
+    if (trial && !trialLeft()) { endTrial(); return; }
     if (!licensed) { showLock(); return; }
     if (busy) return;
     if (!navigator.onLine && engine === 'live') {       // Google necesita internet: sin cobertura, el modelo del móvil

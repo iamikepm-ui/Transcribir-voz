@@ -20,6 +20,8 @@
   // Servidor de PerezApp (Cloudflare Worker) que da la transcripción y la IA a los clientes con licencia.
   const API_BASE = 'https://perezapp-api.iamikepm.workers.dev';
   // Tarifas que ve quien pide su clave (las mismas que en el generador). m = meses (0 = de por vida).
+  // Prueba gratis por móvil, solo con el modo Rápido (Google) y sin usar el servidor: no cuesta nada. 0 = sin prueba.
+  const TRIAL_DAYS = 7;
   const PLANS = [{ n: 'Mensual', p: 2.99, m: 1 }, { n: 'Trimestral', p: 7.99, m: 3 }, { n: 'Anual', p: 24.99, m: 12, best: true }, { n: 'De por vida', p: 49.99, m: 0 }];
 
   const ALPHA = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
@@ -165,5 +167,5 @@
     return { 'X-Perezapp-License': key, 'X-Perezapp-Device': await deviceCode() };
   }
 
-  root.PerezappLicense = { enabled: !!PUBLIC_KEY, check, activate, deactivate, deviceCode, verify, headers, cleanKey, serverCheck, requestKey, PLANS, SELLER_WHATSAPP, API_BASE, _b32: { b32encode, b32decode } };
+  root.PerezappLicense = { enabled: !!PUBLIC_KEY, check, activate, deactivate, deviceCode, verify, headers, cleanKey, serverCheck, requestKey, PLANS, TRIAL_DAYS, SELLER_WHATSAPP, API_BASE, _b32: { b32encode, b32decode } };
 })(typeof window !== 'undefined' ? window : globalThis);

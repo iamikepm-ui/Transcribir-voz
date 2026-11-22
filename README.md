@@ -16,6 +16,7 @@ App web para dictar por voz en **7 idiomas** (español, catalán, inglés, franc
 - **Modo conducción automático** (opcional): se activa al pasar de 20 km/h, con el GPS y solo mientras la app está abierta.
 - **Accesos directos**: mantén pulsado el icono → «Dictar ahora» (abre escuchando) o «Modo conducción».
 - **Listo para el siguiente**: al volver de WhatsApp, Telegram o SMS la pantalla queda vacía para dictar otro mensaje («Recuperar» por si no llegaste a enviarlo).
+- **🎁 Prueba gratis de 7 días** por móvil (una sola vez), con el modo Rápido y sin usar el servidor: no cuesta nada. Se cambia o se quita con `TRIAL_DAYS` en `licencia.js` (0 = sin prueba).
 - **Estadísticas** en Ajustes: palabras dictadas, mensajes enviados y tiempo ahorrado sin teclear.
 - **Formato de mensaje**: el saludo («Hola Marta,») en la primera línea, el mensaje debajo empezando en mayúscula y la despedida («Un abrazo.») en la última. En español y catalán.
 - Opciones: parar solo al dejar de hablar, leer el texto en voz alta, abrir WhatsApp al terminar, contacto favorito, compartir, tema claro/oscuro, 6 colores, tamaño de letra, historial.
