@@ -559,7 +559,7 @@
       <button class="btn primary" id="licGo">Activar</button>
     </div>
     <a class="wpriv" href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones</a>
-    <small class="wver">v2026.11.22-7</small>
+    <small class="wver">v2026.11.22-8</small>
   </div>
 </div>
 
@@ -730,16 +730,16 @@
       <p>⚠️ Con el vehículo en marcha no manipules el móvil: usa la voz o el botón del casco, o detente en un lugar seguro. Respeta siempre las normas de tráfico.</p>
       <p>Consejo: menú ⋮ de Chrome → «Añadir a pantalla de inicio».</p>
       <p><a href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones de uso</a></p>
-      <p style="opacity:.6">PerezApp v2026.11.22-7</p>
+      <p style="opacity:.6">PerezApp v2026.11.22-8</p>
     </div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
-<script src="i18n.js?v=2026.11.22-7"></script>
-<script src="licencia.js?v=2026.11.22-7"></script>
-<script src="format.js?v=2026.11.22-7"></script>
+<script src="i18n.js?v=2026.11.22-8"></script>
+<script src="licencia.js?v=2026.11.22-8"></script>
+<script src="format.js?v=2026.11.22-8"></script>
 <script>
 (() => {
   const $ = (id) => document.getElementById(id);
@@ -1005,7 +1005,9 @@
   function runTimer(go) {
     clearInterval(tInt); timer.textContent = ''; timer.classList.toggle('on', go);
     if (!go) return;
-    const t0 = Date.now(), tick = () => { const s = Math.floor((Date.now() - t0) / 1000); timer.textContent = '● ' + Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+    const t0 = Date.now(), tick = () => { const s = Math.floor((Date.now() - t0) / 1000);
+      if (s >= 300 && recording && engine !== 'live') { toast('Grabación de 5 minutos: la envío ya.', 3500); stop(); return; }
+      timer.textContent = '● ' + Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
     tick(); tInt = setInterval(tick, 500);
   }
   function speak(say, inLang) { speakSeq([[say, inLang]]); }
@@ -1734,7 +1736,7 @@
   let worker = null, mediaRec = null, chunks = [], asrReady = false;
   function getWorker() {
     if (worker) return worker;
-    worker = new Worker('worker.js?v=2026.11.22-7', { type: 'module' });
+    worker = new Worker('worker.js?v=2026.11.22-8', { type: 'module' });
     worker.onmessage = ({ data }) => {
       if (model() === 'groq' && /progress|ready|status/.test(data.type)) { bar.style.display = 'none'; return; }
       if (data.type === 'progress') { bar.style.display = 'block'; barFill.style.width = data.pct + '%'; setStatus(data.kind === 'tr' ? t('Descargando el traductor (solo la primera vez): {0}% de {1} MB', data.pct, data.mb) : t('Descargando {0} (solo la primera vez): {1}% de {2} MB', NAMES[offlinePrep || model()], data.pct, data.mb)); }
@@ -1801,14 +1803,19 @@
     try {
       const fd = new FormData();
       fd.append('file', blob, 'audio.' + ((mime || '').includes('mp4') ? 'mp4' : (mime || '').includes('ogg') ? 'ogg' : 'webm'));
-      fd.append('model', 'whisper-large-v3');
       if (whisperLang()) fd.append('language', whisperLang());
       fd.append('response_format', 'json');
       fd.append('temperature', '0');
       if (vocab()) fd.append('prompt', vocab());
-      const res = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', { method: 'POST', headers: { Authorization: 'Bearer ' + key }, body: fd });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) { done(res.status === 401 ? 'La clave de Groq no es válida.' : res.status === 429 ? 'Límite gratuito de Groq alcanzado: prueba en un rato.' : t('Error de Groq: {0}', (data.error && data.error.message) || res.status), true); return; }
+      let res, data = {};
+      for (const m of ['whisper-large-v3', 'whisper-large-v3-turbo']) {      // si uno llega a su límite, el otro tiene el suyo
+        fd.set('model', m);
+        res = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', { method: 'POST', headers: { Authorization: 'Bearer ' + key }, body: fd });
+        data = await res.json().catch(() => ({}));
+        if (res.ok || !(res.status === 413 || res.status === 429 || res.status >= 500)) break;
+      }
+      if (!res.ok && res.status !== 401 && API && PZ.enabled && licensed) { setStatus('Transcribiendo en la nube…'); return pzTranscribe(blob, mime, done); }
+      if (!res.ok) { done(res.status === 401 ? 'La clave de Groq no es válida.' : (res.status === 429 || res.status === 413) ? 'Groq no acepta más audio ahora (límite de su plan gratuito o grabación muy larga). Usa el modo ⚡ Rápido o prueba en un rato.' : t('Error de Groq: {0}', (data.error && data.error.message) || res.status), true); return; }
       done();
       const heard = (data.text || '').trim();
       detectFrom(heard);

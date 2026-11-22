@@ -228,7 +228,7 @@ export default {
       'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'no-referrer', 'X-Frame-Options': 'DENY',
     } });
     if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
-    if (url.pathname === '/v1/health' && req.method === 'GET') return json({ ok: true, version: '2026.11.22-6', configured: !!(env.PUBLIC_KEY && env.GROQ_API_KEY), storage: !!env.PZ_KV });
+    if (url.pathname === '/v1/health' && req.method === 'GET') return json({ ok: true, version: '2026.11.22-8', configured: !!(env.PUBLIC_KEY && env.GROQ_API_KEY), storage: !!env.PZ_KV });
     const routes = ['/v1/transcribe', '/v1/chat', '/v1/license', '/v1/admin', '/v1/request'];
     if (req.method !== 'POST' || !routes.includes(url.pathname)) return json({ error: { code: 'not_found' } }, 404);
     // solo la web de la app (los navegadores siempre envían «Origin» en estas peticiones)
@@ -276,10 +276,14 @@ export default {
       const pr = String(form.get('prompt') || '').slice(0, 600); if (pr) fd.append('prompt', pr);
       fd.append('response_format', 'json'); fd.append('temperature', '0');
       const over = await quota(); if (over) return over;
-      let res;
-      try { res = await fetch(groqBase(env) + '/openai/v1/audio/transcriptions', { method: 'POST', headers: { Authorization: 'Bearer ' + env.GROQ_API_KEY }, body: fd }); }
-      catch { return json({ error: { code: 'upstream', status: 502 } }, 502); }
-      const d = await res.json().catch(() => ({}));
+      let res, d = {};
+      for (const m of [env.STT_MODEL || 'whisper-large-v3', 'whisper-large-v3-turbo']) {   // si uno llega a su límite, el otro tiene el suyo
+        fd.set('model', m);
+        try { res = await fetch(groqBase(env) + '/openai/v1/audio/transcriptions', { method: 'POST', headers: { Authorization: 'Bearer ' + env.GROQ_API_KEY }, body: fd }); }
+        catch { return json({ error: { code: 'upstream', status: 502 } }, 502); }
+        d = await res.json().catch(() => ({}));
+        if (res.ok || !(res.status === 413 || res.status === 429 || res.status >= 500)) break;
+      }
       if (!res.ok) return json({ error: { code: 'upstream', status: res.status } }, res.status === 429 ? 503 : 502);
       await charge();
       return json({ text: String(d.text || '') });
