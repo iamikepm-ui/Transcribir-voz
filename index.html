@@ -444,6 +444,13 @@
   .phlist button { text-align:left; min-height:54px; padding:12px 16px; border-radius:16px; border:1px solid var(--line); background:var(--glass); color:var(--txt); font:inherit; font-size:16.5px; font-weight:600; }
   .gloves .phlist button { min-height:62px; font-size:18px; }
   .phlist button:active { transform:scale(.98); background:color-mix(in srgb,var(--a1) 18%,transparent); }
+
+  .hist li .chip.hdel { width:46px; padding:0; justify-content:center; color:#ff6b81; flex:none; }
+  .hist .hdel svg { width:20px; height:20px; }
+  .gloves .hist .hdel { width:56px; }
+  .btn.ghost.histall { width:100%; margin-top:12px; color:#ff6b81; gap:8px; }
+  .histall svg { width:20px; height:20px; }
+  .histall[hidden] { display:none; }
 </style>
 </head>
 <body>
@@ -559,7 +566,7 @@
       <button class="btn primary" id="licGo">Activar</button>
     </div>
     <a class="wpriv" href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones</a>
-    <small class="wver">v2026.11.22-10</small>
+    <small class="wver">v2026.11.22-11</small>
   </div>
 </div>
 
@@ -610,6 +617,7 @@
     <div class="grab"></div>
     <h2>🕘 Mensajes recientes <button class="round" id="histClose" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></h2>
     <ul class="hist" id="hist"></ul>
+    <button class="btn ghost histall" id="histAll" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg><span>Borrar todo el historial</span></button>
   </div>
 </div>
 
@@ -730,16 +738,16 @@
       <p>⚠️ Con el vehículo en marcha no manipules el móvil: usa la voz o el botón del casco, o detente en un lugar seguro. Respeta siempre las normas de tráfico.</p>
       <p>Consejo: menú ⋮ de Chrome → «Añadir a pantalla de inicio».</p>
       <p><a href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones de uso</a></p>
-      <p style="opacity:.6">PerezApp v2026.11.22-10</p>
+      <p style="opacity:.6">PerezApp v2026.11.22-11</p>
     </div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
-<script src="i18n.js?v=2026.11.22-10"></script>
-<script src="licencia.js?v=2026.11.22-10"></script>
-<script src="format.js?v=2026.11.22-10"></script>
+<script src="i18n.js?v=2026.11.22-11"></script>
+<script src="licencia.js?v=2026.11.22-11"></script>
+<script src="format.js?v=2026.11.22-11"></script>
 <script>
 (() => {
   const $ = (id) => document.getElementById(id);
@@ -1634,7 +1642,7 @@
   let hist = store.get('hist', []);
   function saveHist() { const v = text.value.trim(); if (!v) return; hist = [{ t: v, d: Date.now() }, ...hist.filter(h => h.t !== v)].slice(0, 30); store.set('hist', hist); drawHist(); }
   function drawHist() {
-    const ul = $('hist'); ul.textContent = ''; $('histN').textContent = hist.length || '';
+    const ul = $('hist'); ul.textContent = ''; $('histN').textContent = hist.length || ''; $('histAll').hidden = !hist.length;
     if (!hist.length) { const li = document.createElement('li'); li.className = 'empty'; li.textContent = t('Aquí aparecerán los mensajes que copies o envíes.'); ul.append(li); return; }
     for (const h of hist) {
       const li = document.createElement('li'), w = document.createElement('div'); w.className = 't';
@@ -1643,11 +1651,17 @@
       w.append(sp, sm);
       const b = document.createElement('button'); b.className = 'chip'; b.textContent = t('Usar');
       b.onclick = () => { setText(h.t); $('histRoot').classList.remove('open'); toast('Recuperado'); };
-      li.append(w, b); ul.append(li);
+      const x = document.createElement('button'); x.className = 'chip hdel'; x.setAttribute('aria-label', t('Borrar')); x.title = t('Borrar');
+      x.innerHTML = "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6\"/></svg>";
+      x.onclick = () => { hist = hist.filter((y) => y !== h); store.set('hist', hist); drawHist(); toast('Mensaje borrado'); };
+      li.append(w, b, x); ul.append(li);
     }
   }
   drawHist();
-  $('delHist').onclick = () => { hist = []; store.set('hist', hist); drawHist(); toast('Historial borrado'); };
+  $('delHist').onclick = $('histAll').onclick = () => {
+    if (!hist.length || !confirm(t('¿Borrar todos los mensajes del historial?'))) return;
+    hist = []; store.set('hist', hist); drawHist(); toast('Historial borrado');
+  };
 
   // ---------- copiar, compartir, WhatsApp, deshacer, borrar ----------
   async function copy(silent) {
@@ -1737,7 +1751,7 @@
   let worker = null, mediaRec = null, chunks = [], asrReady = false;
   function getWorker() {
     if (worker) return worker;
-    worker = new Worker('worker.js?v=2026.11.22-10', { type: 'module' });
+    worker = new Worker('worker.js?v=2026.11.22-11', { type: 'module' });
     worker.onmessage = ({ data }) => {
       if (model() === 'groq' && /progress|ready|status/.test(data.type)) { bar.style.display = 'none'; return; }
       if (data.type === 'progress') { bar.style.display = 'block'; barFill.style.width = data.pct + '%'; setStatus(data.kind === 'tr' ? t('Descargando el traductor (solo la primera vez): {0}% de {1} MB', data.pct, data.mb) : t('Descargando {0} (solo la primera vez): {1}% de {2} MB', NAMES[offlinePrep || model()], data.pct, data.mb)); }
