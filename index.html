@@ -134,7 +134,7 @@
   .magic .lead::before { display:none; }
 
   #status { text-align:center; color:var(--mut); font-size:12.5px; min-height:17px; line-height:17px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; transition:color .2s; }
-  #status.err { color:#ff8aa0; }
+  #status.err { color:#ff8aa0; cursor:pointer; }
 
   /* barra de mandos: copiar · micrófono · enviar */
   .dock { display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:6px; }
@@ -559,7 +559,7 @@
       <button class="btn primary" id="licGo">Activar</button>
     </div>
     <a class="wpriv" href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones</a>
-    <small class="wver">v2026.11.22-9</small>
+    <small class="wver">v2026.11.22-10</small>
   </div>
 </div>
 
@@ -730,16 +730,16 @@
       <p>⚠️ Con el vehículo en marcha no manipules el móvil: usa la voz o el botón del casco, o detente en un lugar seguro. Respeta siempre las normas de tráfico.</p>
       <p>Consejo: menú ⋮ de Chrome → «Añadir a pantalla de inicio».</p>
       <p><a href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones de uso</a></p>
-      <p style="opacity:.6">PerezApp v2026.11.22-9</p>
+      <p style="opacity:.6">PerezApp v2026.11.22-10</p>
     </div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
-<script src="i18n.js?v=2026.11.22-9"></script>
-<script src="licencia.js?v=2026.11.22-9"></script>
-<script src="format.js?v=2026.11.22-9"></script>
+<script src="i18n.js?v=2026.11.22-10"></script>
+<script src="licencia.js?v=2026.11.22-10"></script>
+<script src="format.js?v=2026.11.22-10"></script>
 <script>
 (() => {
   const $ = (id) => document.getElementById(id);
@@ -916,7 +916,8 @@
   // ---------- utilidades de interfaz ----------
   const driving = () => document.body.classList.contains('driving');
   const IDLE = ['Pulsa el micrófono y habla'];
-  function setStatus(msg, err) { const k = msg; msg = t(msg); status.textContent = msg; status.classList.toggle('err', !!err); $('dstatus').textContent = IDLE.includes(k) ? '' : msg; }
+  status.addEventListener('click', () => { if (status.scrollWidth > status.clientWidth + 1) toast(status.textContent, 9000); });
+  function setStatus(msg, err) { const k = msg; msg = t(msg); status.textContent = msg; status.title = msg; status.classList.toggle('err', !!err); $('dstatus').textContent = IDLE.includes(k) ? '' : msg; }
   function toast(msg, ms = 1700) { msg = I.t(msg); const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), ms); }
   function setMic(state) {
     $('chat').classList.toggle('busy', state === 'busy'); $('chat').classList.toggle('rec', state === 'rec');
@@ -1736,7 +1737,7 @@
   let worker = null, mediaRec = null, chunks = [], asrReady = false;
   function getWorker() {
     if (worker) return worker;
-    worker = new Worker('worker.js?v=2026.11.22-9', { type: 'module' });
+    worker = new Worker('worker.js?v=2026.11.22-10', { type: 'module' });
     worker.onmessage = ({ data }) => {
       if (model() === 'groq' && /progress|ready|status/.test(data.type)) { bar.style.display = 'none'; return; }
       if (data.type === 'progress') { bar.style.display = 'block'; barFill.style.width = data.pct + '%'; setStatus(data.kind === 'tr' ? t('Descargando el traductor (solo la primera vez): {0}% de {1} MB', data.pct, data.mb) : t('Descargando {0} (solo la primera vez): {1}% de {2} MB', NAMES[offlinePrep || model()], data.pct, data.mb)); }
@@ -1770,8 +1771,23 @@
   function preloadAsr() { if (engine === 'whisper' && model() !== 'groq' && model() !== 'pzcloud') { asrReady = false; getWorker().postMessage({ type: 'load', ...loadMsg() }); } }
 
   // transcripción con el servidor de PerezApp
+  // sin cobertura (túneles, carreteras): el audio se guarda y se transcribe solo al volver la señal
+  let pendingAudio = null;
+  function queueAudio(blob, mime, done) {
+    pendingAudio = { blob, mime };
+    done('📶 Sin cobertura: guardo lo que has dicho y lo escribo en cuanto vuelva la señal.');
+    if (driving()) speak(t('Sin cobertura. Lo escribo cuando vuelva la señal.'), ui());
+  }
+  function flushAudio() {
+    if (!pendingAudio || !navigator.onLine || busy || recording) return;
+    const { blob, mime } = pendingAudio; pendingAudio = null;
+    busy = true; setMic('busy'); toast('📶 Ha vuelto la cobertura: escribiendo tu mensaje…', 3000);
+    cloudTranscribe(blob, mime);
+  }
+  addEventListener('online', () => setTimeout(flushAudio, 1500));
+  setInterval(flushAudio, 15000);   // por si el móvil no avisa al recuperar la señal
   async function pzTranscribe(blob, mime, done) {
-    if (!navigator.onLine) { done('Sin conexión: la nube necesita internet. Usa un modelo del móvil.', true); return; }
+    if (!navigator.onLine) { queueAudio(blob, mime, done); return; }
     setStatus('Transcribiendo en la nube…');
     try {
       const fd = new FormData();
@@ -1780,7 +1796,7 @@
       if (vocab()) fd.append('prompt', vocab());
       const d = await apiFetch('/v1/transcribe', { method: 'POST', body: fd });
       done(); handleHeard((d.text || '').trim());
-    } catch (e) { done(t(e.message), true); }
+    } catch (e) { if (!navigator.onLine || /cobertura/.test(e.message)) queueAudio(blob, mime, done); else done(t(e.message), true); }
   }
   function handleHeard(heard) {
     detectFrom(heard);
@@ -1798,7 +1814,7 @@
     const done = (msg, err) => { busy = false; setMic('idle'); if (msg) setStatus(msg, err); };
     if (model() === 'pzcloud') return pzTranscribe(blob, mime, done);
     if (!key) { done('Falta la clave de Groq: ponla en Ajustes.', true); openSheet(true); return; }
-    if (!navigator.onLine) { done('Sin conexión: la nube necesita internet. Usa un modelo del móvil.', true); return; }
+    if (!navigator.onLine) { queueAudio(blob, mime, done); return; }
     setStatus('Transcribiendo en la nube…');
     try {
       const fd = new FormData();
@@ -1825,7 +1841,7 @@
       else if (cmd === 'send') doSend();
       else if (!cmd) setStatus('No se ha entendido nada. Prueba otra vez.', true);
       if (cmd && cmd !== 'send' && cmd !== 'stop') runCmd(cmd);
-    } catch (e) { done(t('No se pudo conectar con Groq: {0}', e.message), true); }
+    } catch (e) { if (!navigator.onLine || e instanceof TypeError) queueAudio(blob, mime, done); else done(t('No se pudo conectar con Groq: {0}', e.message), true); }
   }
 
   async function toWav(blob) {
