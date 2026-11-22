@@ -7,7 +7,7 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://iamikepm-ui.github.io https://*.workers.dev; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="referrer" content="no-referrer">
 <script>if (window.top !== window.self) { document.documentElement.innerHTML = ''; window.top.location = window.self.location.href; }</script>
-<title>PerezApp · Generador de licencias</title>
+<title>PerezApp · Generador Licencias</title>
 <meta name="theme-color" content="#0b141a">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
@@ -17,7 +17,8 @@
   * { box-sizing:border-box; }
   body { margin:0; background:radial-gradient(900px 500px at 10% -10%, rgba(37,211,102,.18), transparent 60%), var(--bg); color:var(--txt); font:15px/1.5 ui-rounded,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; min-height:100vh; }
   main { max-width:760px; margin:0 auto; padding:28px 18px 60px; }
-  h1 { font-size:26px; margin:0 0 4px; letter-spacing:-.02em; }
+  h1 { display:flex; align-items:center; gap:8px; font-size:clamp(15px, 4.6vw, 26px); margin:0 0 4px; letter-spacing:-.02em; white-space:nowrap; }
+  h1 img { width:clamp(32px, 9vw, 44px); height:clamp(32px, 9vw, 44px); border-radius:12px; flex:none; }
   h1 span { background:linear-gradient(90deg,var(--a1),var(--a2)); -webkit-background-clip:text; background-clip:text; color:transparent; }
   h2 { font-size:18px; margin:0 0 10px; }
   .sub { color:var(--mut); margin:0 0 22px; }
@@ -71,7 +72,7 @@
 </head>
 <body>
 <main>
-  <h1><img src="logo.svg" alt="" style="width:44px;height:44px;border-radius:12px;vertical-align:-12px;margin-right:6px"> <span>PerezApp</span> · Generador de licencias</h1>
+  <h1><img src="logo.svg" alt=""><div><span>PerezApp</span> · Generador Licencias</div></h1>
   <p class="sub">Solo para el titular. Tus claves se crean y se guardan cifradas en este dispositivo; nunca salen de aquí.</p>
 
   <!-- 1. Crear claves -->
