@@ -548,7 +548,7 @@
       <button class="btn primary" id="licGo">Activar</button>
     </div>
     <a class="wpriv" href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones</a>
-    <small class="wver">v2026.11.22-5</small>
+    <small class="wver">v2026.11.22-6</small>
   </div>
 </div>
 
@@ -708,16 +708,16 @@
       <p>⚠️ Con el vehículo en marcha no manipules el móvil: usa la voz o el botón del casco, o detente en un lugar seguro. Respeta siempre las normas de tráfico.</p>
       <p>Consejo: menú ⋮ de Chrome → «Añadir a pantalla de inicio».</p>
       <p><a href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones de uso</a></p>
-      <p style="opacity:.6">PerezApp v2026.11.22-5</p>
+      <p style="opacity:.6">PerezApp v2026.11.22-6</p>
     </div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
-<script src="i18n.js?v=2026.11.22-5"></script>
-<script src="licencia.js?v=2026.11.22-5"></script>
-<script src="format.js?v=2026.11.22-5"></script>
+<script src="i18n.js?v=2026.11.22-6"></script>
+<script src="licencia.js?v=2026.11.22-6"></script>
+<script src="format.js?v=2026.11.22-6"></script>
 <script>
 (() => {
   const $ = (id) => document.getElementById(id);
@@ -821,7 +821,8 @@
   };
   {
     const m = /^#groq=(gsk_[\w-]{20,})$/.exec(location.hash);
-    if (m) {
+    if (m && !confirm(t('¿Usar la clave de Groq de este enlace? Tus dictados irán a esa cuenta.'))) window.history.replaceState(null, '', location.pathname + location.search);
+    else if (m) {
       store.set('groqKey', m[1]); store.set('model', 'groq'); store.set('engine', 'whisper'); engine = 'whisper';
       $('optModel').value = 'groq';
       window.history.replaceState(null, '', location.pathname + location.search);   // la clave no se queda en la dirección
@@ -893,7 +894,7 @@
       m.setAttribute('aria-label', m.querySelector('.micLabel').textContent);
     }
   }
-  const waUrl = () => { const tel = store.get('favTel', '').replace(/[^\d]/g, ''); return 'https://wa.me/' + (tel ? (tel.length === 9 ? '34' + tel : tel) : '') + '?text=' + encodeURIComponent(text.value.trim()); };
+  const waUrl = () => { const tel = store.get('favTel', '').replace(/[^\d]/g, ''); return 'https://wa.me/' + (tel ? (/^[67]\d{8}$/.test(tel) ? '34' + tel : tel) : '') + '?text=' + encodeURIComponent(text.value.trim()); };
   function autosize() { text.style.height = 'auto'; text.style.height = (text.scrollHeight + 1) + 'px'; const sc = $('scroll'); sc.scrollTop = sc.scrollHeight; }
   addEventListener('resize', () => autosize());
   // hora del mensaje y ✓✓ (azules cuando se copia o se envía)
@@ -1233,6 +1234,7 @@
       if (act === 'fix' && (out.length > v.length * 1.6 + 20 || out.length < v.length * 0.5)) throw new Error('La IA cambió demasiado el texto');
       if (vocab()) out = DictadoFormat.fixVocab(out, vocab());
       if (on('optFormat') && act !== 'emoji') out = DictadoFormat.formatMessage(out, lang);
+      if (text.value.trim() !== v) { setStatus(auto ? 'Listo ✓' : 'El texto cambió mientras la IA trabajaba: vuelve a pulsar.'); return false; }
       if (out !== v) { setText(out); if (!auto) confetti(btn || $('copy')); }
       setStatus(auto ? 'Listo ✓' : t('✨ {0}. «Deshacer» para volver.', t(LABELS[act])));
       return true;
@@ -1503,6 +1505,8 @@
       window.history.replaceState(null, '', location.pathname + location.search);
       const r = await LIC.activate(m[1]);
       if (r.ok) { unlocked(r, true); return; }
+      const had = await LIC.check();
+      if (had.ok) { unlocked(had, false); toast(t(r.reason, ...(r.args || [])), 4000); return; }
       showLock(r); return;
     }
     const r = await LIC.check();
@@ -1616,6 +1620,7 @@
     rec.interimResults = true;
     rec.continuous = !isAndroid;   // en Android el modo continuo repite frases: una frase por sesión y se reinicia sola
     let done = 0; liveLast = ''; lastVoice = Date.now(); heardVoice = false;
+    rec.onstart = () => { done = 0; };   // al reiniciarse (Android: una frase por sesión) los resultados vuelven a empezar
     rec.onresult = (e) => {
       let inter = ''; lastVoice = Date.now(); heardVoice = true;
       for (let i = done; i < e.results.length; i++) {
@@ -1649,7 +1654,7 @@
   let worker = null, mediaRec = null, chunks = [], asrReady = false;
   function getWorker() {
     if (worker) return worker;
-    worker = new Worker('worker.js?v=2026.11.22-5', { type: 'module' });
+    worker = new Worker('worker.js?v=2026.11.22-6', { type: 'module' });
     worker.onmessage = ({ data }) => {
       if (model() === 'groq' && /progress|ready|status/.test(data.type)) { bar.style.display = 'none'; return; }
       if (data.type === 'progress') { bar.style.display = 'block'; barFill.style.width = data.pct + '%'; setStatus(data.kind === 'tr' ? t('Descargando el traductor (solo la primera vez): {0}% de {1} MB', data.pct, data.mb) : t('Descargando {0} (solo la primera vez): {1}% de {2} MB', NAMES[offlinePrep || model()], data.pct, data.mb)); }

@@ -6,6 +6,7 @@
 <meta name="robots" content="noindex, nofollow">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://iamikepm-ui.github.io https://*.workers.dev; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="referrer" content="no-referrer">
+<script>if (window.top !== window.self) { document.documentElement.innerHTML = ''; window.top.location = window.self.location.href; }</script>
 <title>PerezApp · Generador de licencias</title>
 <meta name="theme-color" content="#0b141a">
 <link rel="manifest" href="manifest.webmanifest">
@@ -210,6 +211,8 @@
     try {
       const v = JSON.parse(await $('importFile').files[0].text());
       if (v.app !== 'perezapp' || !v.ct || !v.pub) throw 0;
+      if (vault && vault.pub !== v.pub && !confirm('Esta copia tiene OTRAS claves distintas de las de este generador. Si la importas, se sustituyen (se guarda una copia de las actuales por si acaso). ¿Seguir?')) { $('importFile').value = ''; return; }
+      if (vault && vault.pub !== v.pub) save('pzgen.vault.anterior', vault);
       vault = v; save('pzgen.vault', v); show('unlock'); msg('unlockMsg', 'Copia importada. Escribe tu contraseña.', true);
     } catch { alert('Ese archivo no es una copia de seguridad del generador.'); }
   };
@@ -486,7 +489,7 @@
   }
   $('csv').onclick = () => {
     const rows = [['fecha', 'cliente', 'movil', 'tarifa', 'importe', 'desde', 'caduca', 'serie', 'clave'], ...load('pzgen.log', []).map((l) => [l.date, l.name, l.device, l.plan || '', l.paid ? String(l.paid).replace('.', ',') : '', l.from || '', l.until, l.serial, l.key])];
-    download('perezapp-licencias.csv', rows.map((r) => r.map((x) => '"' + String(x ?? '').replace(/"/g, '""') + '"').join(';')).join('\n'), 'text/csv');
+    download('perezapp-licencias.csv', rows.map((r) => r.map((x) => { let c = String(x ?? ''); if (/^[=+\-@\t\r]/.test(c)) c = "'" + c; return '"' + c.replace(/"/g, '""') + '"'; }).join(';')).join('\n'), 'text/csv');
   };
 
   if (!crypto.subtle) { document.querySelector('main').innerHTML = '<p class="warn">Abre este archivo con Chrome, Edge o Firefox actualizados.</p>'; return; }

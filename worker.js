@@ -29,7 +29,15 @@ function progressReporter(kind) {
   };
 }
 
+let loading = null, loadingKey = '';
 async function loadAsr(model, mobile, allowGpu = true) {
+  const k = model + '|' + mobile + '|' + allowGpu;
+  if (loading && loadingKey === k) return loading;          // ya se está cargando: esperar a esa carga
+  if (loading) { try { await loading; } catch {} }
+  loadingKey = k; loading = loadAsrNow(model, mobile, allowGpu);
+  try { return await loading; } finally { loading = null; }
+}
+async function loadAsrNow(model, mobile, allowGpu) {
   const { pipeline } = await lib();
   const gpu = allowGpu && await hasWebGPU();
   const key = model + (gpu ? ':gpu' : ':wasm');
@@ -37,6 +45,7 @@ async function loadAsr(model, mobile, allowGpu = true) {
   const cohere = /cohere/.test(model), big = /large|turbo/.test(model);
   const progress_callback = progressReporter('asr');
   const name = cohere ? 'Cohere Transcribe' : 'Whisper';
+  if (asr && asr.dispose) { try { await asr.dispose(); } catch {} }
   asr = null;
   if (gpu) {
     postMessage({ type: 'status', key: 'Cargando {0} (aceleración GPU)…', args: [name] });
