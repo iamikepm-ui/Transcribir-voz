@@ -595,6 +595,20 @@
   #status[data-st="ok"] { color:var(--a1); background:color-mix(in srgb,var(--a1) 13%,transparent); }
   #status.err { background:rgba(255,77,109,.12); }
   @media (prefers-reduced-motion: reduce) { .ldot, .wcard2 .sk i, #status::before { animation:none !important; } }
+
+  /* ===== destinatario y órdenes de voz ===== */
+  .tochip { display:inline-flex; align-items:center; gap:6px; align-self:flex-start; margin:0 0 4px; padding:3px 4px 3px 10px; border-radius:999px; background:rgba(0,0,0,.16); font-size:13.5px; font-weight:800; }
+  .tochip[hidden] { display:none; }
+  .tochip button { width:30px; height:30px; border:0; border-radius:50%; background:rgba(255,255,255,.12); color:inherit; font:inherit; font-size:13px; }
+  .hintrow { display:flex; flex-wrap:wrap; justify-content:center; gap:8px; }
+  .vclist { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px; }
+  .vclist li { padding:11px 14px; border-radius:16px; background:var(--glass); border:1px solid var(--line); }
+  .vclist b { display:block; font-size:15.5px; color:var(--txt); }
+  .vclist small { display:block; margin-top:3px; color:var(--mut); font-size:13px; }
+  #pickContacts { margin-top:4px; }
+  #pickContacts[hidden] { display:none; }
+  .hintrow { flex-wrap:nowrap; width:100%; }
+  .hintrow .hintwrite { flex:0 1 auto; min-width:0; padding:8px 10px; font-size:13.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:4px; }
 </style>
 </head>
 <body>
@@ -626,8 +640,9 @@
   <div class="chat" id="chat">
     <div class="scroll" id="scroll">
       <div class="dayrow"><div class="day" id="sub"></div><button class="langpill" id="langPill" aria-label="Idioma del mensaje" title="Idioma del mensaje"></button></div>
-      <div class="empty-hint" id="hint"><img src="logo.svg" alt=""><b>Pulsa el micro y habla</b><span>Tu mensaje aparecerá aquí, bien escrito y listo para enviar.</span><button class="hintwrite" id="hintWrite">✏️ <span>O escríbelo aquí</span></button></div>
+      <div class="empty-hint" id="hint"><img src="logo.svg" alt=""><b>Pulsa el micro y habla</b><span>Tu mensaje aparecerá aquí, bien escrito y listo para enviar.</span><div class="hintrow"><button class="hintwrite" id="hintWrite">✏️ <span>Escribir</span></button><button class="hintwrite" id="hintVoice">🗣️ <span>Qué puedo decir</span></button></div></div>
       <div class="bubble paper" id="bubble">
+        <div class="tochip" id="toChip" hidden>👤 <span id="toName"></span><button id="toClear" aria-label="Quitar destinatario" title="Quitar destinatario">✕</button></div>
         <textarea id="text" rows="1" placeholder="Escribe o dicta…"></textarea>
         <div id="interim"></div>
         <div class="bmeta">
@@ -717,7 +732,7 @@
       <button class="btn primary" id="licGo">Activar</button>
     </div>
     <a class="wpriv" href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones</a>
-    <small class="wver">v2026.11.22-22</small>
+    <small class="wver">v2026.11.22-24</small>
   </div>
 </div>
 
@@ -769,6 +784,26 @@
     <h2><span>🗣️ Idioma del mensaje</span> <button class="round" id="lgClose" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></h2>
     <p class="phhint">En qué idioma vas a hablar. «Automático» lo detecta solo.</p>
     <div class="langs" id="lgList"></div>
+  </div>
+</div>
+
+<!-- Órdenes de voz -->
+<div id="vcRoot">
+  <div class="scrim" id="vcScrim"></div>
+  <div class="sheet" role="dialog" aria-label="Qué puedo decir">
+    <div class="grab"></div>
+    <h2><span>🗣️ Qué puedo decir</span> <button class="round" id="vcClose" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></h2>
+    <p class="phhint">Pulsa el micro y dilo con naturalidad. Los nombres tienen que estar en Ajustes → Mis contactos.</p>
+    <ul class="vclist">
+      <li><b>«Dile a Marta que llego en diez minutos»</b><small>Escribe el mensaje para Marta y te pregunta si se lo envía</small></li>
+      <li><b>«Envíaselo a Marta» · «Envíalo por Telegram» · «Envíalo por SMS»</b><small>Enviar a un contacto o por otra app</small></li>
+      <li><b>«Corrígelo» · «Más formal» · «Más corto» · «Añade emojis»</b><small>Retocar el mensaje con la IA</small></li>
+      <li><b>«Tradúcelo al inglés»</b><small>Traducir a otro idioma</small></li>
+      <li><b>«Léelo» · «Deshacer» · «Borra todo» · «Cópialo»</b><small>Revisar sin mirar</small></li>
+      <li><b>«Mi ubicación»</b><small>Añadir un enlace con dónde estás</small></li>
+      <li><b>«Coma» · «Punto» · «Punto y aparte»</b><small>Puntuación (castellano y catalán)</small></li>
+      <li><b>«Sí» · «No» · «Sigue» · «A Jordi»</b><small>Respuestas cuando te pregunta «¿Lo envío?»</small></li>
+    </ul>
   </div>
 </div>
 
@@ -865,6 +900,7 @@
 
     <h3>Manos libres · coche y moto</h3>
     <div class="group">
+      <div class="opt"><div class="lbl">Qué puedo decir<small>Todas las órdenes de voz</small></div><button class="btn small primary" id="vcOpen" style="padding:12px 16px">🗣️ Ver</button></div>
       <label class="opt"><div class="lbl">Órdenes por voz<small>Di «enviar», «borrar todo», «deshacer», «léelo» o «para»</small></div><span class="switch"><input type="checkbox" id="optVoiceCmd"><span></span></span></label>
       <label class="opt"><div class="lbl">Preguntar «¿Lo envío?»<small>En modo conducción te lee el mensaje y respondes «sí», «no», «léelo» o «sigue»</small></div><span class="switch"><input type="checkbox" id="optAsk"><span></span></span></label>
       <label class="opt"><div class="lbl">Modo guantes<small>Botones extra grandes para usar con guantes (moto)</small></div><span class="switch"><input type="checkbox" id="optGloves"><span></span></span></label>
@@ -881,7 +917,7 @@
 
     <h3>WhatsApp</h3>
     <div class="group">
-      <div class="opt col"><div class="lbl">Mis contactos<small>Uno por línea: «Marta: 600 000 000». El primero es el del botón de WhatsApp. Por voz: «envíaselo a Marta».</small></div><textarea id="optFavs" rows="3" placeholder="Marta: 600 000 000&#10;Jordi: +34 611 111 111" autocomplete="off" spellcheck="false"></textarea></div>
+      <div class="opt col"><div class="lbl">Mis contactos<small>Uno por línea: «Marta: 600 000 000». El primero es el del botón de WhatsApp. Por voz: «envíaselo a Marta».</small></div><textarea id="optFavs" rows="3" placeholder="Marta: 600 000 000&#10;Jordi: +34 611 111 111" autocomplete="off" spellcheck="false"></textarea><button class="btn ghost small" id="pickContacts" hidden>📇 Añadir desde la agenda</button></div>
       <div class="opt col"><div class="lbl">Frases rápidas<small>Una por línea</small></div><textarea id="optPhrases" rows="5" autocomplete="off"></textarea></div>
     </div>
 
@@ -903,7 +939,7 @@
       <p>⚠️ Con el vehículo en marcha no manipules el móvil: usa la voz o el botón del casco, o detente en un lugar seguro. Respeta siempre las normas de tráfico.</p>
       <p>Consejo: menú ⋮ de Chrome → «Añadir a pantalla de inicio».</p>
       <p><a href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones de uso</a></p>
-      <p style="opacity:.6">PerezApp v2026.11.22-22</p>
+      <p style="opacity:.6">PerezApp v2026.11.22-24</p>
     </div>
   </div>
 </div>
@@ -911,9 +947,9 @@
 <div class="toast" id="toast"></div>
 <div class="snack" id="snack" role="status"><span id="snackMsg"></span><button id="snackBtn">Deshacer</button></div>
 
-<script src="i18n.js?v=2026.11.22-22"></script>
-<script src="licencia.js?v=2026.11.22-22"></script>
-<script src="format.js?v=2026.11.22-22"></script>
+<script src="i18n.js?v=2026.11.22-24"></script>
+<script src="licencia.js?v=2026.11.22-24"></script>
+<script src="format.js?v=2026.11.22-24"></script>
 <script>
 (() => {
   const $ = (id) => document.getElementById(id);
@@ -1003,12 +1039,24 @@
       .map((m) => ({ n: m[1].trim(), t: m[2].replace(/[^\d]/g, '') }));
   }
   function findFav(who) {
-    const w = plain(who).replace(/^(a|al|para|to|an|ao|à) /, ''); if (!w) return null;
+    const w = plain(who).replace(/^(?:(?:a|al|para|to|an|ao|à|per a) )?(?:(?:la|el|en|na|l|o|a|der|die) )?/, ''); if (!w) return null;
     const list = favs();
     return list.find((f) => plain(f.n) === w) || list.find((f) => plain(f.n).split(' ')[0] === w.split(' ')[0]) || null;
   }
   $('optFavs').value = store.get('favs', '');
   $('optFavs').oninput = () => { store.set('favs', $('optFavs').value); refresh(); };
+  $('toClear').onclick = () => { toWho = null; refresh(); };
+  // añadir contactos desde la agenda del móvil (Chrome en Android)
+  if ('contacts' in navigator && navigator.contacts && 'select' in navigator.contacts) $('pickContacts').hidden = false;
+  $('pickContacts').onclick = async () => {
+    try {
+      const cs = await navigator.contacts.select(['name', 'tel'], { multiple: true });
+      const lines = cs.filter((c) => c.tel && c.tel[0]).map((c) => ((c.name && c.name[0]) || 'Contacto').trim().split(/\s+/).slice(0, 2).join(' ') + ': ' + c.tel[0]);
+      if (!lines.length) return;
+      const cur = store.get('favs', '').trim(); store.set('favs', (cur ? cur + '\n' : '') + lines.join('\n'));
+      $('optFavs').value = store.get('favs', ''); refresh(); toast(t('✓ {0} contactos añadidos', lines.length));
+    } catch {}
+  };
 
   // ---------- modelo, con protección contra cierres por falta de memoria ----------
   const crashed = store.get('loading', null);
@@ -1133,7 +1181,10 @@
       m.setAttribute('aria-label', m.querySelector('.micLabel').textContent);
     }
   }
-  const waUrl = (to) => { const tel = to !== undefined ? to : ((favs()[0] || {}).t || ''); return 'https://wa.me/' + (tel ? (/^[67]\d{8}$/.test(tel) ? '34' + tel : tel) : '') + '?text=' + encodeURIComponent(text.value.trim()); };
+  var toWho = null;   // a quién va el mensaje («Dile a Marta que…»)
+  const intlTel = (tel) => '+' + (/^[67]\d{8}$/.test(tel) ? '34' + tel : tel);
+  function paintTo() { $('toChip').hidden = !toWho; if (toWho) $('toName').textContent = t('Para: {0}', toWho.n); }
+  const waUrl = (to) => { const tel = to !== undefined ? to : toWho ? toWho.t : ((favs()[0] || {}).t || ''); return 'https://wa.me/' + (tel ? (/^[67]\d{8}$/.test(tel) ? '34' + tel : tel) : '') + '?text=' + encodeURIComponent(text.value.trim()); };
   function autosize() { text.style.height = 'auto'; text.style.height = (text.scrollHeight + 1) + 'px'; const sc = $('scroll'); sc.scrollTop = sc.scrollHeight; }
   addEventListener('resize', () => autosize());
   // hora del mensaje y ✓✓ (azules cuando se copia o se envía)
@@ -1166,12 +1217,14 @@
     autosize();
     const n = (text.value.trim().match(/\S+/g) || []).length;
     $('count').textContent = t(n === 1 ? '{0} palabra' : '{0} palabras', n);
-    const f0 = favs()[0], fav = f0 ? f0.n : '', hasTel = !!f0;
+    if (!text.value.trim() && !recording && !busy && toWho) { toWho = null; }
+    paintTo();
+    const f0 = toWho || favs()[0], fav = f0 ? f0.n : '', hasTel = !!f0;
     $$('.waLabel').forEach(l => l.textContent = hasTel ? (fav ? t('A {0}', fav) : t('A favorito')) : 'WhatsApp');
     $('wa').href = $('wa2').href = waUrl();
     const enc = encodeURIComponent(text.value.trim());
     $('tg').href = 'https://t.me/share/url?url=' + enc;
-    $('sms').href = 'sms:?&body=' + enc;
+    $('sms').href = 'sms:' + (toWho ? intlTel(toWho.t) : '') + '?&body=' + enc;
     $('mail').href = 'mailto:?body=' + enc;
     $('google').href = 'https://www.google.com/search?q=' + enc;
     $('chat').classList.toggle('has-text', !!text.value.trim());
@@ -1452,7 +1505,24 @@
     if (!before.trim() || /[.?!…]\s*$/.test(before)) chunk = chunk.replace(/^([¿¡]?)([a-zà-ÿ])/, (m, a, b) => a + b.toUpperCase());
     setText(before + sep + chunk);
   }
-  function finishChunk(raw, fromAI) { let s = raw.trim(); if (!s) return; if (!fromAI && on('optPunct')) s = voiceCommands(s); append(tidy(s, !fromAI)); }
+  // «Dile a Marta que llego en diez minutos» → para Marta: «Llego en diez minutos.»
+  const NM = '([\\p{L}]+(?:\\s+[\\p{L}]+)?)', SEP = '\\s*(?:[:,.\\-]\\s*(?:que\\b|qu\'|che\\b|dass\\b|that\\b)?|que\\b|qu\'|che\\b|dass\\b|that\\b)\\s*(.+)$';
+  const TOWHO = [
+    '^(?:dile|d[ií]gale|escr[ií]bele|escribe|m[aá]ndale|manda|env[ií]ale|un mensaje|mensaje)\\s+(?:a|al|para)\\s+(?:la\\s+|el\\s+)?' + NM + SEP,
+    '^(?:digues-li|digues|diga-li|escriu-li|escriu|envia-li|missatge)\\s+(?:a|al|per a)\\s+(?:la\\s+|en\\s+|l\'|na\\s+)?' + NM + SEP,
+    '^(?:tell|text|message|write to|send a message to)\\s+([\\p{L}]+)\\s*(?:that\\b|[:,.\\-])?\\s*(.+)$',
+    '^(?:dis|écris|envoie un message)\\s+(?:à|a|au)\\s+' + NM + SEP,
+    '^(?:di|dì|scrivi|manda un messaggio)\\s+(?:a|al)\\s+' + NM + SEP,
+    '^(?:sag|sage|schreib|schreibe)\\s+' + NM + SEP,
+    '^(?:diz|diga|escreve|manda mensagem)\\s+(?:a|à|ao|para)\\s+(?:a\\s+|o\\s+)?' + NM + SEP,
+  ].map((x) => new RegExp(x, 'iu'));
+  function matchRecipient(str) {
+    const x = str.trim().replace(/^[¿¡"«]+/, '');
+    for (const re of TOWHO) { const m = re.exec(x); if (m) { const f = findFav(m[1]) || findFav(m[1].split(/\s+/)[0]); if (f && m[2].trim()) return { f, rest: m[2].trim() }; } }
+    return null;
+  }
+  function finishChunk(raw, fromAI) { let s = raw.trim(); if (!s) return;
+    if (!text.value.trim() && on('optVoiceCmd')) { const m = matchRecipient(s); if (m) { toWho = m.f; s = m.rest.charAt(0).toUpperCase() + m.rest.slice(1); paintTo(); } } if (!fromAI && on('optPunct')) s = voiceCommands(s); append(tidy(s, !fromAI)); }
   function endSentence() { const v = text.value.replace(/\s+$/, ''); if (v && !/[.?!…:;,]$/.test(v) && !/https?:\/\/\S+$/.test(v)) setText(v + '.'); }
   // ---------- IA de texto en Groq: corregir, retocar y traducir ----------
   const cloud = () => !!(API && PZ.enabled && licensed);
@@ -1593,6 +1663,7 @@
 
   async function afterDictation(lastChunk) {
     insertAt = null;
+    if (editPending) return;   // se ha pedido un retoque por voz: lo hace ese retoque
     if (vocab()) { const v = DictadoFormat.fixVocab(text.value, vocab()); if (v !== text.value) setText(v); }
     const fixed = on('optAiFix') && hasKey() && navigator.onLine && await magic('fix', $('magic').querySelector('[data-act=fix]'), true);
     if (!fixed && on('optFormat')) { const f = DictadoFormat.formatMessage(text.value, lang); if (f !== text.value.trim()) setText(f); }
@@ -1625,11 +1696,31 @@
     pt: /^(?:envia(?:-o|-lhe)?|manda(?:-o)?|enviar)\s+(?:a|para|ao|à)\s+(.+)$/,
   };
   const LOC = /^(mi ubicaci[oó]n|d[oó]nde estoy|(manda|env[ií]a|a[ñn]ade|pon) mi ubicaci[oó]n|la meva ubicaci[oó]|on s[oó]c|my location|send my location|where i am|ma position|ma localisation|la mia posizione|mein standort|meinen standort|a minha localiza[cç][aã]o|onde estou)$/;
-  let sendWho = '';
+  let sendWho = '', sendVia = '', editPending = false;
+  const VIA = /\s*(?:por|v[ií]a|per|by|par|über|pelo|pela|com)\s+(whatsapp|telegram|sms|mensaje de texto|missatge de text|text message|correo|correu|email|e-mail|mail|courriel)$/;
+  const CHAN = (w) => /whatsapp/.test(w) ? 'wa' : /telegram/.test(w) ? 'tg' : /sms|texto|text/.test(w) ? 'sms' : 'mail';
+  const SENDWORD = /^(env[ií]a(lo|selo|le)?|enviar(lo)?|m[aá]nda(lo|selo|le)?|envia(-ho)?|send( it)?|envoie(-le)?|invia(lo)?|schick(e)?( es)?|senden|envia(-o)?)$/;
+  const EDIT = {
+    es: { fix: /^(corr[ií]ge(lo)?|rev[ií]salo)$/, formal: /^((hazlo |ponlo )?m[aá]s formal)$/, warm: /^((hazlo |ponlo )?m[aá]s (cercano|cari[ñn]oso))$/, short: /^((hazlo )?m[aá]s corto|ac[oó]rtalo|res[uú]melo)$/, emoji: /^(a[ñn]ade emojis|ponle emojis|con emojis)$/, clearer: /^((hazlo )?m[aá]s claro)$/, copy: /^(c[oó]pialo|copiar)$/, newmsg: /^(nuevo mensaje|mensaje nuevo)$/ },
+    ca: { fix: /^(corregeix(-ho)?|revisa-ho)$/, formal: /^((fes-ho )?m[eé]s formal)$/, warm: /^((fes-ho )?m[eé]s proper)$/, short: /^((fes-ho )?m[eé]s curt|escurça-ho)$/, emoji: /^(afegeix emojis|amb emojis)$/, clearer: /^((fes-ho )?m[eé]s clar)$/, copy: /^(copia-ho)$/, newmsg: /^(missatge nou|nou missatge)$/ },
+    en: { fix: /^(fix it|correct it|proofread it)$/, formal: /^((make it )?more formal)$/, warm: /^((make it )?(warmer|friendlier|more friendly))$/, short: /^((make it )?shorter|shorten it)$/, emoji: /^(add emojis)$/, clearer: /^((make it )?clearer)$/, copy: /^(copy it)$/, newmsg: /^(new message)$/ },
+    fr: { fix: /^(corrige(-le)?)$/, formal: /^(plus formel)$/, warm: /^(plus chaleureux|plus amical)$/, short: /^(plus court|raccourcis(-le)?)$/, emoji: /^(ajoute des emojis)$/, clearer: /^(plus clair)$/, copy: /^(copie(-le)?)$/, newmsg: /^(nouveau message)$/ },
+    it: { fix: /^(correggi(lo)?)$/, formal: /^(più formale)$/, warm: /^(più affettuoso|più amichevole)$/, short: /^(più corto|accorcialo)$/, emoji: /^(aggiungi emoji)$/, clearer: /^(più chiaro)$/, copy: /^(copialo)$/, newmsg: /^(nuovo messaggio)$/ },
+    de: { fix: /^(korrigier(e|en)?( es)?)$/, formal: /^(förmlicher)$/, warm: /^(herzlicher|freundlicher)$/, short: /^(kürzer|kürz(e)? es)$/, emoji: /^(emojis hinzufügen|füge emojis hinzu)$/, clearer: /^(klarer)$/, copy: /^(kopier(e|en)? es)$/, newmsg: /^(neue nachricht)$/ },
+    pt: { fix: /^(corrige(-o)?)$/, formal: /^(mais formal)$/, warm: /^(mais carinhoso|mais próximo)$/, short: /^(mais curto|encurta(-o)?)$/, emoji: /^(adiciona emojis|põe emojis)$/, clearer: /^(mais claro)$/, copy: /^(copia-o)$/, newmsg: /^(nova mensagem)$/ },
+  };
+  const TRCMD = /^(?:trad[uú]ce(?:lo)?|tradueix(?:-ho)?|translate(?: it)?|traduis(?:-le)?|traduci(?:lo)?|übersetze?(?: es)?|traduz(?:-o)?)\s+(?:al|a|en|to|into|in|ins|para o|para|em|à)?\s*(?:l')?([\p{L}]+)$/u;
+  const LANGW = { en: /^(ingl[eé]s|english|angl[eè]s|anglais|inglese|englisch(e)?|ingl[eê]s)$/, ca: /^(catal[aá]n|catal[aà]|catalan|catalano|katalanisch(e)?|catal[aã]o)$/, es: /^(espa[ñn]ol|castellano|spanish|espanyol|castell[aà]|espagnol|spagnolo|spanisch(e)?|espanhol)$/,
+    fr: /^(franc[eé]s|franc[eè]s|french|fran[cç]ais|francese|franz[oö]sisch(e)?|franc[eê]s)$/, it: /^(italiano|itali[aà]|italian|italien|italienisch(e)?)$/, de: /^(alem[aá]n|alemany|german|allemand|tedesco|deutsch(e)?|alem[aã]o)$/, pt: /^(portugu[eé]s|portugu[eè]s|portuguese|portugais|portoghese|portugiesisch(e)?|portugu[eê]s)$/ };
   function matchSendTo(x) { const n = normCmd(x); for (const l of [lang, ui(), ...Object.keys(SENDTO)]) { const m = SENDTO[l] && SENDTO[l].exec(n); if (m) return m[1]; } return null; }
   const normCmd = (x) => x.toLowerCase().replace(/[¿¡.,!?;:"«»]/g, '').replace(/\s+/g, ' ').trim();
   function matchCmd(x) {
-    const to = matchSendTo(x); if (to && findFav(to)) { sendWho = to; return 'send'; }
+    let n0 = normCmd(x), via = '';
+    const vm = VIA.exec(n0); if (vm) { via = CHAN(vm[1]); n0 = n0.slice(0, vm.index).trim(); }
+    const to = matchSendTo(n0); if (to && findFav(to)) { sendWho = to; sendVia = via; return 'send'; }
+    if (via && SENDWORD.test(n0)) { sendVia = via; return 'send'; }
+    const tm = TRCMD.exec(n0); if (tm) { for (const [code, re] of Object.entries(LANGW)) if (re.test(tm[1])) return 'tr:' + code; }
+    for (const l of [lang, ui(), ...Object.keys(EDIT)]) for (const [k, re] of Object.entries(EDIT[l] || {})) if (re.test(n0)) return k;
     if (LOC.test(normCmd(x))) return 'loc';
     const n = normCmd(x), order = [lang, ui(), ...Object.keys(CMDS_VOICE)];
     for (const l of order) for (const [k, re] of Object.entries(CMDS_VOICE[l] || {})) if (re.test(n)) return k;
@@ -1638,9 +1729,9 @@
   // devuelve el texto sin la orden y la orden («… Un abrazo. Enviar.» → «… Un abrazo.» + enviar)
   function splitCommand(raw) {
     if (!on('optVoiceCmd') || !raw) return { text: raw, cmd: null };
-    const whole = matchCmd(raw); if (whole) return { text: '', cmd: whole };
+    const whole = matchCmd(raw); if (whole) { editPending = /^(fix|formal|warm|short|emoji|clearer|tr:)/.test(whole); return { text: '', cmd: whole }; }
     const m = /^([\s\S]*[.!?…])\s*([^.!?…]+)[.!?…]?\s*$/.exec(raw.trim());
-    if (m) { const c = matchCmd(m[2]); if (c) return { text: m[1], cmd: c }; }
+    if (m) { const c = matchCmd(m[2]); if (c) { editPending = /^(fix|formal|warm|short|emoji|clearer|tr:)/.test(c); return { text: m[1], cmd: c }; } }
     return { text: raw, cmd: null };
   }
   let pendingSend = false;
@@ -1653,15 +1744,22 @@
     if (cmd === 'undo') { $('undo').click(); say('undo'); return; }
     if (cmd === 'read') { speak(text.value.trim()); }
     if (cmd === 'loc') { addLocation(); }
+    if (['fix', 'formal', 'warm', 'short', 'emoji', 'clearer'].includes(cmd)) { editPending = false; const act = cmd === 'clearer' ? 'clear' : cmd; magic(act, $('magic').querySelector('[data-act=' + act + ']'), false); return; }
+    if (cmd === 'copy') { copy(false); return; }
+    if (cmd === 'newmsg') { if (text.value) { saveHist(); setText(''); } toWho = null; refresh(); say('clear'); return; }
+    if (cmd && cmd.startsWith('tr:')) { editPending = false; const tgt = cmd.slice(3), src = DictadoFormat.detectLang(text.value) || lang; if (text.value.trim() && tgt !== src) translateTo(src, tgt); return; }
   }
   function doSend() {
     pendingSend = false;
-    const f = sendWho ? findFav(sendWho) : null; sendWho = '';
+    const f = sendWho ? findFav(sendWho) : toWho, via = sendVia || 'wa'; sendWho = ''; sendVia = '';
     if (!text.value.trim()) { say('empty'); return; }
     saveHist(); markSent(); flyPlane();
-    if (f) { speak(t('Enviando a {0}', f.n), ui()); setStatus(t('Enviando a {0}', f.n)); } else { say('send'); setStatus('Abriendo WhatsApp'); }
-    const url = f ? waUrl(f.t) : waUrl();
-    setTimeout(() => { const w = window.open(url, '_blank'); if (!w) location.href = url; }, 700);
+    const app = { wa: 'WhatsApp', tg: 'Telegram', sms: 'SMS', mail: t('correo') }[via];
+    const msg = f && (via === 'wa' || via === 'sms') ? t('Enviando a {0}', f.n) + (via === 'sms' ? ' · SMS' : '') : t('Abriendo {0}', app);
+    speak(msg, ui()); setStatus(msg);
+    const enc = encodeURIComponent(text.value.trim());
+    const url = via === 'tg' ? 'https://t.me/share/url?url=' + enc : via === 'sms' ? 'sms:' + (f ? intlTel(f.t) : '') + '?&body=' + enc : via === 'mail' ? 'mailto:?body=' + enc : f ? waUrl(f.t) : waUrl();
+    setTimeout(() => { if (via === 'sms' || via === 'mail') { location.href = url; return; } const w = window.open(url, '_blank'); if (!w) location.href = url; }, 700);
   }
 
   // ---------- manos libres en conducción: te lee el mensaje y pregunta «¿Lo envío?» ----------
@@ -1682,14 +1780,14 @@
   let asking = null, askTries = 0;
   function endAsk() { $('drive').classList.remove('asking'); const a = asking; asking = null; if (a) { a.onend = null; try { a.abort(); } catch {} } }
   function askToSend(again) {
-    if (!driving() || !on('optAsk') || !SR || !text.value.trim()) return false;
+    if (!(driving() || toWho) || !on('optAsk') || !SR || !text.value.trim()) return false;
     if (!again) askTries = 0;
     $('drive').classList.add('asking'); setStatus('🗣️ ¿Lo envío? Di «sí», «no», «léelo» o «sigue».');
-    speakSeq([[text.value.trim(), lang], [t('¿Lo envío?'), ui()]], listenAnswer);
+    speakSeq([[text.value.trim(), lang], [toWho ? t('¿Se lo envío a {0}?', toWho.n) : t('¿Lo envío?'), ui()]], listenAnswer);
     return true;
   }
   function listenAnswer() {
-    if (!driving() || recording || !$('drive').classList.contains('asking')) return;
+    if (!(driving() || toWho) || recording || !$('drive').classList.contains('asking')) return;
     const r = new SR(); asking = r;
     r.lang = (LANGS[ui()] || LANGS[lang]).sr; r.interimResults = false; r.continuous = false; r.maxAlternatives = 4;
     let got = false;
@@ -1892,6 +1990,8 @@
     $('phRoot').classList.add('open');
   };
   $('phClose').onclick = $('phScrim').onclick = () => $('phRoot').classList.remove('open');
+  $('hintVoice').onclick = $('vcOpen').onclick = () => { $('sheetRoot').classList.remove('open'); $('vcRoot').classList.add('open'); };
+  $('vcClose').onclick = $('vcScrim').onclick = () => $('vcRoot').classList.remove('open');
 
   // ---------- mi ubicación (enlace de Google Maps) ----------
   function addLocation() {
@@ -2055,7 +2155,7 @@
   let worker = null, mediaRec = null, chunks = [], asrReady = false;
   function getWorker() {
     if (worker) return worker;
-    worker = new Worker('worker.js?v=2026.11.22-22', { type: 'module' });
+    worker = new Worker('worker.js?v=2026.11.22-24', { type: 'module' });
     worker.onmessage = ({ data }) => {
       if (model() === 'groq' && /progress|ready|status/.test(data.type)) { bar.style.display = 'none'; return; }
       if (data.type === 'progress') { bar.style.display = 'block'; barFill.style.width = data.pct + '%'; setStatus(data.kind === 'tr' ? t('Descargando el traductor (solo la primera vez): {0}% de {1} MB', data.pct, data.mb) : t('Descargando {0} (solo la primera vez): {1}% de {2} MB', NAMES[offlinePrep || model()], data.pct, data.mb)); }
