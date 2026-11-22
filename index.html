@@ -435,6 +435,15 @@
   .installcard .btn { flex:none; min-height:50px; padding:12px 16px; color:#04210f; }
   #installW[hidden] { display:none; }
   #installW { margin-top:8px; }
+
+  /* ===== frases rápidas, contactos ===== */
+  .opt.col { flex-direction:column; align-items:stretch; gap:8px; }
+  .opt.col textarea { width:100%; min-height:84px; resize:vertical; background:var(--glass); border:1px solid var(--line); border-radius:12px; padding:10px 12px; color:var(--txt); font:inherit; font-size:15px; line-height:1.4; }
+  .phhint { margin:0 0 10px; color:var(--mut); font-size:13.5px; }
+  .phlist { display:flex; flex-direction:column; gap:8px; }
+  .phlist button { text-align:left; min-height:54px; padding:12px 16px; border-radius:16px; border:1px solid var(--line); background:var(--glass); color:var(--txt); font:inherit; font-size:16.5px; font-weight:600; }
+  .gloves .phlist button { min-height:62px; font-size:18px; }
+  .phlist button:active { transform:scale(.98); background:color-mix(in srgb,var(--a1) 18%,transparent); }
 </style>
 </head>
 <body>
@@ -485,6 +494,8 @@
 
   <div class="magic" id="magic" role="group" aria-label="Retocar con IA">
     <button class="lead" id="magicSetup">✨ Activa la IA gratis</button>
+    <button id="phBtn">⚡ Frases</button>
+    <button id="locBtn">📍 Ubicación</button>
     <button data-act="fix">✨ Corregir</button>
     <button id="translate">🌐 <span id="trLabel">Traducir</span></button>
     <button data-act="formal">👔 Formal</button>
@@ -548,7 +559,7 @@
       <button class="btn primary" id="licGo">Activar</button>
     </div>
     <a class="wpriv" href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones</a>
-    <small class="wver">v2026.11.22-6</small>
+    <small class="wver">v2026.11.22-7</small>
   </div>
 </div>
 
@@ -578,6 +589,17 @@
     <div class="grab"></div>
     <h2>🌐 <span>Traducir a…</span> <button class="round" id="trClose" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></h2>
     <div class="langs" id="trList"></div>
+  </div>
+</div>
+
+<!-- Frases rápidas -->
+<div id="phRoot">
+  <div class="scrim" id="phScrim"></div>
+  <div class="sheet" role="dialog" aria-label="Frases rápidas">
+    <div class="grab"></div>
+    <h2><span>⚡ Frases rápidas</span> <button class="round" id="phClose" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></h2>
+    <p class="phhint">Toca una para añadirla al mensaje. Puedes cambiarlas en Ajustes.</p>
+    <div class="phlist" id="phList"></div>
   </div>
 </div>
 
@@ -686,8 +708,8 @@
 
     <h3>WhatsApp</h3>
     <div class="group">
-      <div class="opt"><div class="lbl">Contacto favorito<small>Nombre (opcional)</small></div><input type="text" id="optFavName" placeholder="Marta" autocomplete="off"></div>
-      <div class="opt"><div class="lbl">Teléfono<small>Vacío = elegir contacto cada vez</small></div><input type="tel" id="optFavTel" placeholder="+34 600 000 000" autocomplete="off"></div>
+      <div class="opt col"><div class="lbl">Mis contactos<small>Uno por línea: «Marta: 600 000 000». El primero es el del botón de WhatsApp. Por voz: «envíaselo a Marta».</small></div><textarea id="optFavs" rows="3" placeholder="Marta: 600 000 000&#10;Jordi: +34 611 111 111" autocomplete="off" spellcheck="false"></textarea></div>
+      <div class="opt col"><div class="lbl">Frases rápidas<small>Una por línea</small></div><textarea id="optPhrases" rows="5" autocomplete="off"></textarea></div>
     </div>
 
     <h3>Datos</h3>
@@ -708,16 +730,16 @@
       <p>⚠️ Con el vehículo en marcha no manipules el móvil: usa la voz o el botón del casco, o detente en un lugar seguro. Respeta siempre las normas de tráfico.</p>
       <p>Consejo: menú ⋮ de Chrome → «Añadir a pantalla de inicio».</p>
       <p><a href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones de uso</a></p>
-      <p style="opacity:.6">PerezApp v2026.11.22-6</p>
+      <p style="opacity:.6">PerezApp v2026.11.22-7</p>
     </div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
-<script src="i18n.js?v=2026.11.22-6"></script>
-<script src="licencia.js?v=2026.11.22-6"></script>
-<script src="format.js?v=2026.11.22-6"></script>
+<script src="i18n.js?v=2026.11.22-7"></script>
+<script src="licencia.js?v=2026.11.22-7"></script>
+<script src="format.js?v=2026.11.22-7"></script>
 <script>
 (() => {
   const $ = (id) => document.getElementById(id);
@@ -797,9 +819,20 @@
   applyTheme(); applyColor(); applyFont();
 
   // contacto favorito
-  $('optFavName').value = store.get('favName', ''); $('optFavTel').value = store.get('favTel', '');
-  $('optFavName').oninput = () => { store.set('favName', $('optFavName').value.trim()); refresh(); };
-  $('optFavTel').oninput = () => { store.set('favTel', $('optFavTel').value.trim()); refresh(); };
+  // contactos: «Nombre: teléfono», uno por línea (antes había uno solo: se pasa a la lista)
+  if (!store.get('favs', '') && store.get('favTel', '')) store.set('favs', (store.get('favName', '') || 'Favorito') + ': ' + store.get('favTel', ''));
+  const plain = (x) => String(x || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9ñ ]/g, ' ').replace(/\s+/g, ' ').trim();
+  function favs() {
+    return store.get('favs', '').split('\n').map((l) => /^\s*([^:=]+?)\s*[:=]\s*(\+?[\d\s().-]{6,})\s*$/.exec(l)).filter(Boolean)
+      .map((m) => ({ n: m[1].trim(), t: m[2].replace(/[^\d]/g, '') }));
+  }
+  function findFav(who) {
+    const w = plain(who).replace(/^(a|al|para|to|an|ao|à) /, ''); if (!w) return null;
+    const list = favs();
+    return list.find((f) => plain(f.n) === w) || list.find((f) => plain(f.n).split(' ')[0] === w.split(' ')[0]) || null;
+  }
+  $('optFavs').value = store.get('favs', '');
+  $('optFavs').oninput = () => { store.set('favs', $('optFavs').value); refresh(); };
 
   // ---------- modelo, con protección contra cierres por falta de memoria ----------
   const crashed = store.get('loading', null);
@@ -894,7 +927,7 @@
       m.setAttribute('aria-label', m.querySelector('.micLabel').textContent);
     }
   }
-  const waUrl = () => { const tel = store.get('favTel', '').replace(/[^\d]/g, ''); return 'https://wa.me/' + (tel ? (/^[67]\d{8}$/.test(tel) ? '34' + tel : tel) : '') + '?text=' + encodeURIComponent(text.value.trim()); };
+  const waUrl = (to) => { const tel = to !== undefined ? to : ((favs()[0] || {}).t || ''); return 'https://wa.me/' + (tel ? (/^[67]\d{8}$/.test(tel) ? '34' + tel : tel) : '') + '?text=' + encodeURIComponent(text.value.trim()); };
   function autosize() { text.style.height = 'auto'; text.style.height = (text.scrollHeight + 1) + 'px'; const sc = $('scroll'); sc.scrollTop = sc.scrollHeight; }
   addEventListener('resize', () => autosize());
   // hora del mensaje y ✓✓ (azules cuando se copia o se envía)
@@ -904,7 +937,7 @@
     autosize();
     const n = (text.value.trim().match(/\S+/g) || []).length;
     $('count').textContent = t(n === 1 ? '{0} palabra' : '{0} palabras', n);
-    const fav = store.get('favName', ''), hasTel = !!store.get('favTel', '');
+    const f0 = favs()[0], fav = f0 ? f0.n : '', hasTel = !!f0;
     $$('.waLabel').forEach(l => l.textContent = hasTel ? (fav ? t('A {0}', fav) : t('A favorito')) : 'WhatsApp');
     $('wa').href = $('wa2').href = waUrl();
     const enc = encodeURIComponent(text.value.trim());
@@ -1162,7 +1195,7 @@
     setText(before + sep + chunk);
   }
   function finishChunk(raw, fromAI) { let s = raw.trim(); if (!s) return; if (!fromAI && on('optPunct')) s = voiceCommands(s); append(tidy(s, !fromAI)); }
-  function endSentence() { const v = text.value.replace(/\s+$/, ''); if (v && !/[.?!…:;,]$/.test(v)) setText(v + '.'); }
+  function endSentence() { const v = text.value.replace(/\s+$/, ''); if (v && !/[.?!…:;,]$/.test(v) && !/https?:\/\/\S+$/.test(v)) setText(v + '.'); }
   // ---------- IA de texto en Groq: corregir, retocar y traducir ----------
   const cloud = () => !!(API && PZ.enabled && licensed);
   const hasKey = () => cloud() || !!store.get('groqKey', '');
@@ -1270,8 +1303,22 @@
     de: { send: /^(senden|schicken|abschicken|nachricht senden)$/, clear: /^(alles löschen|von vorne)$/, undo: /^(rückgängig|lösch das)$/, read: /^(vorlesen|lies vor|lies es vor)$/, stop: /^(stopp|stop|fertig|ende)$/ },
     pt: { send: /^(enviar|envia|manda|envia a mensagem)$/, clear: /^(apagar tudo|apaga tudo|começar de novo)$/, undo: /^(desfazer|desfaz|apaga isso)$/, read: /^(ler|lê|lê isso)$/, stop: /^(parar|pára|pronto|terminar)$/ },
   };
+  const SENDTO = {
+    es: /^(?:env[ií]a(?:lo|selo|le)?|manda(?:lo|selo|le)?|enviar(?:lo|selo)?|env[ií]amelo)\s+(?:a|al|para)\s+(.+)$/,
+    ca: /^(?:envia(?:-ho|-li|'l)?|enviar|envia-li-ho)\s+(?:a|al|per a)\s+(.+)$/,
+    en: /^send(?: it| this| the message)?\s+to\s+(.+)$/,
+    fr: /^(?:envoie|envoyer)(?:-le|-lui|-la)?\s+(?:à|a|au)\s+(.+)$/,
+    it: /^(?:invia(?:lo|glielo)?|manda(?:lo|glielo)?)\s+(?:a|al)\s+(.+)$/,
+    de: /^(?:sende|schick|schicke|senden)(?: es| sie)?\s+an\s+(.+)$/,
+    pt: /^(?:envia(?:-o|-lhe)?|manda(?:-o)?|enviar)\s+(?:a|para|ao|à)\s+(.+)$/,
+  };
+  const LOC = /^(mi ubicaci[oó]n|d[oó]nde estoy|(manda|env[ií]a|a[ñn]ade|pon) mi ubicaci[oó]n|la meva ubicaci[oó]|on s[oó]c|my location|send my location|where i am|ma position|ma localisation|la mia posizione|mein standort|meinen standort|a minha localiza[cç][aã]o|onde estou)$/;
+  let sendWho = '';
+  function matchSendTo(x) { const n = normCmd(x); for (const l of [lang, ui(), ...Object.keys(SENDTO)]) { const m = SENDTO[l] && SENDTO[l].exec(n); if (m) return m[1]; } return null; }
   const normCmd = (x) => x.toLowerCase().replace(/[¿¡.,!?;:"«»]/g, '').replace(/\s+/g, ' ').trim();
   function matchCmd(x) {
+    const to = matchSendTo(x); if (to && findFav(to)) { sendWho = to; return 'send'; }
+    if (LOC.test(normCmd(x))) return 'loc';
     const n = normCmd(x), order = [lang, ui(), ...Object.keys(CMDS_VOICE)];
     for (const l of order) for (const [k, re] of Object.entries(CMDS_VOICE[l] || {})) if (re.test(n)) return k;
     return null;
@@ -1293,12 +1340,15 @@
     if (cmd === 'clear') { if (text.value) { saveHist(); setText(''); } say('clear'); toast('🗑️ ' + t('Borrado')); return; }
     if (cmd === 'undo') { $('undo').click(); say('undo'); return; }
     if (cmd === 'read') { speak(text.value.trim()); }
+    if (cmd === 'loc') { addLocation(); }
   }
   function doSend() {
     pendingSend = false;
+    const f = sendWho ? findFav(sendWho) : null; sendWho = '';
     if (!text.value.trim()) { say('empty'); return; }
-    saveHist(); markSent(); say('send'); setStatus('Abriendo WhatsApp');
-    const url = waUrl();
+    saveHist(); markSent();
+    if (f) { speak(t('Enviando a {0}', f.n), ui()); setStatus(t('Enviando a {0}', f.n)); } else { say('send'); setStatus('Abriendo WhatsApp'); }
+    const url = f ? waUrl(f.t) : waUrl();
     setTimeout(() => { const w = window.open(url, '_blank'); if (!w) location.href = url; }, 700);
   }
 
@@ -1338,6 +1388,11 @@
     try { r.start(); if (navigator.vibrate) navigator.vibrate(30); } catch { $('drive').classList.remove('asking'); }
   }
   function handleAnswer(alts) {
+    for (const a of alts) {
+      const m = /^(?:s[ií]|yes|oui|ja|sim)?\s*(?:a|al|para|to|à|au|an|ao)\s+(.+)$/.exec(normCmd(a));
+      const who = (m && findFav(m[1]) && m[1]) || (matchSendTo(a) && findFav(matchSendTo(a)) && matchSendTo(a));
+      if (who) { endAsk(); sendWho = who; doSend(); return; }
+    }
     let k = null; for (const a of alts) { k = matchAsk(a); if (k) break; }
     endAsk();
     if (k === 'yes' || k === 'send') { doSend(); return; }
@@ -1513,6 +1568,31 @@
     if (r.ok) unlocked(r, false); else showLock(r);
   }
 
+  // ---------- frases rápidas ----------
+  const PHRASES = {"es": ["Estoy conduciendo, te llamo en cuanto pueda.", "Ya voy de camino.", "Llego en 10 minutos.", "Hay mucho tráfico, llegaré un poco tarde.", "Ya he llegado.", "Vale, perfecto.", "Te llamo luego."], "ca": ["Estic conduint, et truco tan aviat com pugui.", "Ja vinc de camí.", "Arribo d'aquí a 10 minuts.", "Hi ha molt de trànsit, arribaré una mica tard.", "Ja he arribat.", "D'acord, perfecte.", "Et truco després."], "en": ["I'm driving, I'll call you as soon as I can.", "I'm on my way.", "I'll be there in 10 minutes.", "Traffic is heavy, I'll be a bit late.", "I've arrived.", "OK, perfect.", "I'll call you later."], "fr": ["Je conduis, je te rappelle dès que possible.", "Je suis en route.", "J'arrive dans 10 minutes.", "Il y a beaucoup de circulation, je serai un peu en retard.", "Je suis arrivé.", "D'accord, parfait.", "Je te rappelle plus tard."], "it": ["Sto guidando, ti chiamo appena posso.", "Sono per strada.", "Arrivo tra 10 minuti.", "C'è molto traffico, arriverò un po' in ritardo.", "Sono arrivato.", "Va bene, perfetto.", "Ti chiamo dopo."], "de": ["Ich fahre gerade, ich rufe dich an, sobald ich kann.", "Ich bin unterwegs.", "Ich bin in 10 Minuten da.", "Viel Verkehr, ich komme etwas später.", "Ich bin angekommen.", "Okay, perfekt.", "Ich rufe dich später an."], "pt": ["Estou a conduzir, ligo-te assim que puder.", "Já vou a caminho.", "Chego daqui a 10 minutos.", "Há muito trânsito, vou chegar um pouco atrasado.", "Já cheguei.", "Está bem, perfeito.", "Ligo-te depois."]};
+  const phrases = () => { const v = store.get('phrases', '').split('\n').map((x) => x.trim()).filter(Boolean); return v.length ? v : (PHRASES[ui()] || PHRASES.es); };
+  $('optPhrases').value = phrases().join('\n');
+  $('optPhrases').oninput = () => store.set('phrases', $('optPhrases').value);
+  function addLine(line) { const v = text.value.replace(/\s+$/, ''); setText(v ? v + '\n' + line : line); stamp(); }
+  $('phBtn').onclick = () => {
+    const list = $('phList'); list.textContent = '';
+    for (const f of phrases()) { const b = document.createElement('button'); b.textContent = f; b.onclick = () => { $('phRoot').classList.remove('open'); addLine(f); if (on('optAutoCopy')) copy(true); }; list.append(b); }
+    $('phRoot').classList.add('open');
+  };
+  $('phClose').onclick = $('phScrim').onclick = () => $('phRoot').classList.remove('open');
+
+  // ---------- mi ubicación (enlace de Google Maps) ----------
+  function addLocation() {
+    if (!navigator.geolocation) { toast('Este móvil no da la ubicación'); return; }
+    setStatus('📍 Buscando tu ubicación…');
+    navigator.geolocation.getCurrentPosition((pos) => {
+      const { latitude: a, longitude: o } = pos.coords;
+      addLine('📍 ' + t('Estoy aquí:') + ' https://maps.google.com/?q=' + a.toFixed(5) + ',' + o.toFixed(5));
+      setStatus('📍 Ubicación añadida');
+    }, () => setStatus('No se pudo obtener la ubicación: permite el acceso en el navegador.', true), { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 });
+  }
+  $('locBtn').onclick = addLocation;
+
   // ---------- instalar la app (icono en la pantalla de inicio) ----------
   let installEvt = null;
   const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
@@ -1654,7 +1734,7 @@
   let worker = null, mediaRec = null, chunks = [], asrReady = false;
   function getWorker() {
     if (worker) return worker;
-    worker = new Worker('worker.js?v=2026.11.22-6', { type: 'module' });
+    worker = new Worker('worker.js?v=2026.11.22-7', { type: 'module' });
     worker.onmessage = ({ data }) => {
       if (model() === 'groq' && /progress|ready|status/.test(data.type)) { bar.style.display = 'none'; return; }
       if (data.type === 'progress') { bar.style.display = 'block'; barFill.style.width = data.pct + '%'; setStatus(data.kind === 'tr' ? t('Descargando el traductor (solo la primera vez): {0}% de {1} MB', data.pct, data.mb) : t('Descargando {0} (solo la primera vez): {1}% de {2} MB', NAMES[offlinePrep || model()], data.pct, data.mb)); }
