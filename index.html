@@ -513,6 +513,15 @@
   .magic.carousel button { transition:opacity .2s, filter .2s; will-change:transform; }
   .magic.carousel button.mid { box-shadow:0 8px 22px color-mix(in srgb,var(--a1) 38%,transparent); }
   .magic.carousel button.mid::before { opacity:1; }
+
+  /* idioma del mensaje */
+  .dayrow { align-self:center; display:flex; align-items:center; gap:8px; max-width:100%; }
+  .dayrow .day { align-self:auto; }
+  .langpill { flex:none; display:flex; align-items:center; gap:5px; min-height:34px; padding:5px 12px; border-radius:999px; border:1px solid color-mix(in srgb,var(--a1) 55%,transparent); background:color-mix(in srgb,var(--a1) 16%,var(--panel)); color:var(--txt); font:inherit; font-size:12.5px; font-weight:800; backdrop-filter:blur(10px); box-shadow:0 1px 2px rgba(0,0,0,.15); cursor:pointer; }
+  .gloves .langpill { min-height:40px; font-size:13.5px; padding:6px 14px; }
+  .langpill:active { transform:scale(.95); }
+  @media (max-width:380px) { .dayrow .day { font-size:11px; padding:5px 9px; } }
+  #lgList button.on { border-color:var(--a1); box-shadow:inset 0 0 0 2px var(--a1); }
 </style>
 </head>
 <body>
@@ -543,7 +552,7 @@
 
   <div class="chat" id="chat">
     <div class="scroll" id="scroll">
-      <div class="day" id="sub"></div>
+      <div class="dayrow"><div class="day" id="sub"></div><button class="langpill" id="langPill" aria-label="Idioma del mensaje" title="Idioma del mensaje"></button></div>
       <div class="empty-hint"><img src="logo.svg" alt=""><b>Pulsa el micro y habla</b><span>Tu mensaje aparecerá aquí, bien escrito y listo para enviar.</span></div>
       <div class="bubble paper" id="bubble">
         <textarea id="text" rows="1" placeholder="Escribe o dicta…"></textarea>
@@ -629,7 +638,7 @@
       <button class="btn primary" id="licGo">Activar</button>
     </div>
     <a class="wpriv" href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones</a>
-    <small class="wver">v2026.11.22-16</small>
+    <small class="wver">v2026.11.22-17</small>
   </div>
 </div>
 
@@ -670,6 +679,17 @@
     <h2><span>⚡ Frases rápidas</span> <button class="round" id="phClose" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></h2>
     <p class="phhint">Toca una para añadirla al mensaje. Puedes cambiarlas en Ajustes.</p>
     <div class="phlist" id="phList"></div>
+  </div>
+</div>
+
+<!-- Idioma del mensaje -->
+<div id="lgRoot">
+  <div class="scrim" id="lgScrim"></div>
+  <div class="sheet" role="dialog" aria-label="Idioma del mensaje">
+    <div class="grab"></div>
+    <h2><span>🗣️ Idioma del mensaje</span> <button class="round" id="lgClose" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></h2>
+    <p class="phhint">En qué idioma vas a hablar. «Automático» lo detecta solo.</p>
+    <div class="langs" id="lgList"></div>
   </div>
 </div>
 
@@ -803,16 +823,16 @@
       <p>⚠️ Con el vehículo en marcha no manipules el móvil: usa la voz o el botón del casco, o detente en un lugar seguro. Respeta siempre las normas de tráfico.</p>
       <p>Consejo: menú ⋮ de Chrome → «Añadir a pantalla de inicio».</p>
       <p><a href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones de uso</a></p>
-      <p style="opacity:.6">PerezApp v2026.11.22-16</p>
+      <p style="opacity:.6">PerezApp v2026.11.22-17</p>
     </div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
-<script src="i18n.js?v=2026.11.22-16"></script>
-<script src="licencia.js?v=2026.11.22-16"></script>
-<script src="format.js?v=2026.11.22-16"></script>
+<script src="i18n.js?v=2026.11.22-17"></script>
+<script src="licencia.js?v=2026.11.22-17"></script>
+<script src="format.js?v=2026.11.22-17"></script>
 <script>
 (() => {
   const $ = (id) => document.getElementById(id);
@@ -975,9 +995,30 @@
       if (l && c) c.setAttribute('aria-label', ((l.firstChild && l.firstChild.textContent) || l.textContent).trim());
     }
   }
-  function applyUi() { I.translateDom(); nameControls(); paintDay(); refresh(); drawHist(); setEngine(engine); segSet($('modeSeg'), engine); }
+  function applyUi() { I.translateDom(); nameControls(); paintDay(); paintLangPill(); refresh(); drawHist(); setEngine(engine); segSet($('modeSeg'), engine); }
   $('optUiLang').onchange = () => { store.set('uiLang', $('optUiLang').value); I.setUi(I.pickUi($('optUiLang').value)); applyUi(); };
-  $('optDictLang').onchange = () => { store.set('dictLang', $('optDictLang').value); setLang(dictPref() !== 'auto' ? dictPref() : ui()); preloadAsr(); };
+  $('optDictLang').onchange = () => setDictLang($('optDictLang').value);
+  // ---------- idioma del mensaje (botón del chat) ----------
+  const langName = (k) => k === 'auto' ? t('Automático') : k === 'es' ? 'Castellano' : LANGS[k].n;
+  function paintLangPill() { const k = dictPref(); $('langPill').textContent = (k === 'auto' ? '🌐 ' : '🗣️ ') + langName(k); }
+  function setDictLang(k) {
+    store.set('dictLang', k); $('optDictLang').value = k;
+    setLang(k !== 'auto' ? k : ui()); preloadAsr(); paintLangPill();
+  }
+  $('langPill').onclick = () => {
+    const list = $('lgList'); list.textContent = '';
+    for (const k of ['auto', 'es', 'ca', 'en', 'fr', 'it', 'de', 'pt']) {
+      const b = document.createElement('button'); b.innerHTML = '<b></b><span></span>';
+      b.querySelector('b').textContent = k === 'auto' ? '🌐' : k.toUpperCase(); b.querySelector('span').textContent = langName(k);
+      b.classList.toggle('on', dictPref() === k);
+      b.onclick = () => { $('lgRoot').classList.remove('open'); setDictLang(k); toast(t('Idioma del mensaje: {0}', langName(k))); };
+      list.append(b);
+    }
+    $('lgRoot').classList.add('open');
+  };
+  $('lgClose').onclick = $('lgScrim').onclick = () => $('lgRoot').classList.remove('open');
+  paintLangPill();
+
   function setEngine(e) {
     if (recording || busy) return;
     engine = e; store.set('engine', e); segSet($('modeSeg'), e); if ($('optEngine')) $('optEngine').value = e;
@@ -1872,7 +1913,7 @@
   let worker = null, mediaRec = null, chunks = [], asrReady = false;
   function getWorker() {
     if (worker) return worker;
-    worker = new Worker('worker.js?v=2026.11.22-16', { type: 'module' });
+    worker = new Worker('worker.js?v=2026.11.22-17', { type: 'module' });
     worker.onmessage = ({ data }) => {
       if (model() === 'groq' && /progress|ready|status/.test(data.type)) { bar.style.display = 'none'; return; }
       if (data.type === 'progress') { bar.style.display = 'block'; barFill.style.width = data.pct + '%'; setStatus(data.kind === 'tr' ? t('Descargando el traductor (solo la primera vez): {0}% de {1} MB', data.pct, data.mb) : t('Descargando {0} (solo la primera vez): {1}% de {2} MB', NAMES[offlinePrep || model()], data.pct, data.mb)); }
