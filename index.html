@@ -638,7 +638,7 @@
       <button class="btn primary" id="licGo">Activar</button>
     </div>
     <a class="wpriv" href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones</a>
-    <small class="wver">v2026.11.22-17</small>
+    <small class="wver">v2026.11.22-18</small>
   </div>
 </div>
 
@@ -794,6 +794,7 @@
 
     <h3>Al terminar de hablar</h3>
     <div class="group">
+      <label class="opt"><div class="lbl">Empezar con el mensaje vacío<small>Al abrir la app, el último texto pasa al historial</small></div><span class="switch"><input type="checkbox" id="optFresh"><span></span></span></label>
       <label class="opt"><div class="lbl">Copiar automáticamente</div><span class="switch"><input type="checkbox" id="optAutoCopy"><span></span></span></label>
       <label class="opt"><div class="lbl">Leer el texto en voz alta<small>Para comprobarlo sin mirar</small></div><span class="switch"><input type="checkbox" id="optReadBack"><span></span></span></label>
       <label class="opt"><div class="lbl">Abrir WhatsApp<small>Con el mensaje ya escrito</small></div><span class="switch"><input type="checkbox" id="optAutoWa"><span></span></span></label>
@@ -823,16 +824,16 @@
       <p>⚠️ Con el vehículo en marcha no manipules el móvil: usa la voz o el botón del casco, o detente en un lugar seguro. Respeta siempre las normas de tráfico.</p>
       <p>Consejo: menú ⋮ de Chrome → «Añadir a pantalla de inicio».</p>
       <p><a href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones de uso</a></p>
-      <p style="opacity:.6">PerezApp v2026.11.22-17</p>
+      <p style="opacity:.6">PerezApp v2026.11.22-18</p>
     </div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
-<script src="i18n.js?v=2026.11.22-17"></script>
-<script src="licencia.js?v=2026.11.22-17"></script>
-<script src="format.js?v=2026.11.22-17"></script>
+<script src="i18n.js?v=2026.11.22-18"></script>
+<script src="licencia.js?v=2026.11.22-18"></script>
+<script src="format.js?v=2026.11.22-18"></script>
 <script>
 (() => {
   const $ = (id) => document.getElementById(id);
@@ -882,7 +883,7 @@
   window.addEventListener('resize', () => { segSet($('modeSeg'), engine); });
 
   // ---------- ajustes ----------
-  const CHECKS = { optGloves: true, optVoiceCmd: true, optHeadset: false, optAiFix: true, optGpu: !isMobile, optFormat: true, optPunct: true, optBeep: true, optAwake: false, optAutoCopy: true, optReadBack: false, optAutoWa: false, optAsk: true };
+  const CHECKS = { optGloves: true, optVoiceCmd: true, optHeadset: false, optAiFix: true, optGpu: !isMobile, optFormat: true, optPunct: true, optBeep: true, optAwake: false, optAutoCopy: true, optReadBack: false, optAutoWa: false, optAsk: true, optFresh: true };
   for (const [id, def] of Object.entries(CHECKS)) { $(id).checked = store.get(id, def); $(id).onchange = () => { store.set(id, $(id).checked); if (id === 'optAwake') keepAwake(); }; }
   const on = (id) => $(id).checked;
   const applyGloves = () => { document.documentElement.classList.toggle('gloves', on('optGloves')); requestAnimationFrame(() => { segSet($('modeSeg'), engine); }); };
@@ -1097,7 +1098,15 @@
     text.value = v; store.set('draft', v); refresh();
     if (grew) { const pp = document.querySelector('.paper'); pp.classList.remove('flash'); void pp.offsetWidth; pp.classList.add('flash'); }
   }
-  text.value = store.get('draft', '');
+  // al abrir la app, mensaje en blanco para hablar a la primera; el anterior queda en el historial
+  {
+    const d = store.get('draft', '').trim();
+    if (d && on('optFresh')) {
+      const h = store.get('hist', []);
+      if (!h.some((x) => x.t === d)) store.set('hist', [{ t: d, d: Date.now() }, ...h].slice(0, 30));
+      store.set('draft', ''); text.value = '';
+    } else text.value = store.get('draft', '');
+  }
   text.addEventListener('input', () => { store.set('draft', text.value); $('bubble').classList.remove('sent'); stamp(); refresh(); });
   stamp();
 
@@ -1913,7 +1922,7 @@
   let worker = null, mediaRec = null, chunks = [], asrReady = false;
   function getWorker() {
     if (worker) return worker;
-    worker = new Worker('worker.js?v=2026.11.22-17', { type: 'module' });
+    worker = new Worker('worker.js?v=2026.11.22-18', { type: 'module' });
     worker.onmessage = ({ data }) => {
       if (model() === 'groq' && /progress|ready|status/.test(data.type)) { bar.style.display = 'none'; return; }
       if (data.type === 'progress') { bar.style.display = 'block'; barFill.style.width = data.pct + '%'; setStatus(data.kind === 'tr' ? t('Descargando el traductor (solo la primera vez): {0}% de {1} MB', data.pct, data.mb) : t('Descargando {0} (solo la primera vez): {1}% de {2} MB', NAMES[offlinePrep || model()], data.pct, data.mb)); }

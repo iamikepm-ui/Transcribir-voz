@@ -363,6 +363,8 @@
     "Idioma del mensaje": ["Idioma del missatge", "Message language", "Langue du message", "Lingua del messaggio", "Sprache der Nachricht", "Idioma da mensagem"],
     "En qué idioma vas a hablar. «Automático» lo detecta solo.": ["En quin idioma parlaràs. «Automàtic» el detecta sol.", "Which language you'll speak. «Automatic» detects it by itself.", "Dans quelle langue tu vas parler. « Automatique » la détecte seul.", "In che lingua parlerai. «Automatico» la rileva da solo.", "In welcher Sprache du sprichst. „Automatisch“ erkennt sie selbst.", "Em que idioma vais falar. «Automático» deteta-o sozinho."],
     "Idioma del mensaje: {0}": ["Idioma del missatge: {0}", "Message language: {0}", "Langue du message : {0}", "Lingua del messaggio: {0}", "Sprache der Nachricht: {0}", "Idioma da mensagem: {0}"],
+    "Empezar con el mensaje vacío": ["Començar amb el missatge buit", "Start with an empty message", "Commencer avec un message vide", "Iniziare con il messaggio vuoto", "Mit leerer Nachricht starten", "Começar com a mensagem vazia"],
+    "Al abrir la app, el último texto pasa al historial": ["En obrir l'app, l'últim text passa a l'historial", "When the app opens, the last text moves to history", "À l'ouverture, le dernier texte passe dans l'historique", "All'apertura, l'ultimo testo passa alla cronologia", "Beim Öffnen wandert der letzte Text in den Verlauf", "Ao abrir a app, o último texto passa para o histórico"],
     "Borrado": ["Esborrat", "Deleted", "Effacé", "Cancellato", "Gelöscht", "Apagado"],
     "Deshecho": ["Desfet", "Undone", "Annulé", "Annullato", "Rückgängig gemacht", "Desfeito"],
     "Abriendo WhatsApp": ["Obrint WhatsApp", "Opening WhatsApp", "Ouverture de WhatsApp", "Apro WhatsApp", "WhatsApp wird geöffnet", "A abrir o WhatsApp"],
