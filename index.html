@@ -806,7 +806,7 @@
       <button class="btn primary" id="licGo">Activar</button>
     </div>
     <a class="wpriv" href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones</a>
-    <small class="wver">v2026.11.22-30</small>
+    <small class="wver">v2026.11.24-31</small>
   </div>
 </div>
 
@@ -870,6 +870,7 @@
     <p class="phhint">Pulsa el micro y dilo con naturalidad. Los nombres tienen que estar en Ajustes → Mis contactos.</p>
     <ul class="vclist">
       <li><b>«Dile a Marta que llego en diez minutos»</b><small>Escribe el mensaje para Marta y te pregunta si se lo envía</small></li>
+      <li><b>«Para Marta» · «Mejor a Jordi»</b><small>Elegir o cambiar a quién va, antes o después de dictar</small></li>
       <li><b>«Envíaselo a Marta» · «Envíalo por Telegram» · «Envíalo por SMS»</b><small>Enviar a un contacto o por otra app</small></li>
       <li><b>«Llama a Marta»</b><small>Llamar a un contacto (por el manos libres)</small></li>
       <li><b>«Corrígelo» · «Más formal» · «Más corto» · «Añade emojis»</b><small>Retocar el mensaje con la IA</small></li>
@@ -878,6 +879,7 @@
       <li><b>«Mi ubicación»</b><small>Añadir un enlace con dónde estás</small></li>
       <li><b>«Coma» · «Punto» · «Punto y aparte»</b><small>Puntuación (castellano y catalán)</small></li>
       <li><b>«Sí» · «No» · «Sigue» · «A Jordi»</b><small>Respuestas cuando te pregunta «¿Lo envío?»</small></li>
+      <li><b>«Enviar»</b><small>Si no dices a quién, te lo pregunta. Responde con el nombre o «elegir»</small></li>
     </ul>
   </div>
 </div>
@@ -1011,7 +1013,7 @@
 
     <h3>WhatsApp</h3>
     <div class="group">
-      <div class="opt col"><div class="lbl">Mis contactos<small>Uno por línea: «Marta: 600 000 000». El primero es el del botón de WhatsApp. Por voz: «envíaselo a Marta».</small></div><textarea id="optFavs" rows="3" placeholder="Marta: 600 000 000&#10;Jordi: +34 611 111 111" autocomplete="off" spellcheck="false"></textarea><button class="btn ghost small" id="pickContacts" hidden>📇 Añadir desde la agenda</button></div>
+      <div class="opt col"><div class="lbl">Mis contactos<small>Uno por línea: «Marta: 600 000 000». El primero es el del botón de WhatsApp. Por voz: «envíaselo a Marta».</small><small>Con «/» le das otros nombres: «Jordi / Jefe: 611 111 111».</small></div><textarea id="optFavs" rows="3" placeholder="Marta: 600 000 000&#10;Jordi: +34 611 111 111" autocomplete="off" spellcheck="false"></textarea><button class="btn ghost small" id="pickContacts" hidden>📇 Añadir desde la agenda</button></div>
       <div class="opt col"><div class="lbl">Frases rápidas<small>Una por línea</small></div><textarea id="optPhrases" rows="5" autocomplete="off"></textarea></div>
     </div>
 
@@ -1033,7 +1035,7 @@
       <p>⚠️ Con el vehículo en marcha no manipules el móvil: usa la voz o el botón del casco, o detente en un lugar seguro. Respeta siempre las normas de tráfico.</p>
       <p>Consejo: menú ⋮ de Chrome → «Añadir a pantalla de inicio».</p>
       <p><a href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones de uso</a></p>
-      <p style="opacity:.6">PerezApp v2026.11.22-30</p>
+      <p style="opacity:.6">PerezApp v2026.11.24-31</p>
     </div>
   </div>
 </div>
@@ -1041,9 +1043,9 @@
 <div class="toast" id="toast"></div>
 <div class="snack" id="snack" role="status"><span id="snackMsg"></span><button id="snackBtn">Deshacer</button></div>
 
-<script src="i18n.js?v=2026.11.22-30" defer></script>
-<script src="licencia.js?v=2026.11.22-30" defer></script>
-<script src="format.js?v=2026.11.22-30" defer></script>
+<script src="i18n.js?v=2026.11.24-31" defer></script>
+<script src="licencia.js?v=2026.11.24-31" defer></script>
+<script src="format.js?v=2026.11.24-31" defer></script>
 <script>
 // se ejecuta cuando ya se han cargado i18n.js, licencia.js y format.js (defer): la pantalla se pinta antes
 document.addEventListener('DOMContentLoaded', () => {
@@ -1129,15 +1131,40 @@ document.addEventListener('DOMContentLoaded', () => {
   // contactos: «Nombre: teléfono», uno por línea (antes había uno solo: se pasa a la lista)
   if (!store.get('favs', '') && store.get('favTel', '')) store.set('favs', (store.get('favName', '') || 'Favorito') + ': ' + store.get('favTel', ''));
   const plain = (x) => String(x || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9ñ ]/g, ' ').replace(/\s+/g, ' ').trim();
+  // con «/» un contacto tiene más nombres: «Marta / Cariño / Mi mujer: 600 000 000»
   function favs() {
     return store.get('favs', '').split('\n').map((l) => /^\s*([^:=]+?)\s*[:=]\s*(\+?[\d\s().-]{6,})\s*$/.exec(l)).filter(Boolean)
-      .map((m) => ({ n: m[1].trim(), t: (m[2].trim().startsWith('+') ? '+' : '') + m[2].replace(/[^\d]/g, '') }));
+      .map((m) => { const a = m[1].split('/').map((x) => x.trim()).filter(Boolean); return { n: a[0] || m[1].trim(), a: a.length ? a : [m[1].trim()], t: (m[2].trim().startsWith('+') ? '+' : '') + m[2].replace(/[^\d]/g, '') }; });
   }
-  function findFav(who) {
-    const w = plain(who).replace(/^(?:(?:a|al|para|to|an|ao|à|per a) )?(?:(?:la|el|en|na|l|o|a|der|die) )?/, ''); if (!w) return null;
-    const list = favs();
-    return list.find((f) => plain(f.n) === w) || list.find((f) => plain(f.n).split(' ')[0] === w.split(' ')[0]) || null;
+  // cómo suena: el reconocedor escribe «Yordi», «Bictor», «Martha»… y tiene que encontrar a Jordi, Víctor o Marta
+  const phon = (x) => plain(x).replace(/ph/g, 'f').replace(/th/g, 't').replace(/h/g, '').replace(/v/g, 'b').replace(/w/g, 'u').replace(/ll|j/g, 'y').replace(/qu|k|q/g, 'c').replace(/c(?=[ei])|z|x|ç/g, 's').replace(/ñ/g, 'n').replace(/(.)\1+/g, '$1');
+  function lev(a, b) {
+    if (Math.abs(a.length - b.length) > 2) return 9;
+    let p = Array.from({ length: b.length + 1 }, (_, i) => i);
+    for (let i = 1; i <= a.length; i++) { const c = [i]; for (let j = 1; j <= b.length; j++) c[j] = Math.min(p[j] + 1, c[j - 1] + 1, p[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); p = c; }
+    return p[b.length];
   }
+  const WHO_PFX = /^(?:(?:a|al|para|to|for|an|ao|à|au|per a|pour|per|für) )?(?:(?:la|el|en|na|l|lo|o|a|der|die|den|le|il) )?(?:(?:mi|my|ma|mon|mia|mio|mein|meine|meinen|minha|meu|meva|la meva|el meu) )?/;
+  const WHO_SFX = /\s+(?:por favor|please|si us plau|s il te plait|s il vous plait|per favore|bitte|ya|ahora|now)$/;
+  // contactos que encajan con lo que has dicho (más de uno si hay dudas: «Marta García» y «Marta López»).
+  // strict: solo nombres que suenan igual, para frases que también podrían ser parte del mensaje («Para mañana…»)
+  function findFavs(who, strict) {
+    const w = plain(who).replace(WHO_SFX, '').replace(WHO_PFX, '').trim(); if (!w) return [];
+    const pw = phon(w), w1 = w.split(' ')[0], tol = (x) => x.length >= 8 ? 2 : x.length >= 5 ? 1 : 0;
+    let best = 0, out = [];
+    for (const f of favs()) {
+      let sc = 0;
+      for (const al of f.a) {
+        const n = plain(al), pn = phon(n), n1 = n.split(' ')[0], pn1 = phon(n1);
+        sc = Math.max(sc, n === w ? 100 : pn === pw ? 90 : n1 === w ? 80 : pn1 === pw ? 75 : w === w1 && w.length > 2 && pn.split(' ').includes(pw) ? 70 : w !== w1 && n1 === w1 ? 60
+          : strict ? 0 : lev(pn, pw) <= tol(pn) ? 50 : lev(pn1, pw) <= tol(pn1) ? 45 : 0);
+      }
+      if (sc > best) { best = sc; out = [f]; } else if (sc && sc === best && !out.some((o) => o.t === f.t)) out.push(f);
+    }
+    return out;
+  }
+  function findFav(who, strict) { const r = findFavs(who, strict); return r.length === 1 ? r[0] : null; }
+  const listOf = (names, type) => { try { return new Intl.ListFormat(I.locale(), { type: type || 'conjunction' }).format(names); } catch { return names.join(', '); } };
   $('optFavs').value = store.get('favs', '');
   $('optFavs').oninput = () => { store.set('favs', $('optFavs').value); refresh(); };
   $('toClear').onclick = () => { toWho = null; refresh(); };
@@ -1679,6 +1706,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const NM = '([\\p{L}]+(?:\\s+[\\p{L}]+)?)', SEP = '\\s*(?:[:,.\\-]\\s*(?:que\\b|qu\'|che\\b|dass\\b|that\\b)?|que\\b|qu\'|che\\b|dass\\b|that\\b)\\s*(.+)$';
   const TOWHO = [
     '^(?:dile|d[ií]gale|escr[ií]bele|escribe|m[aá]ndale|manda|env[ií]ale|un mensaje|mensaje)\\s+(?:a|al|para)\\s+(?:la\\s+|el\\s+)?' + NM + SEP,
+    '^(?:para|per a|pour|per|für|an)\\s+(?:la\\s+|el\\s+|en\\s+|na\\s+)?' + NM + '\\s*[:,.\\-]\\s*(.+)$',
     '^(?:digues-li|digues|diga-li|escriu-li|escriu|envia-li|missatge)\\s+(?:a|al|per a)\\s+(?:la\\s+|en\\s+|l\'|na\\s+)?' + NM + SEP,
     '^(?:tell|text|message|write to|send a message to)\\s+([\\p{L}]+)\\s*(?:that\\b|[:,.\\-])?\\s*(.+)$',
     '^(?:dis|écris|envoie un message)\\s+(?:à|a|au)\\s+' + NM + SEP,
@@ -1688,7 +1716,7 @@ document.addEventListener('DOMContentLoaded', () => {
   ].map((x) => new RegExp(x, 'iu'));
   function matchRecipient(str) {
     const x = str.trim().replace(/^[¿¡"«]+/, '');
-    for (const re of TOWHO) { const m = re.exec(x); if (m) { const f = findFav(m[1]) || findFav(m[1].split(/\s+/)[0]); if (f && m[2].trim()) return { f, rest: m[2].trim() }; } }
+    for (const re of TOWHO) { const m = re.exec(x); if (m) { const f = findFav(m[1], true) || findFav(m[1].split(/\s+/)[0], true); if (f && m[2].trim()) return { f, rest: m[2].trim() }; } }
     return null;
   }
   function finishChunk(raw, fromAI) { let s = raw.trim(); if (!s) return;
@@ -1744,7 +1772,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     throw last || new Error('Groq no responde');
   }
-  const vocab = () => store.get('vocab', '');
+  // tus palabras + los nombres de tus contactos (así Whisper y el corrector escriben «Jordi» y no «Yordi»)
+  const vocab = () => {
+    const v = store.get('vocab', ''), have = new Set(plain(v).split(' '));
+    const names = [...new Set(favs().flatMap((f) => f.a.join(' ').split(/\s+/)).filter((x) => /^\p{Lu}\p{L}{2,}$/u.test(x) && !have.has(plain(x))))];
+    return [v.trim(), names.join(', ')].filter(Boolean).join(', ').slice(0, 600);
+  };
   const KEEP = 'Mantén el saludo, el mensaje y la despedida en líneas separadas si las hay. No respondas al mensaje: devuelve SOLO el texto, sin comillas ni explicaciones.';
   const PROMPTS = {
     fix: (l) => `Eres un corrector de mensajes dictados por voz en ${LANGNAME[l]}. El texto viene de un reconocedor de voz y puede tener palabras mal oídas, faltas de ortografía, tildes o puntuación incorrectas. Corrígelo usando el contexto y la fonética: si una palabra no tiene sentido, sustitúyela por la que suena parecido y sí encaja (p. ej. «tengo cita en el médico el lunes ha las diez» → «… el lunes a las diez»). Respeta el significado, el tono y las palabras del usuario; no añadas ni quites información; no lo traduzcas. ${KEEP}${vocab() ? ` IMPORTANTE — nombres y palabras del usuario: ${vocab()}. Cualquier nombre o palabra del texto que no sea habitual y se parezca a uno de la lista (una o dos letras distintas, o separado en dos palabras) es un error del reconocedor: escríbelo exactamente como en la lista.` : ''}`,
@@ -1860,7 +1893,7 @@ document.addEventListener('DOMContentLoaded', () => {
     pt: { send: /^(enviar|envia|manda|envia a mensagem)$/, clear: /^(apagar tudo|apaga tudo|começar de novo)$/, undo: /^(desfazer|desfaz|apaga isso)$/, read: /^(ler|lê|lê isso)$/, stop: /^(parar|pára|pronto|terminar)$/ },
   };
   const SENDTO = {
-    es: /^(?:env[ií]a(?:lo|selo|le)?|manda(?:lo|selo|le)?|enviar(?:lo|selo)?|env[ií]amelo)\s+(?:a|al|para)\s+(.+)$/,
+    es: /^(?:env[ií]a(?:lo|selo|le)?|m[aá]nda(?:lo|selo|le)?|enviar(?:lo|selo)?|env[ií]amelo)\s+(?:a|al|para)\s+(.+)$/,
     ca: /^(?:envia(?:-ho|-li|'l)?|enviar|envia-li-ho)\s+(?:a|al|per a)\s+(.+)$/,
     en: /^send(?: it| this| the message)?\s+to\s+(.+)$/,
     fr: /^(?:envoie|envoyer)(?:-le|-lui|-la)?\s+(?:à|a|au)\s+(.+)$/,
@@ -1869,7 +1902,25 @@ document.addEventListener('DOMContentLoaded', () => {
     pt: /^(?:envia(?:-o|-lhe)?|manda(?:-o)?|enviar)\s+(?:a|para|ao|à)\s+(.+)$/,
   };
   const LOC = /^(mi ubicaci[oó]n|d[oó]nde estoy|(manda|env[ií]a|a[ñn]ade|pon) mi ubicaci[oó]n|la meva ubicaci[oó]|on s[oó]c|my location|send my location|where i am|ma position|ma localisation|la mia posizione|mein standort|meinen standort|a minha localiza[cç][aã]o|onde estou)$/;
-  let sendWho = '', sendVia = '', editPending = false, callWho = null, callMiss = '';
+  // sendWho: contacto elegido por voz; sendMiss: nombre que no está en tus contactos; sendAmb: varios posibles («Marta García» o «Marta López»)
+  let sendWho = null, sendVia = '', sendMiss = '', sendAmb = null, toPick = null, editPending = false, callWho = null, callMiss = '';
+  // «Para Marta» · «Mensaje para Jordi» · «Mejor a Ana»: elige a quién va sin escribir nada. Solo nombres que suenan igual que un contacto
+  const TOONLY = [
+    /^(?:(?:un |el )?mensaje |escr[ií]bele |escribe(?:le)? |dile |m[aá]ndale |env[ií]ale |c[aá]mbia(?:lo)?(?: el destinatario)? |mejor |no )?(?:a|al|para) (.+)$/,
+    /^(?:(?:un |el )?missatge |escriu(?:-li)? |digues-li |envia-li |canvia(?:-ho)? |millor )?(?:a|al|per a) (.+)$/,
+    /^(?:(?:a )?message |write |change it |no )?(?:to|for) (.+)$/,
+    /^(?:(?:un )?message |écris |change |plutôt |non )?(?:à|a|au|pour) (.+)$/,
+    /^(?:(?:un )?messaggio |scrivi |cambia |meglio |no )?(?:a|al|per) (.+)$/,
+    /^(?:(?:eine )?nachricht |schreib(?:e)? |lieber |nein )?(?:an|für) (.+)$/,
+    /^(?:(?:uma )?mensagem |escreve |muda |melhor |não )?(?:a|à|ao|para) (.+)$/,
+  ];
+  function matchToOnly(x) {
+    const n = normCmd(x); if (n.split(' ').length > 7) return null;
+    for (const re of TOONLY) { const m = re.exec(n); if (m && m[1].split(' ').length <= 4) { const r = findFavs(m[1], true); if (r.length) return r; } }
+    return null;
+  }
+  // respuestas a «¿A quién?»: que lo elija yo en WhatsApp
+  const PICK = /^(?:(?:a |que )?(?:lo )?(?:elijo|elegir|elige|eligir|escoger|escojo|cualquiera|otro|otra|otra persona|alguien m[aá]s|nadie|ninguno)(?: yo)?(?: en whatsapp)?|en whatsapp|whatsapp|tria(?:r|-ho)?|un altre|choose|i ll choose|pick|someone else|other|choisir|je choisis|autre|scegli(?:o)?|altro|wählen|ich wähle|andere|escolher|escolho|outro)$/;
   // «Llama a Marta» → llamada (por el manos libres del coche o el intercomunicador)
   const CALL = /^(?:ll[aá]ma(?:le|la|lo)?|llamar(?:le)?|telefonea(?:le)?|truca(?:-li)?|trucar|call|phone|ring|appelle(?:r)?|chiama(?:re)?|telefona(?:re)?|ruf(?:e)?|anrufen|liga(?:r)?(?:-lhe)?)\s+(.+?)(?:\s+an)?$/;
   function matchCall(x) {
@@ -1901,7 +1952,13 @@ document.addEventListener('DOMContentLoaded', () => {
   function matchCmd(x) {
     let n0 = normCmd(x), via = '';
     const vm = VIA.exec(n0); if (vm) { via = CHAN(vm[1]); n0 = n0.slice(0, vm.index).trim(); }
-    const to = matchSendTo(n0); if (to && findFav(to)) { sendWho = to; sendVia = via; return 'send'; }
+    const to = matchSendTo(n0);
+    if (to) {
+      const r = findFavs(to);
+      if (r.length === 1) { sendWho = r[0]; sendVia = via; return 'send'; }
+      if (r.length > 1) { sendAmb = r; sendVia = via; return 'send'; }
+      if (to.split(' ').length <= 3 && !/^(?:todos|todo el mundo|everyone|tothom|tous|tutti|alle|todos)$/.test(to)) { sendMiss = to; sendVia = via; return 'send'; }
+    }
     if (via && SENDWORD.test(n0)) { sendVia = via; return 'send'; }
     const tm = TRCMD.exec(n0); if (tm) { for (const [code, re] of Object.entries(LANGW)) if (re.test(tm[1])) return 'tr:' + code; }
     for (const l of [lang, ui(), ...Object.keys(EDIT)]) for (const [k, re] of Object.entries(EDIT[l] || {})) if (re.test(n0)) return k;
@@ -1913,6 +1970,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // devuelve el texto sin la orden y la orden («… Un abrazo. Enviar.» → «… Un abrazo.» + enviar)
   function splitCommand(raw) {
     if (!on('optVoiceCmd') || !raw) return { text: raw, cmd: null };
+    const only = matchToOnly(raw);
+    if (only) { toPick = only; return { text: '', cmd: 'to' }; }
     const cl = on('optVoiceCmd') && !text.value.trim() ? matchCall(raw) : null;
     if (cl) { if (cl.f) callWho = cl.f; else callMiss = cl.miss; return { text: '', cmd: cl.f ? 'call' : 'nocontact' }; }
     const whole = matchCmd(raw); if (whole) { editPending = /^(fix|formal|warm|short|emoji|clearer|tr:)/.test(whole); return { text: '', cmd: whole }; }
@@ -1926,6 +1985,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function runCmd(cmd) {
     if (cmd === 'send') { pendingSend = true; if (recording) stop(); else doSend(); return; }
     if (cmd === 'stop') { if (recording) stop(); return; }
+    if (cmd === 'to') { const r = toPick; toPick = null; if (r) setRecipient(r); return; }
     if (cmd === 'call') { const f = callWho; callWho = null; if (!f) return; if (recording) stop(); const m = t('Llamando a {0}', f.n); speak(m, ui()); setStatus(m); setTimeout(() => openOut('tel:' + intlTel(f.t), '📞 ' + t('Llamar a {0}', f.n), true), 1100); return; }
     if (cmd === 'nocontact') { const m = t('No encuentro a {0} en tus contactos', callMiss); callMiss = ''; if (recording) stop(); speak(m, ui()); setStatus(m, true); return; }
     if (cmd === 'clear') { if (text.value) { saveHist(); setText(''); } say('clear'); toast('🗑️ ' + t('Borrado')); return; }
@@ -1953,16 +2013,64 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   $('outGo').addEventListener('click', () => setTimeout(() => $('outRoot').classList.remove('open'), 300));
   $('outClose').onclick = $('outScrim').onclick = () => $('outRoot').classList.remove('open');
+  // destinatario elegido por voz: «Para Marta» mientras dictas, o al principio y sigues hablando
+  function setRecipient(r) {
+    if (r.length > 1) { if (recording) stop(); askWho('', r, 'wa', false, true); return; }
+    toWho = r[0]; refresh();
+    const m = t('Para {0}', toWho.n);
+    setStatus('👤 ' + m + (text.value.trim() ? '' : ' · ' + t('Dime el mensaje')));
+    if (recording) { beep(880); return; }   // en Rápido sigue escuchando: un pitido y el nombre arriba, sin hablar encima
+    if (text.value.trim()) { if (!askToSend()) speak(m, ui()); return; }
+    speakSeq([[m + '. ' + t('Dime el mensaje'), ui()]], () => { if (!recording && !busy && !document.hidden) start(); });
+  }
   function doSend() {
     pendingSend = false;
-    const f = sendWho ? findFav(sendWho) : toWho, via = sendVia || 'wa'; sendWho = ''; sendVia = '';
+    const f = sendWho || toWho, via = sendVia || 'wa', miss = sendMiss, amb = sendAmb;
+    sendWho = null; sendVia = ''; sendMiss = ''; sendAmb = null;
     if (!text.value.trim()) { say('empty'); return; }
+    // sin destinatario y con varios contactos: te pregunta a quién en vez de mandarlo al primero
+    if (!f && (via === 'wa' || via === 'sms')) {
+      const n = favs().length;
+      if ((miss || amb || n > 1) && n && SR) { askWho(miss ? t('No encuentro a {0} en tus contactos.', miss) : '', amb, via); return; }
+      if (miss) { const m = t('No encuentro a {0} en tus contactos.', miss) + ' ' + t('Elígelo en {0}.', via === 'sms' ? 'SMS' : 'WhatsApp'); speak(m, ui()); setStatus(m, true); return void setTimeout(() => deliver(null, via, true), 2600); }
+    }
+    deliver(f, via);
+  }
+  // pregunta «¿A quién se lo envío?» y escucha un nombre; «elegir» abre WhatsApp para escogerlo allí
+  let whoTries = 0;
+  function askWho(prefix, only, via, again, toOnly) {
+    if (!again) whoTries = 0;
+    const list = only || favs();
+    const q = only ? t('¿{0}?', listOf(only.map((f) => f.n), 'disjunction'))
+      : list.length <= 4 || again ? t('¿A quién se lo envío? ¿{0}?', listOf(list.slice(0, 5).map((f) => f.n), 'disjunction')) : t('¿A quién se lo envío?');
+    $('drive').classList.add('asking'); setStatus('🗣️ ' + t('¿A quién? Di el nombre') + (toOnly ? '' : ' · ' + t('«elegir» para escogerlo en WhatsApp')));
+    speakSeq([[[prefix, q].filter(Boolean).join(' '), ui()]], () => listenOnce((alts) => handleWho(alts, only, via, toOnly), () => setStatus(t('Di «envíaselo a …» cuando quieras.'))));
+  }
+  function handleWho(alts, only, via, toOnly) {
+    let k = null;
+    for (const a of alts) {
+      const n = normCmd(a), name = matchSendTo(a) || n.replace(/^(?:s[ií]|yes|oui|ja|sim|vale|ok|pues)\s+/, '');
+      let r = findFavs(name); if (only) r = r.filter((f) => only.some((o) => o.t === f.t));
+      if (r.length === 1) { endAsk(); if (toOnly) setRecipient(r); else { sendVia = via; deliver(r[0], via); } return; }
+      if (r.length > 1) { endAsk(); askWho('', r, via, true, toOnly); return; }
+      if (!toOnly && PICK.test(n)) { endAsk(); deliver(null, via, true); return; }
+      k = k || matchAsk(a);
+    }
+    endAsk();
+    if (k === 'no' || k === 'stop' || k === 'clear') { const m = t('Vale, no lo envío.'); speak(m, ui()); setStatus(m); if (k === 'clear') runCmd('clear'); return; }
+    if (k === 'again' || k === 'read') { speakSeq([[text.value.trim(), lang]], () => askWho('', only, via, true, toOnly)); return; }
+    if (++whoTries < 3) { askWho(t('No te he entendido.'), only, via, true, toOnly); return; }
+    const m = t('No te he entendido.'); speak(m, ui()); setStatus(m + ' ' + t('Di «envíaselo a …» cuando quieras.'));
+  }
+  // abre la app con el mensaje; pick: sin número, para elegir el chat en WhatsApp
+  function deliver(f, via, pick) {
+    via = via || 'wa';
     saveHist(); markSent(); flyPlane();
     const app = { wa: 'WhatsApp', tg: 'Telegram', sms: 'SMS', mail: t('correo') }[via];
     const msg = f && (via === 'wa' || via === 'sms') ? t('Enviando a {0}', f.n) + (via === 'sms' ? ' · SMS' : '') : t('Abriendo {0}', app);
     speak(msg, ui()); setStatus(msg);
     const enc = encodeURIComponent(text.value.trim());
-    const url = via === 'tg' ? 'https://t.me/share/url?url=' + enc : via === 'sms' ? 'sms:' + (f ? intlTel(f.t) : '') + '?&body=' + enc : via === 'mail' ? 'mailto:?body=' + enc : f ? waUrl(f.t) : waUrl();
+    const url = via === 'tg' ? 'https://t.me/share/url?url=' + enc : via === 'sms' ? 'sms:' + (f ? intlTel(f.t) : '') + '?&body=' + enc : via === 'mail' ? 'mailto:?body=' + enc : f ? waUrl(f.t) : pick ? waUrl('') : waUrl();
     const label = via === 'wa' ? (f ? t('WhatsApp a {0}', f.n) : t('Abrir WhatsApp')) : via === 'sms' ? (f ? t('SMS a {0}', f.n) : t('Abrir {0}', 'SMS')) : t('Abrir {0}', app);
     setTimeout(() => openOut(url, (via === 'wa' ? '💬 ' : via === 'tg' ? '✈️ ' : via === 'sms' ? '💬 ' : '✉️ ') + label, via === 'sms' || via === 'mail'), 700);
   }
@@ -1988,33 +2096,46 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!(driving() || toWho) || !on('optAsk') || !SR || !text.value.trim()) return false;
     if (!again) askTries = 0;
     $('drive').classList.add('asking'); setStatus('🗣️ ¿Lo envío? Di «sí», «no», «léelo» o «sigue».');
-    speakSeq([[text.value.trim(), lang], [toWho ? t('¿Se lo envío a {0}?', toWho.n) : t('¿Lo envío?'), ui()]], listenAnswer);
+    const fl = favs(), one = toWho || (fl.length === 1 ? fl[0] : null);
+    const q = one ? t('¿Se lo envío a {0}?', one.n) : fl.length > 1 ? (fl.length <= 4 ? t('¿A quién se lo envío? ¿{0}?', listOf(fl.map((f) => f.n), 'disjunction')) : t('¿A quién se lo envío?')) : t('¿Lo envío?');
+    speakSeq([[text.value.trim(), lang], [q, ui()]], listenAnswer);
     return true;
   }
   function listenAnswer() {
     if (!(driving() || toWho) || recording || !$('drive').classList.contains('asking')) return;
+    listenOnce(handleAnswer, () => setStatus('Pulsa WhatsApp o di «enviar» cuando quieras.'));
+  }
+  // escucha una respuesta corta (hasta 4 versiones de lo oído); none() si no dices nada
+  function listenOnce(got1, none) {
+    if (!SR || recording) { $('drive').classList.remove('asking'); none && none(); return; }
     const r = new SR(); asking = r;
     r.lang = (LANGS[ui()] || LANGS[lang]).sr; r.interimResults = false; r.continuous = false; r.maxAlternatives = 4;
     let got = false;
     const to = setTimeout(() => { try { r.stop(); } catch {} }, 7000);
-    r.onresult = (e) => { got = true; const res = e.results[0]; handleAnswer([...Array(res.length)].map((_, i) => res[i].transcript)); };
+    r.onresult = (e) => { got = true; const res = e.results[0]; got1([...Array(res.length)].map((_, i) => res[i].transcript)); };
     r.onerror = () => {};
-    r.onend = () => { clearTimeout(to); if (asking === r) asking = null; if (!got) { $('drive').classList.remove('asking'); setStatus('Pulsa WhatsApp o di «enviar» cuando quieras.'); } };
+    r.onend = () => { clearTimeout(to); if (asking === r) asking = null; if (!got) { $('drive').classList.remove('asking'); none && none(); } };
     try { r.start(); if (navigator.vibrate) navigator.vibrate(30); } catch { $('drive').classList.remove('asking'); }
   }
   function handleAnswer(alts) {
+    const fl = favs(), whoQ = !toWho && fl.length > 1;   // la pregunta era «¿A quién se lo envío?»
     for (const a of alts) {
-      const m = /^(?:s[ií]|yes|oui|ja|sim)?\s*(?:a|al|para|to|à|au|an|ao)\s+(.+)$/.exec(normCmd(a));
-      const who = (m && findFav(m[1]) && m[1]) || (matchSendTo(a) && findFav(matchSendTo(a)) && matchSendTo(a));
-      if (who) { endAsk(); sendWho = who; doSend(); return; }
+      const n = normCmd(a), m = /^(?:s[ií]|yes|oui|ja|sim|vale|ok)?\s*(?:a|al|para|to|à|au|an|ao|per a)\s+(.+)$/.exec(n);
+      const name = matchSendTo(a) || (m && m[1]) || (whoQ && !matchAsk(a) ? n : '');
+      const r = name ? findFavs(name) : [];
+      if (r.length === 1) { endAsk(); sendWho = r[0]; doSend(); return; }
+      if (r.length > 1) { endAsk(); askWho('', r, 'wa', true); return; }
+      if (PICK.test(n)) { endAsk(); deliver(null, 'wa', true); return; }
     }
     let k = null; for (const a of alts) { k = matchAsk(a); if (k) break; }
     endAsk();
+    if ((k === 'yes' || k === 'send') && whoQ) { askWho('', null, 'wa', true); return; }
     if (k === 'yes' || k === 'send') { doSend(); return; }
     if (k === 'more') { start(); return; }
     if (k === 'again' || k === 'read') { askToSend(true); return; }
     if (k === 'clear' || k === 'undo') { runCmd(k); return; }
     if (k === 'stop' || k === 'no') { speak(t('Vale, no lo envío.'), ui()); setStatus('Vale, no lo envío. Pulsa WhatsApp o di «enviar» cuando quieras.'); return; }
+    if (whoQ && askTries < 2) { askTries++; askWho(t('No te he entendido.'), null, 'wa', true); return; }
     if (++askTries < 2) { $('drive').classList.add('asking'); speakSeq([[t('No te he entendido. ¿Lo envío?'), ui()]], listenAnswer); return; }
     speak(t('No te he entendido.'), ui()); setStatus('Pulsa WhatsApp o di «enviar» cuando quieras.');
   }
@@ -2493,7 +2614,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   function getWorker() {
     if (worker) return worker;
-    worker = new Worker('worker.js?v=2026.11.22-30', { type: 'module' });
+    worker = new Worker('worker.js?v=2026.11.24-31', { type: 'module' });
     worker.onerror = () => { if (busy && !recording) { busy = false; setMic('idle'); bar.style.display = 'none'; setStatus('El modelo del móvil ha fallado. Prueba otra vez o usa la nube.', true); } };
     worker.onmessage = ({ data }) => {
       if (model() === 'groq' && !offlinePrep && data.kind !== 'tr' && /progress|ready|status/.test(data.type)) { bar.style.display = 'none'; return; }
