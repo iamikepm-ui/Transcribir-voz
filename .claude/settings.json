@@ -1,0 +1,9 @@
+{
+  "enabledPlugins": {
+    "data@synced": false,
+    "cc-plugin-plugin-authoring@builtin": false
+  },
+  "env": {
+    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1"
+  }
+}
