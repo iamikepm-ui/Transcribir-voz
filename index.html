@@ -385,6 +385,7 @@
   .drive.asking .dstatus { color:#ffd59a; }
   @keyframes askp { 50% { transform:scale(1.07); opacity:.35; } }
   @media (prefers-reduced-motion: reduce) { .drive.asking .mic-wrap::after { animation:none; } }
+  .drive.wake:not(.asking) .mic-wrap::after { content:''; position:absolute; inset:2%; border-radius:50%; border:2px dashed #25d366; opacity:.75; pointer-events:none; }
 
   /* ===== horizontal (móvil en el soporte del coche) ===== */
   @media (orientation:landscape) and (max-height:600px) {
@@ -806,7 +807,7 @@
       <button class="btn primary" id="licGo">Activar</button>
     </div>
     <a class="wpriv" href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones</a>
-    <small class="wver">v2026.11.24-31</small>
+    <small class="wver">v2026.11.25-32</small>
   </div>
 </div>
 
@@ -870,6 +871,7 @@
     <p class="phhint">Pulsa el micro y dilo con naturalidad. Los nombres tienen que estar en Ajustes → Mis contactos.</p>
     <ul class="vclist">
       <li><b>«Dile a Marta que llego en diez minutos»</b><small>Escribe el mensaje para Marta y te pregunta si se lo envía</small></li>
+      <li><b>«Respóndele que…» · «Envíaselo al mismo» · «Otra vez a Marta»</b><small>A la última persona a la que escribiste</small></li>
       <li><b>«Para Marta» · «Mejor a Jordi»</b><small>Elegir o cambiar a quién va, antes o después de dictar</small></li>
       <li><b>«Envíaselo a Marta» · «Envíalo por Telegram» · «Envíalo por SMS»</b><small>Enviar a un contacto o por otra app</small></li>
       <li><b>«Llama a Marta»</b><small>Llamar a un contacto (por el manos libres)</small></li>
@@ -998,6 +1000,7 @@
       <div class="opt"><div class="lbl">Qué puedo decir<small>Todas las órdenes de voz</small></div><button class="btn small primary" id="vcOpen" style="padding:12px 16px">🗣️ Ver</button></div>
       <label class="opt"><div class="lbl">Órdenes por voz<small>Di «enviar», «borrar todo», «deshacer», «léelo» o «para»</small></div><span class="switch"><input type="checkbox" id="optVoiceCmd"><span></span></span></label>
       <label class="opt"><div class="lbl">Preguntar «¿Lo envío?»<small>En modo conducción te lee el mensaje y respondes «sí», «no», «léelo» o «sigue»</small></div><span class="switch"><input type="checkbox" id="optAsk"><span></span></span></label>
+      <label class="opt"><div class="lbl">Escucha continua en conducción<small>Con la pantalla encendida, di «Mensaje para Marta…» o «PerezApp» sin tocar nada. Gasta más batería y en algunos móviles suena un aviso cada pocos segundos</small></div><span class="switch"><input type="checkbox" id="optWake"><span></span></span></label>
       <label class="opt"><div class="lbl">Modo conducción automático<small>Se activa solo al ponerte en marcha (más de 20 km/h). Usa el GPS mientras la app está abierta</small></div><span class="switch"><input type="checkbox" id="optAutoDrive"><span></span></span></label>
       <label class="opt"><div class="lbl">Modo guantes<small>Botones extra grandes para usar con guantes (moto)</small></div><span class="switch"><input type="checkbox" id="optGloves"><span></span></span></label>
       <label class="opt"><div class="lbl">Botón del casco o auriculares<small>El botón de reproducir/pausa del intercomunicador o los auriculares Bluetooth empieza y para el dictado (experimental)</small></div><span class="switch"><input type="checkbox" id="optHeadset"><span></span></span></label>
@@ -1035,7 +1038,7 @@
       <p>⚠️ Con el vehículo en marcha no manipules el móvil: usa la voz o el botón del casco, o detente en un lugar seguro. Respeta siempre las normas de tráfico.</p>
       <p>Consejo: menú ⋮ de Chrome → «Añadir a pantalla de inicio».</p>
       <p><a href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones de uso</a></p>
-      <p style="opacity:.6">PerezApp v2026.11.24-31</p>
+      <p style="opacity:.6">PerezApp v2026.11.25-32</p>
     </div>
   </div>
 </div>
@@ -1043,9 +1046,9 @@
 <div class="toast" id="toast"></div>
 <div class="snack" id="snack" role="status"><span id="snackMsg"></span><button id="snackBtn">Deshacer</button></div>
 
-<script src="i18n.js?v=2026.11.24-31" defer></script>
-<script src="licencia.js?v=2026.11.24-31" defer></script>
-<script src="format.js?v=2026.11.24-31" defer></script>
+<script src="i18n.js?v=2026.11.25-32" defer></script>
+<script src="licencia.js?v=2026.11.25-32" defer></script>
+<script src="format.js?v=2026.11.25-32" defer></script>
 <script>
 // se ejecuta cuando ya se han cargado i18n.js, licencia.js y format.js (defer): la pantalla se pinta antes
 document.addEventListener('DOMContentLoaded', () => {
@@ -1096,7 +1099,7 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('resize', () => { segSet($('modeSeg'), engine); });
 
   // ---------- ajustes ----------
-  const CHECKS = { optGloves: true, optVoiceCmd: true, optHeadset: false, optAiFix: true, optGpu: !isMobile, optFormat: true, optPunct: true, optBeep: true, optAwake: false, optAutoCopy: true, optReadBack: false, optAutoWa: false, optAsk: true, optFresh: true, optAutoDrive: false };
+  const CHECKS = { optGloves: true, optVoiceCmd: true, optHeadset: false, optAiFix: true, optGpu: !isMobile, optFormat: true, optPunct: true, optBeep: true, optAwake: false, optAutoCopy: true, optReadBack: false, optAutoWa: false, optAsk: true, optFresh: true, optAutoDrive: false, optWake: false };
   for (const [id, def] of Object.entries(CHECKS)) { $(id).checked = store.get(id, def); $(id).onchange = () => { store.set(id, $(id).checked); if (id === 'optAwake') keepAwake(); }; }
   const on = (id) => $(id).checked;
   const applyGloves = () => { document.documentElement.classList.toggle('gloves', on('optGloves')); requestAnimationFrame(() => { segSet($('modeSeg'), engine); }); };
@@ -1148,6 +1151,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const WHO_SFX = /\s+(?:por favor|please|si us plau|s il te plait|s il vous plait|per favore|bitte|ya|ahora|now)$/;
   // contactos que encajan con lo que has dicho (más de uno si hay dudas: «Marta García» y «Marta López»).
   // strict: solo nombres que suenan igual, para frases que también podrían ser parte del mensaje («Para mañana…»)
+  var favScore = 0;   // cuánto se parece el último nombre encontrado (100 = igual; menos de 75 = oído a medias → te lo confirma)
   function findFavs(who, strict) {
     const w = plain(who).replace(WHO_SFX, '').replace(WHO_PFX, '').trim(); if (!w) return [];
     const pw = phon(w), w1 = w.split(' ')[0], tol = (x) => x.length >= 8 ? 2 : x.length >= 5 ? 1 : 0;
@@ -1161,8 +1165,14 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       if (sc > best) { best = sc; out = [f]; } else if (sc && sc === best && !out.some((o) => o.t === f.t)) out.push(f);
     }
-    return out;
+    favScore = best; return out;
   }
+  // a quién enviaste el último mensaje y a quién escribes más (para «Al mismo», «Respóndele» y el orden de «¿A quién?»)
+  const lastTo = () => { const l = store.get('lastTo', null); return l && l.t ? favs().find((f) => f.t === l.t) || { n: l.n, a: [l.n], t: l.t } : null; };
+  function noteTo(f) { if (!f || !f.t) return; store.set('lastTo', { n: f.n, t: f.t }); const u = store.get('favUse', {}); u[f.t] = (u[f.t] || 0) + 1; store.set('favUse', u); }
+  const favsByUse = () => { const u = store.get('favUse', {}); return favs().map((f, i) => [f, i]).sort((a, b) => (u[b[0].t] || 0) - (u[a[0].t] || 0) || a[1] - b[1]).map((x) => x[0]); };
+  const LASTREF = /^(?:(?:env[ií]a(?:lo|selo)?|m[aá]nda(?:lo|selo)?|envia(?:-ho|-li-ho)?|send it|envoie(?:-le)?|invia(?:lo)?|manda(?:lo)?|schick es|envia(?:-o)?)\s+)?(?:(?:otra vez|de nuevo|un altre cop|again)\s+)?(?:al mismo|a la misma|al de antes|a la de antes|al [uú]ltimo|a la [uú]ltima|al mateix|a la mateixa|al d'abans|(?:to )?the same(?: person)?|(?:to )?the last one|au m[eê]me|à la m[eê]me|allo stesso|alla stessa|an dieselbe person|an denselben|ao mesmo|à mesma)$/;
+  const REPLY = /^(?:resp[oó]nde(?:le|la)|cont[eé]sta(?:le|la)|respon(?:-li|-la)?|contesta(?:-li)?|reply|answer (?:him|her)|r[eé]ponds(?:-lui)?|rispondi(?:gli|le)|antworte(?: ihm| ihr)?|responde(?:-lhe)?)$/;
   function findFav(who, strict) { const r = findFavs(who, strict); return r.length === 1 ? r[0] : null; }
   const listOf = (names, type) => { try { return new Intl.ListFormat(I.locale(), { type: type || 'conjunction' }).format(names); } catch { return names.join(', '); } };
   $('optFavs').value = store.get('favs', '');
@@ -1305,6 +1315,7 @@ document.addEventListener('DOMContentLoaded', () => {
       m.setAttribute('aria-label', m.querySelector('.micLabel').textContent);
     }
   }
+  var toHold = false;   // destinatario elegido antes de dictar: no se borra aunque el mensaje aún esté vacío
   var toWho = null;   // a quién va el mensaje («Dile a Marta que…»)
   // número con prefijo de país, solo cifras: «600 111 222» → 34600111222 · «+33 6…» → 336… · «0033…» → 33… · Francia/Alemania/Reino Unido: 0… según el idioma
   const CCODE = { es: '34', ca: '34', en: '44', fr: '33', it: '39', de: '49', pt: '351' };
@@ -1397,7 +1408,7 @@ document.addEventListener('DOMContentLoaded', () => {
     autosize(); scheduleFit();
     const n = (text.value.trim().match(/\S+/g) || []).length;
     $('count').textContent = t(n === 1 ? '{0} palabra' : '{0} palabras', n);
-    if (!text.value.trim() && !recording && !busy && toWho) { toWho = null; }
+    if (!text.value.trim() && !recording && !busy && toWho && !toHold) { toWho = null; }
     paintTo();
     const f0 = toWho || favs()[0], fav = f0 ? f0.n : '', hasTel = !!f0;
     $$('.waLabel').forEach(l => l.textContent = hasTel ? (fav ? t('A {0}', fav) : t('A favorito')) : 'WhatsApp');
@@ -1489,7 +1500,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function speakSeq(parts, done) {
     parts = parts.filter((x) => x[0]);
     if (!('speechSynthesis' in window) || !parts.length) { done && done(); return; }
-    speechSynthesis.cancel();
+    speechSynthesis.cancel(); stopWake();
     let left = parts.length, fired = false;
     const fin = () => { if (!fired) { fired = true; clearTimeout(guard); done && done(); } };
     const guard = done ? setTimeout(fin, 2500 + parts.reduce((n, x) => n + x[0].length, 0) * 85) : 0;   // por si el móvil no avisa al terminar
@@ -1716,6 +1727,7 @@ document.addEventListener('DOMContentLoaded', () => {
   ].map((x) => new RegExp(x, 'iu'));
   function matchRecipient(str) {
     const x = str.trim().replace(/^[¿¡"«]+/, '');
+    { const m = /^([\p{L}'-]+(?:\s+[\p{L}]+)?)\s*(?:que\b|qu'|that\b|che\b|dass\b|[:,.\-])\s*(.+)$/u.exec(x); const l = m && REPLY.test(normCmd(m[1])) ? lastTo() : null; if (l && m[2].trim()) return { f: l, rest: m[2].trim() }; }
     for (const re of TOWHO) { const m = re.exec(x); if (m) { const f = findFav(m[1], true) || findFav(m[1].split(/\s+/)[0], true); if (f && m[2].trim()) return { f, rest: m[2].trim() }; } }
     return null;
   }
@@ -1903,7 +1915,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
   const LOC = /^(mi ubicaci[oó]n|d[oó]nde estoy|(manda|env[ií]a|a[ñn]ade|pon) mi ubicaci[oó]n|la meva ubicaci[oó]|on s[oó]c|my location|send my location|where i am|ma position|ma localisation|la mia posizione|mein standort|meinen standort|a minha localiza[cç][aã]o|onde estou)$/;
   // sendWho: contacto elegido por voz; sendMiss: nombre que no está en tus contactos; sendAmb: varios posibles («Marta García» o «Marta López»)
-  let sendWho = null, sendVia = '', sendMiss = '', sendAmb = null, toPick = null, editPending = false, callWho = null, callMiss = '';
+  let sendSure = true, sendWho = null, sendVia = '', sendMiss = '', sendAmb = null, toPick = null, editPending = false, callWho = null, callMiss = '';
   // «Para Marta» · «Mensaje para Jordi» · «Mejor a Ana»: elige a quién va sin escribir nada. Solo nombres que suenan igual que un contacto
   const TOONLY = [
     /^(?:(?:un |el )?mensaje |escr[ií]bele |escribe(?:le)? |dile |m[aá]ndale |env[ií]ale |c[aá]mbia(?:lo)?(?: el destinatario)? |mejor |no )?(?:a|al|para) (.+)$/,
@@ -1916,6 +1928,7 @@ document.addEventListener('DOMContentLoaded', () => {
   ];
   function matchToOnly(x) {
     const n = normCmd(x); if (n.split(' ').length > 7) return null;
+    if ((REPLY.test(n) || LASTREF.test(n.replace(/^(?:para|per a|to|pour|per|für|an)\s+/, 'a '))) && lastTo() && !/^(?:env|m[aá]nd|send|invia|schick)/.test(n)) return [lastTo()];
     for (const re of TOONLY) { const m = re.exec(n); if (m && m[1].split(' ').length <= 4) { const r = findFavs(m[1], true); if (r.length) return r; } }
     return null;
   }
@@ -1947,15 +1960,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const TRCMD = /^(?:trad[uú]ce(?:lo)?|tradueix(?:-ho)?|translate(?: it)?|traduis(?:-le)?|traduci(?:lo)?|übersetze?(?: es)?|traduz(?:-o)?)\s+(?:al|a|en|to|into|in|ins|para o|para|em|à)?\s*(?:l')?([\p{L}]+)$/u;
   const LANGW = { en: /^(ingl[eé]s|english|angl[eè]s|anglais|inglese|englisch(e)?|ingl[eê]s)$/, ca: /^(catal[aá]n|catal[aà]|catalan|catalano|katalanisch(e)?|catal[aã]o)$/, es: /^(espa[ñn]ol|castellano|spanish|espanyol|castell[aà]|espagnol|spagnolo|spanisch(e)?|espanhol)$/,
     fr: /^(franc[eé]s|franc[eè]s|french|fran[cç]ais|francese|franz[oö]sisch(e)?|franc[eê]s)$/, it: /^(italiano|itali[aà]|italian|italien|italienisch(e)?)$/, de: /^(alem[aá]n|alemany|german|allemand|tedesco|deutsch(e)?|alem[aã]o)$/, pt: /^(portugu[eé]s|portugu[eè]s|portuguese|portugais|portoghese|portugiesisch(e)?|portugu[eê]s)$/ };
-  function matchSendTo(x) { const n = normCmd(x); for (const l of [lang, ui(), ...Object.keys(SENDTO)]) { const m = SENDTO[l] && SENDTO[l].exec(n); if (m) return m[1]; } return null; }
+  function matchSendTo(x) { const n = normCmd(x); { const m = /^(?:otra vez|de nuevo|tambi[eé]n|un altre cop|tamb[eé]|again|also)\s+(?:a|al|para|per a|to)\s+(.+)$/.exec(n); if (m) return m[1]; } for (const l of [lang, ui(), ...Object.keys(SENDTO)]) { const m = SENDTO[l] && SENDTO[l].exec(n); if (m) return m[1]; } return null; }
   const normCmd = (x) => x.toLowerCase().replace(/[¿¡.,!?;:"«»]/g, '').replace(/\s+/g, ' ').trim();
   function matchCmd(x) {
     let n0 = normCmd(x), via = '';
     const vm = VIA.exec(n0); if (vm) { via = CHAN(vm[1]); n0 = n0.slice(0, vm.index).trim(); }
+    if (LASTREF.test(n0) && /^(?:env|m[aá]nd|send|invia|schick|manda|envoie)/.test(n0)) { sendWho = lastTo(); sendSure = true; sendVia = via; return 'send'; }
     const to = matchSendTo(n0);
     if (to) {
       const r = findFavs(to);
-      if (r.length === 1) { sendWho = r[0]; sendVia = via; return 'send'; }
+      if (r.length === 1) { sendWho = r[0]; sendSure = favScore >= 75; sendVia = via; return 'send'; }
       if (r.length > 1) { sendAmb = r; sendVia = via; return 'send'; }
       if (to.split(' ').length <= 3 && !/^(?:todos|todo el mundo|everyone|tothom|tous|tutti|alle|todos)$/.test(to)) { sendMiss = to; sendVia = via; return 'send'; }
     }
@@ -2016,7 +2030,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // destinatario elegido por voz: «Para Marta» mientras dictas, o al principio y sigues hablando
   function setRecipient(r) {
     if (r.length > 1) { if (recording) stop(); askWho('', r, 'wa', false, true); return; }
-    toWho = r[0]; refresh();
+    toWho = r[0]; toHold = true; refresh();
     const m = t('Para {0}', toWho.n);
     setStatus('👤 ' + m + (text.value.trim() ? '' : ' · ' + t('Dime el mensaje')));
     if (recording) { beep(880); return; }   // en Rápido sigue escuchando: un pitido y el nombre arriba, sin hablar encima
@@ -2025,9 +2039,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   function doSend() {
     pendingSend = false;
-    const f = sendWho || toWho, via = sendVia || 'wa', miss = sendMiss, amb = sendAmb;
-    sendWho = null; sendVia = ''; sendMiss = ''; sendAmb = null;
+    const f = sendWho || toWho, via = sendVia || 'wa', miss = sendMiss, amb = sendAmb, sure = !sendWho || sendSure;
+    sendWho = null; sendVia = ''; sendMiss = ''; sendAmb = null; sendSure = true;
     if (!text.value.trim()) { say('empty'); return; }
+    if (f && !sure && SR) { confirmTo(f, via); return; }   // nombre oído a medias («Yordi»): «¿A Jordi?»
     // sin destinatario y con varios contactos: te pregunta a quién en vez de mandarlo al primero
     if (!f && (via === 'wa' || via === 'sms')) {
       const n = favs().length;
@@ -2040,7 +2055,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let whoTries = 0;
   function askWho(prefix, only, via, again, toOnly) {
     if (!again) whoTries = 0;
-    const list = only || favs();
+    const list = only || favsByUse();
     const q = only ? t('¿{0}?', listOf(only.map((f) => f.n), 'disjunction'))
       : list.length <= 4 || again ? t('¿A quién se lo envío? ¿{0}?', listOf(list.slice(0, 5).map((f) => f.n), 'disjunction')) : t('¿A quién se lo envío?');
     $('drive').classList.add('asking'); setStatus('🗣️ ' + t('¿A quién? Di el nombre') + (toOnly ? '' : ' · ' + t('«elegir» para escogerlo en WhatsApp')));
@@ -2050,8 +2065,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let k = null;
     for (const a of alts) {
       const n = normCmd(a), name = matchSendTo(a) || n.replace(/^(?:s[ií]|yes|oui|ja|sim|vale|ok|pues)\s+/, '');
-      let r = findFavs(name); if (only) r = r.filter((f) => only.some((o) => o.t === f.t));
-      if (r.length === 1) { endAsk(); if (toOnly) setRecipient(r); else { sendVia = via; deliver(r[0], via); } return; }
+      let r = findFavs(name); const sc = favScore; if (only) r = r.filter((f) => only.some((o) => o.t === f.t));
+      if (!r.length && !only && (LASTREF.test(n) || REPLY.test(n)) && lastTo()) r = [lastTo()];
+      if (r.length === 1) { endAsk(); if (toOnly) setRecipient(r); else if (sc && sc < 75 && !only) confirmTo(r[0], via); else deliver(r[0], via); return; }
       if (r.length > 1) { endAsk(); askWho('', r, via, true, toOnly); return; }
       if (!toOnly && PICK.test(n)) { endAsk(); deliver(null, via, true); return; }
       k = k || matchAsk(a);
@@ -2062,9 +2078,24 @@ document.addEventListener('DOMContentLoaded', () => {
     if (++whoTries < 3) { askWho(t('No te he entendido.'), only, via, true, toOnly); return; }
     const m = t('No te he entendido.'); speak(m, ui()); setStatus(m + ' ' + t('Di «envíaselo a …» cuando quieras.'));
   }
+  // «¿A Jordi?»: cuando el nombre se oyó a medias, antes de abrir WhatsApp. «No, a Marta» también vale
+  function confirmTo(f, via) {
+    const q = t('¿A {0}?', f.n);
+    $('drive').classList.add('asking'); setStatus('🗣️ ' + q + ' · ' + t('«sí» o «no»'));
+    speakSeq([[q, ui()]], () => listenOnce((alts) => {
+      endAsk();
+      for (const a of alts) {
+        const k = matchAsk(a);
+        if (k === 'yes' || k === 'send') { deliver(f, via); return; }
+        const n = normCmd(a).replace(/^(?:no|non|nein|não|nao)\s+/, ''), r = n.split(' ').length <= 4 && !k ? findFavs(n, true) : [];
+        if (r.length === 1) { deliver(r[0], via); return; }
+      }
+      askWho('', null, via, true);
+    }, () => setStatus(t('Di «envíaselo a …» cuando quieras.'))));
+  }
   // abre la app con el mensaje; pick: sin número, para elegir el chat en WhatsApp
   function deliver(f, via, pick) {
-    via = via || 'wa';
+    via = via || 'wa'; if (f && (via === 'wa' || via === 'sms')) noteTo(f);
     saveHist(); markSent(); flyPlane();
     const app = { wa: 'WhatsApp', tg: 'Telegram', sms: 'SMS', mail: t('correo') }[via];
     const msg = f && (via === 'wa' || via === 'sms') ? t('Enviando a {0}', f.n) + (via === 'sms' ? ' · SMS' : '') : t('Abriendo {0}', app);
@@ -2096,7 +2127,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!(driving() || toWho) || !on('optAsk') || !SR || !text.value.trim()) return false;
     if (!again) askTries = 0;
     $('drive').classList.add('asking'); setStatus('🗣️ ¿Lo envío? Di «sí», «no», «léelo» o «sigue».');
-    const fl = favs(), one = toWho || (fl.length === 1 ? fl[0] : null);
+    const fl = favsByUse(), one = toWho || (fl.length === 1 ? fl[0] : null);
     const q = one ? t('¿Se lo envío a {0}?', one.n) : fl.length > 1 ? (fl.length <= 4 ? t('¿A quién se lo envío? ¿{0}?', listOf(fl.map((f) => f.n), 'disjunction')) : t('¿A quién se lo envío?')) : t('¿Lo envío?');
     speakSeq([[text.value.trim(), lang], [q, ui()]], listenAnswer);
     return true;
@@ -2108,7 +2139,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // escucha una respuesta corta (hasta 4 versiones de lo oído); none() si no dices nada
   function listenOnce(got1, none) {
     if (!SR || recording) { $('drive').classList.remove('asking'); none && none(); return; }
-    const r = new SR(); asking = r;
+    stopWake(); const r = new SR(); asking = r;
     r.lang = (LANGS[ui()] || LANGS[lang]).sr; r.interimResults = false; r.continuous = false; r.maxAlternatives = 4;
     let got = false;
     const to = setTimeout(() => { try { r.stop(); } catch {} }, 7000);
@@ -2122,8 +2153,9 @@ document.addEventListener('DOMContentLoaded', () => {
     for (const a of alts) {
       const n = normCmd(a), m = /^(?:s[ií]|yes|oui|ja|sim|vale|ok)?\s*(?:a|al|para|to|à|au|an|ao|per a)\s+(.+)$/.exec(n);
       const name = matchSendTo(a) || (m && m[1]) || (whoQ && !matchAsk(a) ? n : '');
-      const r = name ? findFavs(name) : [];
-      if (r.length === 1) { endAsk(); sendWho = r[0]; doSend(); return; }
+      let r = name ? findFavs(name) : []; const sc = favScore;
+      if (!r.length && (LASTREF.test(n) || REPLY.test(n)) && lastTo()) r = [lastTo()];
+      if (r.length === 1) { endAsk(); if (sc && sc < 75) confirmTo(r[0], 'wa'); else { sendWho = r[0]; doSend(); } return; }
       if (r.length > 1) { endAsk(); askWho('', r, 'wa', true); return; }
       if (PICK.test(n)) { endAsk(); deliver(null, 'wa', true); return; }
     }
@@ -2139,6 +2171,38 @@ document.addEventListener('DOMContentLoaded', () => {
     if (++askTries < 2) { $('drive').classList.add('asking'); speakSeq([[t('No te he entendido. ¿Lo envío?'), ui()]], listenAnswer); return; }
     speak(t('No te he entendido.'), ui()); setStatus('Pulsa WhatsApp o di «enviar» cuando quieras.');
   }
+
+  // ---------- escucha continua en conducción: «Mensaje para Marta…», «Dile a Jordi que…», «PerezApp» sin tocar ----------
+  var wakeR = null, wakeOff = 0;
+  const WAKE = /^(?:oye |hola |ok |hey |ei )?p[eé]rez(?: ?app)?$|^(?:nuevo mensaje|mensaje nuevo|escribe|dictar|nou missatge|new message|nouveau message|nuovo messaggio|neue nachricht|nova mensagem)$/;
+  const wakeWanted = () => on('optWake') && !!SR && driving() && licensed && !recording && !busy && !asking && !$('drive').classList.contains('asking')
+    && !document.hidden && !$('outRoot').classList.contains('open') && !(window.speechSynthesis && speechSynthesis.speaking) && Date.now() > wakeOff;
+  function stopWake() { const r = wakeR; wakeR = null; $('drive').classList.remove('wake'); if (r) { r.onend = null; r.onresult = null; r.onerror = null; try { r.abort(); } catch {} } }
+  function wakeTick() {
+    if (!wakeWanted()) { if (wakeR) stopWake(); return; }
+    if (wakeR) return;
+    const r = new SR(); wakeR = r;
+    r.lang = (LANGS[lang] || LANGS[ui()]).sr; r.continuous = true; r.interimResults = false; r.maxAlternatives = 3;
+    r.onresult = (e) => { for (let i = e.resultIndex; i < e.results.length; i++) if (e.results[i].isFinal) { const res = e.results[i]; if (wakeHeard([...Array(res.length)].map((_, j) => res[j].transcript))) return; } };
+    r.onerror = (e) => { if (/not-allowed|service-not-allowed|audio-capture/.test(e.error)) wakeOff = Date.now() + 60000; };
+    r.onend = () => { if (wakeR === r) { wakeR = null; $('drive').classList.remove('wake'); } };
+    try { r.start(); $('drive').classList.add('wake'); } catch { wakeR = null; wakeOff = Date.now() + 5000; }
+  }
+  function wakeHeard(alts) {
+    const fresh = () => { if (text.value.trim()) { saveHist(); setText(''); } toWho = null; };
+    for (const a of alts) {
+      const n = normCmd(a);
+      if (WAKE.test(n)) { stopWake(); fresh(); refresh(); start(); return true; }
+      const cl = matchCall(a); if (cl && cl.f) { stopWake(); callWho = cl.f; runCmd('call'); return true; }
+      const m = matchRecipient(a);
+      if (m) { stopWake(); fresh(); finishChunk(a, false); start(); return true; }
+      const only = matchToOnly(a);
+      if (only) { stopWake(); fresh(); setRecipient(only); return true; }
+    }
+    return false;
+  }
+  setInterval(wakeTick, 1500);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) stopWake(); });
 
   // ---------- botón del casco / auriculares (Media Session) ----------
   let hsAudio = null;
@@ -2481,6 +2545,7 @@ document.addEventListener('DOMContentLoaded', () => {
   $('dUndo').onclick = () => { endAsk(); $('undo').click(); };
   $('dClear').onclick = () => { endAsk(); $('clear').click(); };
   $('wa').addEventListener('click', () => { saveHist(); markSent(); confetti($('wa')); flyPlane(); });
+  [$('wa'), $('wa2')].forEach((b) => b.addEventListener('click', () => noteTo(toWho || favs()[0])));
   for (const id of ['tg', 'sms', 'mail']) $(id).addEventListener('click', () => { if (text.value.trim()) { saveHist(); markSent(); flyPlane(); } }); $('wa2').addEventListener('click', () => { saveHist(); markSent(); confetti($('wa2')); });
   for (const id of ['tg', 'sms', 'mail', 'google']) $(id).addEventListener('click', (e) => {
     if (!text.value.trim()) { e.preventDefault(); toast('No hay texto'); return; }
@@ -2614,7 +2679,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   function getWorker() {
     if (worker) return worker;
-    worker = new Worker('worker.js?v=2026.11.24-31', { type: 'module' });
+    worker = new Worker('worker.js?v=2026.11.25-32', { type: 'module' });
     worker.onerror = () => { if (busy && !recording) { busy = false; setMic('idle'); bar.style.display = 'none'; setStatus('El modelo del móvil ha fallado. Prueba otra vez o usa la nube.', true); } };
     worker.onmessage = ({ data }) => {
       if (model() === 'groq' && !offlinePrep && data.kind !== 'tr' && /progress|ready|status/.test(data.type)) { bar.style.display = 'none'; return; }
@@ -2876,13 +2941,13 @@ document.addEventListener('DOMContentLoaded', () => {
       if (store.get('offlineModel', '')) { setEngine('whisper'); toast('Sin cobertura: uso el modo 🎯 Preciso del móvil.', 3500); }
       else { setStatus('Sin cobertura. Para dictar sin internet, en Ajustes pulsa «Descargar» en «Usar sin cobertura».', true); return; }
     }
-    window.speechSynthesis && window.speechSynthesis.cancel(); endAsk();
+    window.speechSynthesis && window.speechSynthesis.cancel(); endAsk(); stopWake();
     if (sentMark) freshAfterSend();
     insertAt = null;
     if (lastSel && Date.now() - lastSel.t < 20000 && text.value.trim() && (lastSel.s !== lastSel.e || lastSel.s < text.value.trimEnd().length)) insertAt = { s: lastSel.s, e: lastSel.e };
     lastSel = null;
     audioCtx();   // dentro del toque: así el medidor de voz funciona también en iPhone
-    recording = true; setMic('rec'); beep(880); keepAwake(); runTimer(true); $('lTime').textContent = '0:00';
+    recording = true; toHold = false; setMic('rec'); beep(880); keepAwake(); runTimer(true); $('lTime').textContent = '0:00';
     recStart = Date.now();
     { const v = store.get('silence', 1), secs = v === 'auto' ? (driving() ? 3 : 0) : +v;
       $('lHint').textContent = t(secs ? 'Paro solo cuando te calles' : 'Pulsa otra vez cuando acabes · o mantén pulsado mientras hablas'); }
@@ -2927,6 +2992,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!licensed) return;
         if (go === 'conducir') drive(true);
         if (go === 'dictar' && !recording && !busy) start();
+        if (go === 'ultimo' && !recording && !busy) { const l = lastTo(); if (text.value.trim()) { saveHist(); setText(''); } if (l) { toWho = l; toHold = true; } refresh(); start(); }
       }, reduce ? 300 : 1000);
     }
     setTimeout(autoDrive, 1500);

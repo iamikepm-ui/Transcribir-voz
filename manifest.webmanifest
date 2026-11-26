@@ -49,6 +49,19 @@
       ]
     },
     {
+      "name": "Mensaje al último contacto",
+      "short_name": "Al último",
+      "description": "Dicta para la última persona a la que escribiste",
+      "url": "./?go=ultimo",
+      "icons": [
+        {
+          "src": "pz-sc-mic.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
       "name": "Modo conducción",
       "short_name": "Conducir",
       "description": "Pantalla grande para el coche o la moto",
