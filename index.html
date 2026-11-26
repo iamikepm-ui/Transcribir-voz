@@ -385,6 +385,11 @@
   .drive.asking .dstatus { color:#ffd59a; }
   @keyframes askp { 50% { transform:scale(1.07); opacity:.35; } }
   @media (prefers-reduced-motion: reduce) { .drive.asking .mic-wrap::after { animation:none; } }
+  /* cuenta atrás del silencio: el anillo se llena mientras callas y, al llenarse, para y transcribe */
+  .mic-wrap::before { content:''; position:absolute; inset:-5%; border-radius:50%; pointer-events:none; opacity:0; transition:opacity .15s;
+    background:conic-gradient(#ffb547 calc(var(--sil, 0) * 360deg), transparent 0);
+    -webkit-mask:radial-gradient(farthest-side, transparent calc(100% - 6px), #000 calc(100% - 5px)); mask:radial-gradient(farthest-side, transparent calc(100% - 6px), #000 calc(100% - 5px)); }
+  html.sil .mic-wrap::before { opacity:.95; }
   .drive.wake:not(.asking) .mic-wrap::after { content:''; position:absolute; inset:2%; border-radius:50%; border:2px dashed #25d366; opacity:.75; pointer-events:none; }
 
   /* ===== horizontal (móvil en el soporte del coche) ===== */
@@ -807,7 +812,7 @@
       <button class="btn primary" id="licGo">Activar</button>
     </div>
     <a class="wpriv" href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones</a>
-    <small class="wver">v2026.11.26-33</small>
+    <small class="wver">v2026.11.26-34</small>
   </div>
 </div>
 
@@ -1029,7 +1034,6 @@
 
     <h3>Ayuda</h3>
     <div class="help">
-      <p><b>⚡ Rápido</b>: reconocimiento de voz de Google (Chrome). Ves el texto mientras hablas; necesita conexión.</p>
       <p><b>🎯 Preciso</b>: Whisper (OpenAI) o Cohere Transcribe, modelos abiertos de Hugging Face, en el móvil o en la nube. Detectan el idioma solos, ponen tildes y signos y aguantan bien el ruido del coche. En el móvil, la primera vez descargan el modelo (con wifi) y después funcionan sin cobertura.</p>
       <p><b>🌐 Traducir</b>: entre 7 idiomas, con la IA (Groq), el traductor integrado de Chrome u Opus-MT (español ↔ catalán) dentro del móvil. Revisa la traducción; puedes deshacerla.</p>
       <p><b>🚗 Modo conducción</b>: botón enorme y letra grande que se ajusta a la pantalla, también en horizontal en el soporte del coche. Cuando te callas, para solo, te lee el mensaje y te pregunta «¿Lo envío?».</p>
@@ -1038,7 +1042,7 @@
       <p>⚠️ Con el vehículo en marcha no manipules el móvil: usa la voz o el botón del casco, o detente en un lugar seguro. Respeta siempre las normas de tráfico.</p>
       <p>Consejo: menú ⋮ de Chrome → «Añadir a pantalla de inicio».</p>
       <p><a href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones de uso</a></p>
-      <p style="opacity:.6">PerezApp v2026.11.26-33</p>
+      <p style="opacity:.6">PerezApp v2026.11.26-34</p>
     </div>
   </div>
 </div>
@@ -1046,9 +1050,9 @@
 <div class="toast" id="toast"></div>
 <div class="snack" id="snack" role="status"><span id="snackMsg"></span><button id="snackBtn">Deshacer</button></div>
 
-<script src="i18n.js?v=2026.11.26-33" defer></script>
-<script src="licencia.js?v=2026.11.26-33" defer></script>
-<script src="format.js?v=2026.11.26-33" defer></script>
+<script src="i18n.js?v=2026.11.26-34" defer></script>
+<script src="licencia.js?v=2026.11.26-34" defer></script>
+<script src="format.js?v=2026.11.26-34" defer></script>
 <script>
 // se ejecuta cuando ya se han cargado i18n.js, licencia.js y format.js (defer): la pantalla se pinta antes
 document.addEventListener('DOMContentLoaded', () => {
@@ -1404,7 +1408,21 @@ document.addEventListener('DOMContentLoaded', () => {
     else if (!idle && row.parentElement === hint) $('scroll').prepend(row);
   }
   $('hintWrite').onclick = () => { writing = true; paintIdle(); text.focus(); };
-  text.addEventListener('blur', () => { writing = false; setTimeout(paintIdle, 150); });
+  text.addEventListener('blur', () => { writing = false; setTimeout(paintIdle, 150); learnFixes(); });
+  // si corriges a mano un nombre mal oído («Yordi» → «Jordi»), se añade a «Mis palabras» y la próxima vez sale bien
+  function learnFixes() {
+    const d = lastDict; if (!d || !d.out || text.value === d.out) return;
+    const a = d.out.split(/\s+/), b = text.value.split(/\s+/); d.out = text.value;
+    if (a.length !== b.length) return;
+    const clean = (w) => w.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, ''), voc = store.get('vocab', '').split(/\s*,\s*/).filter(Boolean), have = new Set(voc.map(plain)), add = [];
+    for (let i = 0; i < a.length; i++) {
+      const x = clean(a[i]), y = clean(b[i]);
+      if (x && y && x !== y && y.length >= 3 && /^\p{Lu}/u.test(y) && !have.has(plain(y)) && lev(phon(x), phon(y)) <= 2) { add.push(y); have.add(plain(y)); }
+    }
+    if (!add.length) return;
+    const v = voc.concat(add).slice(-40).join(', '); store.set('vocab', v); $('optVocab').value = v;
+    toast('🧠 ' + t('He aprendido: {0}', add.join(', ')), 2600);
+  }
   function refresh() {
     autosize(); scheduleFit();
     const n = (text.value.trim().match(/\S+/g) || []).length;
@@ -1657,10 +1675,10 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch {}
   }
   function meterStop(stopTracks) {
-    clearInterval(meterTimer); target = 0; specT.fill(0);
+    clearInterval(meterTimer); target = 0; specT.fill(0); document.documentElement.classList.remove('sil');
     if (meterSrc) { try { meterSrc.disconnect(); } catch {} meterSrc = null; }
     meterCtx = null;   // el AudioContext se reutiliza (no se cierra): así sigue activo para la próxima vez
-    if (stopTracks && meterStream) meterStream.getTracks().forEach(t => t.stop());
+    if (stopTracks && meterStream) { if (meterStream === warm) releaseMic(); else meterStream.getTracks().forEach(t => t.stop()); }
     meterStream = null;
   }
   let recStart = 0;
@@ -1668,14 +1686,16 @@ document.addEventListener('DOMContentLoaded', () => {
   function checkSilence() {
     if (holding) return;
     const v = store.get('silence', 3), secs = v === 'auto' ? (driving() ? 3 : 0) : +v;
-    if (!recording || !secs) return;
+    if (!recording || !secs) { if (document.documentElement.classList.contains('sil')) document.documentElement.classList.remove('sil'); return; }
     if (engine !== 'live' && (!meterCtx || meterCtx.state !== 'running')) return;   // sin medidor de volumen no sé si hablas
     if (!heardVoice) {   // nadie ha hablado: no se queda grabando (si hay sonido pero no lo distingo, espera más)
       const el = Date.now() - recStart;
       if ((el > 8000 && (engine === 'live' || peakLevel < VOICE_MIN)) || el > 20000) stop();
       return;
     }
-    if (Date.now() - lastVoice > secs * 1000) stop();
+    const q = (Date.now() - lastVoice) / (secs * 1000);
+    document.documentElement.style.setProperty('--sil', Math.min(1, q).toFixed(3)); document.documentElement.classList.toggle('sil', q > 0.12);
+    if (q > 1) stop();
   }
 
   // ---------- limpieza del texto ----------
@@ -1950,9 +1970,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const CHAN = (w) => /whatsapp/.test(w) ? 'wa' : /telegram/.test(w) ? 'tg' : /sms|texto|text/.test(w) ? 'sms' : 'mail';
   const SENDWORD = /^(env[ií]a(lo|selo|le)?|enviar(lo)?|m[aá]nda(lo|selo|le)?|envia(-ho)?|send( it)?|envoie(-le)?|invia(lo)?|schick(e)?( es)?|senden|envia(-o)?)$/;
   const EDIT = {
-    es: { fix: /^(corr[ií]ge(lo)?|rev[ií]salo)$/, formal: /^((hazlo |ponlo )?m[aá]s formal)$/, warm: /^((hazlo |ponlo )?m[aá]s (cercano|cari[ñn]oso))$/, short: /^((hazlo )?m[aá]s corto|ac[oó]rtalo|res[uú]melo)$/, emoji: /^(a[ñn]ade emojis|ponle emojis|con emojis)$/, clearer: /^((hazlo )?m[aá]s claro)$/, copy: /^(c[oó]pialo|copiar)$/, newmsg: /^(nuevo mensaje|mensaje nuevo)$/ },
+    es: { fix: /^(corr[ií]ge(lo)?|rev[ií]salo)$/, formal: /^((hazlo |ponlo )?m[aá]s formal)$/, warm: /^((hazlo |ponlo )?m[aá]s (cercano|cari[ñn]oso))$/, short: /^((hazlo )?m[aá]s corto|ac[oó]rtalo|res[uú]melo)$/, emoji: /^(a[ñn]ade emojis|ponle emojis|con emojis)$/, clearer: /^((hazlo )?m[aá]s claro)$/, retry: /^(reintenta|reintentar|int[eé]ntalo otra vez|vuelve a transcribir|esc[uú]chalo otra vez)$/, copy: /^(c[oó]pialo|copiar)$/, newmsg: /^(nuevo mensaje|mensaje nuevo)$/ },
     ca: { fix: /^(corregeix(-ho)?|revisa-ho)$/, formal: /^((fes-ho )?m[eé]s formal)$/, warm: /^((fes-ho )?m[eé]s proper)$/, short: /^((fes-ho )?m[eé]s curt|escurça-ho)$/, emoji: /^(afegeix emojis|amb emojis)$/, clearer: /^((fes-ho )?m[eé]s clar)$/, copy: /^(copia-ho)$/, newmsg: /^(missatge nou|nou missatge)$/ },
-    en: { fix: /^(fix it|correct it|proofread it)$/, formal: /^((make it )?more formal)$/, warm: /^((make it )?(warmer|friendlier|more friendly))$/, short: /^((make it )?shorter|shorten it)$/, emoji: /^(add emojis)$/, clearer: /^((make it )?clearer)$/, copy: /^(copy it)$/, newmsg: /^(new message)$/ },
+    en: { fix: /^(fix it|correct it|proofread it)$/, formal: /^((make it )?more formal)$/, warm: /^((make it )?(warmer|friendlier|more friendly))$/, short: /^((make it )?shorter|shorten it)$/, emoji: /^(add emojis)$/, clearer: /^((make it )?clearer)$/, retry: /^(retry|try again|transcribe it again)$/, copy: /^(copy it)$/, newmsg: /^(new message)$/ },
     fr: { fix: /^(corrige(-le)?)$/, formal: /^(plus formel)$/, warm: /^(plus chaleureux|plus amical)$/, short: /^(plus court|raccourcis(-le)?)$/, emoji: /^(ajoute des emojis)$/, clearer: /^(plus clair)$/, copy: /^(copie(-le)?)$/, newmsg: /^(nouveau message)$/ },
     it: { fix: /^(correggi(lo)?)$/, formal: /^(più formale)$/, warm: /^(più affettuoso|più amichevole)$/, short: /^(più corto|accorcialo)$/, emoji: /^(aggiungi emoji)$/, clearer: /^(più chiaro)$/, copy: /^(copialo)$/, newmsg: /^(nuovo messaggio)$/ },
     de: { fix: /^(korrigier(e|en)?( es)?)$/, formal: /^(förmlicher)$/, warm: /^(herzlicher|freundlicher)$/, short: /^(kürzer|kürz(e)? es)$/, emoji: /^(emojis hinzufügen|füge emojis hinzu)$/, clearer: /^(klarer)$/, copy: /^(kopier(e|en)? es)$/, newmsg: /^(neue nachricht)$/ },
@@ -2008,6 +2028,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (cmd === 'read') { speak(text.value.trim()); }
     if (cmd === 'loc') { addLocation(); }
     if (['fix', 'formal', 'warm', 'short', 'emoji', 'clearer'].includes(cmd)) { editPending = false; const act = cmd === 'clearer' ? 'clear' : cmd; magic(act, $('magic').querySelector('[data-act=' + act + ']'), false); return; }
+    if (cmd === 'retry') { retryTake(); return; }
     if (cmd === 'copy') { copy(false); return; }
     if (cmd === 'newmsg') { if (text.value) { saveHist(); setText(''); } toWho = null; refresh(); say('clear'); return; }
     if (cmd && cmd.startsWith('tr:')) { editPending = false; const tgt = cmd.slice(3), src = DictadoFormat.detectLang(text.value) || lang; if (text.value.trim() && tgt !== src) translateTo(src, tgt); return; }
@@ -2680,7 +2701,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   function getWorker() {
     if (worker) return worker;
-    worker = new Worker('worker.js?v=2026.11.26-33', { type: 'module' });
+    worker = new Worker('worker.js?v=2026.11.26-34', { type: 'module' });
     worker.onerror = () => { if (busy && !recording) { busy = false; setMic('idle'); bar.style.display = 'none'; setStatus('El modelo del móvil ha fallado. Prueba otra vez o usa la nube.', true); } };
     worker.onmessage = ({ data }) => {
       if (model() === 'groq' && !offlinePrep && data.kind !== 'tr' && /progress|ready|status/.test(data.type)) { bar.style.display = 'none'; return; }
@@ -2720,17 +2741,17 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   async function qDel(id) { if (id == null) return; try { (await qdb()).transaction('audio', 'readwrite').objectStore('audio').delete(id); } catch {} }
   async function qAll() { try { const db = await qdb(); return await new Promise((ok) => { const rq = db.transaction('audio').objectStore('audio').getAll(); rq.onsuccess = () => ok(rq.result || []); rq.onerror = () => ok([]); }); } catch { return []; } }
-  function queueAudio(blob, mime, done) {
-    const it = { blob, mime }; audioQueue.push(it); qPut(it);
+  function queueAudio(blob, mime, done, tries, msg) {
+    const it = { blob, mime, tries: tries || 0 }; audioQueue.push(it); qPut(it);
     while (audioQueue.length > 10) { const old = audioQueue.shift(); old.gone = true; qDel(old.id); }   // como mucho 10
-    done('📶 Sin cobertura: guardo lo que has dicho y lo escribo en cuanto vuelva la señal.');
+    done(msg ? t(msg) : '📶 Sin cobertura: guardo lo que has dicho y lo escribo en cuanto vuelva la señal.');
     if (driving()) speak(t('Sin cobertura. Lo escribo cuando vuelva la señal.'), ui());
   }
   function flushAudio() {
     if (!audioQueue.length || !navigator.onLine || busy || recording) return;
     const it = audioQueue.shift(), { blob, mime } = it; it.gone = true; qDel(it.id);   // si vuelve a fallar, se guarda otra vez
     busy = true; setMic('busy'); toast('📶 Ha vuelto la cobertura: escribiendo tu mensaje…', 3000);
-    Promise.resolve(cloudTranscribe(blob, mime)).finally(() => setTimeout(flushAudio, 800));
+    Promise.resolve(cloudTranscribe(blob, mime, it.tries)).finally(() => setTimeout(flushAudio, 800));
   }
   addEventListener('online', () => setTimeout(flushAudio, 1500));
   setInterval(flushAudio, 15000);   // por si el móvil no avisa al recuperar la señal
@@ -2772,14 +2793,26 @@ document.addEventListener('DOMContentLoaded', () => {
     detectFrom(heard);
     const { text: said, cmd } = splitCommand(heard);
     if (cmd === 'send') pendingSend = true;
-    if (said) { const before = text.value; finishChunk(said, true); setStatus('Listo ✓'); afterDictation(text.value.slice(before.length).trim()); }
+    if (said) {
+      const before = text.value, take = curTake; finishChunk(said, true); setStatus('Listo ✓'); lastDict = take ? { before, take, out: text.value } : null; afterDictation(text.value.slice(before.length).trim());
+      if (take && !driving() && !pendingSend) snack('Listo ✓', '🔁 Reintentar', retryTake, 9000);
+    }
     else if (cmd === 'send') doSend();
     else if (!cmd) setStatus('No se ha entendido nada. Prueba otra vez.', true);
     if (cmd && cmd !== 'send' && cmd !== 'stop') runCmd(cmd);
   }
+  // «Reintentar»: el mismo audio otra vez con el otro modelo de Whisper, en lugar de lo que acaba de salir
+  function retryTake() {
+    if (!lastDict || busy || recording || !licensed) return;
+    const d = lastDict; lastDict = null; setText(d.before, false); retryAlt = true; busy = true; setMic('busy');
+    if (!navigator.onLine) { queueAudio(d.take.blob, d.take.mime, (m, e) => { busy = false; setMic('idle'); m && setStatus(m, e); }); return; }
+    cloudTranscribe(d.take.blob, d.take.mime);
+  }
   function detectFrom(x) { if (!whisperLang()) { const d = DictadoFormat.detectLang(x); if (d) setLang(d); } }
   // Whisper Large v3 en Groq (gratis con clave). El audio va a Groq; la clave solo está en este móvil.
-  async function cloudTranscribe(blob, mime) {
+  var retryAlt = false, curTake = null, lastDict = null;
+  async function cloudTranscribe(blob, mime, tries) {
+    const alt = retryAlt; retryAlt = false; curTake = { blob, mime };
     const key = store.get('groqKey', '');
     const done = (msg, err) => { busy = false; setMic('idle'); if (msg) setStatus(msg, err); };
     if (model() === 'pzcloud') return pzTranscribe(blob, mime, done);
@@ -2794,7 +2827,7 @@ document.addEventListener('DOMContentLoaded', () => {
       fd.append('temperature', '0');
       if (vocab()) fd.append('prompt', vocab());
       let res, data = {};
-      for (const m of ['whisper-large-v3', 'whisper-large-v3-turbo']) {      // si uno llega a su límite, el otro tiene el suyo
+      for (const m of alt ? ['whisper-large-v3-turbo', 'whisper-large-v3'] : ['whisper-large-v3', 'whisper-large-v3-turbo']) {      // si uno llega a su límite, el otro tiene el suyo
         fd.set('model', m);
         const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), 60000);
         try { res = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', { method: 'POST', signal: ctl.signal, headers: { Authorization: 'Bearer ' + key }, body: fd }); }
@@ -2803,7 +2836,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (res.ok || !(res.status === 413 || res.status === 429 || res.status >= 500)) break;
       }
       if (!res.ok && res.status !== 401 && cloud()) { setStatus('Transcribiendo en la nube…'); return pzTranscribe(blob, mime, done); }
-      if (!res.ok) { done(res.status === 401 ? 'La clave de Groq no es válida.' : (res.status === 429 || res.status === 413) ? 'Groq no acepta más audio ahora (límite de su plan gratuito o grabación muy larga). Usa el modo ⚡ Rápido o prueba en un rato.' : t('Error de Groq: {0}', (data.error && data.error.message) || res.status), true); return; }
+      if (res.status === 429 && (tries || 0) < 3) { queueAudio(blob, mime, done, (tries || 0) + 1, 'Groq está al límite ahora: guardo tu audio y lo reintento en un minuto.'); setTimeout(flushAudio, 65000); return; }
+      if (!res.ok) { done(res.status === 401 ? 'La clave de Groq no es válida.' : (res.status === 429 || res.status === 413) ? 'Groq no acepta más audio ahora (límite de su plan gratuito o grabación muy larga). Prueba en un rato.' : t('Error de Groq: {0}', (data.error && data.error.message) || res.status), true); return; }
       done();
       handleHeard(data.text || '');
     } catch (e) { if (!navigator.onLine || e instanceof TypeError || (e && e.name === 'AbortError')) queueAudio(blob, mime, done); else done(t('No se pudo conectar con Groq: {0}', e.message), true); }
@@ -2819,18 +2853,33 @@ document.addEventListener('DOMContentLoaded', () => {
       const w = (o, str) => { for (let i = 0; i < str.length; i++) out.setUint8(o + i, str.charCodeAt(i)); };
       w(0, 'RIFF'); out.setUint32(4, 36 + n * 2, true); w(8, 'WAVE'); w(12, 'fmt '); out.setUint32(16, 16, true); out.setUint16(20, 1, true); out.setUint16(22, 1, true);
       out.setUint32(24, 16000, true); out.setUint32(28, 32000, true); out.setUint16(32, 2, true); out.setUint16(34, 16, true); w(36, 'data'); out.setUint32(40, n * 2, true);
-      let peak = 0;
-      for (let i = 0; i < n; i++) { const v = Math.max(-1, Math.min(1, x[i])); const a = v < 0 ? -v : v; if (a > peak) peak = a; out.setInt16(44 + i * 2, v < 0 ? v * 0x8000 : v * 0x7fff, true); }
+      let peak = 0; for (let i = 0; i < n; i++) { const a = Math.abs(x[i]); if (a > peak) peak = a; }
+      // quita el rumor grave del viento y del motor (filtro de 100 Hz) y sube la voz baja hasta un volumen cómodo (máx. ×6)
+      const y = new Float32Array(n), al = 1 / (1 + 2 * Math.PI * 100 / 16000); let py = 0, px = 0, pk2 = 0;
+      for (let i = 0; i < n; i++) { py = al * (py + x[i] - px); px = x[i]; y[i] = py; const a = Math.abs(py); if (a > pk2) pk2 = a; }
+      const gain = pk2 > 0.003 ? Math.min(6, 0.9 / pk2) : 1;
+      for (let i = 0; i < n; i++) { const v = Math.max(-1, Math.min(1, y[i] * gain)); out.setInt16(44 + i * 2, v < 0 ? v * 0x8000 : v * 0x7fff, true); }
       return { blob: new Blob([out.buffer], { type: 'audio/wav' }), peak };
     } catch { return null; }
   }
+  // el micrófono se deja abierto 30 s tras dictar: la siguiente vez graba al instante y no se pierde el principio
+  let warm = null, warmT = 0;
+  async function micStream() {
+    clearTimeout(warmT);
+    if (warm && warm.getTracks().length && warm.getTracks().every((t) => t.readyState === 'live')) return warm;
+    warm = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
+    return warm;
+  }
+  function dropMic() { clearTimeout(warmT); if (warm) warm.getTracks().forEach((t) => t.stop()); warm = null; }
+  function releaseMic() { clearTimeout(warmT); warmT = setTimeout(() => { if (!recording) dropMic(); }, 30000); }
+  document.addEventListener('visibilitychange', () => { if (document.hidden && !recording) dropMic(); });
   let recToken = 0;
   async function startAI() {
     const tok = ++recToken;
     let stream;
-    try { stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true } }); }
+    try { stream = await micStream(); }
     catch { stop(); setStatus('Permite el micrófono para esta página (icono a la izquierda de la dirección).', true); return; }
-    if (!recording || tok !== recToken) { stream.getTracks().forEach(t => t.stop()); return; }
+    if (!recording || tok !== recToken) { if (stream === warm) releaseMic(); else stream.getTracks().forEach(t => t.stop()); return; }
     chunks = [];
     mediaRec = new MediaRecorder(stream);
     const mr = mediaRec;
@@ -2863,6 +2912,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     mr.start(1000);
     meterStart(stream);
+    beep(880);   // el pitido suena cuando el micro ya graba: no empieces a hablar antes
     setStatus('Grabando… pulsa otra vez cuando acabes');
   }
 
@@ -2948,7 +2998,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (lastSel && Date.now() - lastSel.t < 20000 && text.value.trim() && (lastSel.s !== lastSel.e || lastSel.s < text.value.trimEnd().length)) insertAt = { s: lastSel.s, e: lastSel.e };
     lastSel = null;
     audioCtx();   // dentro del toque: así el medidor de voz funciona también en iPhone
-    recording = true; toHold = false; setMic('rec'); beep(880); keepAwake(); runTimer(true); $('lTime').textContent = '0:00';
+    recording = true; toHold = false; setMic('rec'); if (engine === 'live') beep(880); keepAwake(); runTimer(true); $('lTime').textContent = '0:00';
     recStart = Date.now();
     { const v = store.get('silence', 3), secs = v === 'auto' ? (driving() ? 3 : 0) : +v;
       $('lHint').textContent = t(secs ? 'Paro solo cuando te calles' : 'Pulsa otra vez cuando acabes · o mantén pulsado mientras hablas'); }
@@ -2959,7 +3009,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!recording) return;
     recording = false; beep(520); keepAwake(); runTimer(false);
     if (engine === 'live') { setMic('idle'); stopLive(() => { if (recording) return; if (!insertAt) endSentence(); insertAt = null; if (status.classList.contains('err') && !liveLast) return; setStatus(liveLast ? 'Listo ✓ Pulsa para seguir dictando.' : 'No se ha oído nada. Prueba otra vez.', !liveLast && !text.value.trim()); if (liveLast || pendingSend) afterDictation(liveLast); }); }
-    else { if (mediaRec && mediaRec.state !== 'inactive') { busy = true; setMic('busy'); mediaRec.stop(); } else { setMic('idle'); meterStop(true); } mediaRec = null; }
+    else { if (mediaRec && mediaRec.state !== 'inactive') { busy = true; setMic('busy'); const m = mediaRec; setTimeout(() => { try { m.stop(); } catch {} }, 400); /* 0,4 s más: no se corta la última palabra */ } else { setMic('idle'); meterStop(true); } mediaRec = null; }
   }
   // tocar: empieza / termina. Mantener pulsado: hablas mientras lo mantienes y al soltar termina (como las notas de voz)
   for (const m of [$('mic'), $('mic2')]) {
