@@ -812,7 +812,7 @@
       <button class="btn primary" id="licGo">Activar</button>
     </div>
     <a class="wpriv" href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones</a>
-    <small class="wver">v2026.11.26-34</small>
+    <small class="wver">v2026.11.27-35</small>
   </div>
 </div>
 
@@ -1042,7 +1042,7 @@
       <p>⚠️ Con el vehículo en marcha no manipules el móvil: usa la voz o el botón del casco, o detente en un lugar seguro. Respeta siempre las normas de tráfico.</p>
       <p>Consejo: menú ⋮ de Chrome → «Añadir a pantalla de inicio».</p>
       <p><a href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones de uso</a></p>
-      <p style="opacity:.6">PerezApp v2026.11.26-34</p>
+      <p style="opacity:.6">PerezApp v2026.11.27-35</p>
     </div>
   </div>
 </div>
@@ -1050,9 +1050,9 @@
 <div class="toast" id="toast"></div>
 <div class="snack" id="snack" role="status"><span id="snackMsg"></span><button id="snackBtn">Deshacer</button></div>
 
-<script src="i18n.js?v=2026.11.26-34" defer></script>
-<script src="licencia.js?v=2026.11.26-34" defer></script>
-<script src="format.js?v=2026.11.26-34" defer></script>
+<script src="i18n.js?v=2026.11.27-35" defer></script>
+<script src="licencia.js?v=2026.11.27-35" defer></script>
+<script src="format.js?v=2026.11.27-35" defer></script>
 <script>
 // se ejecuta cuando ya se han cargado i18n.js, licencia.js y format.js (defer): la pantalla se pinta antes
 document.addEventListener('DOMContentLoaded', () => {
@@ -1643,7 +1643,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // nivel del micrófono (para la onda y para parar solo con silencio)
-  let meterCtx = null, meterStream = null, meterSrc = null, meterTimer = 0, lastVoice = 0, heardVoice = false, peakLevel = 0;
+  let meterCtx = null, meterStream = null, meterSrc = null, meterTimer = 0, lastVoice = 0, heardVoice = false, peakLevel = 0, rmsLog = [];
   const VOICE_MIN = 0.7;   // nivel mínimo de voz (escala 0-128): unos -45 dB
   async function meterStart(stream) {
     meterStop();
@@ -1654,7 +1654,7 @@ document.addEventListener('DOMContentLoaded', () => {
       meterSrc = meterCtx.createMediaStreamSource(meterStream); meterSrc.connect(an);
       const fl = !!an.getFloatTimeDomainData, buf = fl ? new Float32Array(an.fftSize) : new Uint8Array(an.fftSize), fb = new Uint8Array(an.frequencyBinCount);
       an.smoothingTimeConstant = 0.6;
-      lastVoice = Date.now(); heardVoice = false; peakLevel = 0;
+      lastVoice = Date.now(); heardVoice = false; peakLevel = 0; rmsLog = [];
       let floor = -1, run = 0, vp = 0;
       meterTimer = setInterval(() => {
         let s = 0;
@@ -1669,6 +1669,7 @@ document.addEventListener('DOMContentLoaded', () => {
         floor = floor < 0 ? rms : rms < floor ? floor + (rms - floor) * 0.3 : floor + (rms - floor) * 0.004;
         // umbral de voz: por encima del ruido de fondo y, si hablas fuerte, no menos de 1/7 de tu volumen (así el ruido que queda al callar no cuenta)
         vp = Math.max(rms, vp * 0.983);   // volumen de tu voz: baja 3 dB por segundo
+        if (rmsLog.length < 7000) rmsLog.push(rms);
         if (rms > Math.max(VOICE_MIN, floor * 2 + 0.3, Math.min(5, vp * 0.15))) { if (++run >= 3) { lastVoice = Date.now(); heardVoice = true; } } else run = 0;
         checkSilence();
       }, 50);
@@ -2701,7 +2702,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   function getWorker() {
     if (worker) return worker;
-    worker = new Worker('worker.js?v=2026.11.26-34', { type: 'module' });
+    worker = new Worker('worker.js?v=2026.11.27-35', { type: 'module' });
     worker.onerror = () => { if (busy && !recording) { busy = false; setMic('idle'); bar.style.display = 'none'; setStatus('El modelo del móvil ha fallado. Prueba otra vez o usa la nube.', true); } };
     worker.onmessage = ({ data }) => {
       if (model() === 'groq' && !offlinePrep && data.kind !== 'tr' && /progress|ready|status/.test(data.type)) { bar.style.display = 'none'; return; }
@@ -2776,7 +2777,13 @@ document.addEventListener('DOMContentLoaded', () => {
       done(); handleHeard((d.text || '').trim());
     } catch (e) { if (!navigator.onLine || /cobertura/.test(e.message)) queueAudio(blob, mime, done); else done(t(e.message), true); }
   }
-  var quietTake = false;
+  var quietTake = false, noisyTake = false;
+  // ¿se oye tu voz mucho más que el ruido? Menos de ~13 dB entre lo más alto y el fondo: el micro está lejos o hay mucho ruido
+  function noiseCheck() {
+    if (rmsLog.length < 40) return false;
+    const a = rmsLog.slice().sort((x, y) => x - y), lo = a[Math.floor(a.length * 0.15)], hi = a[Math.floor(a.length * 0.9)];
+    return hi > 3 && 20 * Math.log10(hi / Math.max(lo, 0.3)) < 13;   // la voz apenas destaca sobre el ruido de fondo
+  }
   const HALLU_ALWAYS = /(subt[ií]tulos?|subt[ií]tols|sous-titres|sottotitoli|legendas|subtitles)[^.]*amara\.org|untertitel(ung)?[^.]*zdf/i;
   const HALLU_QUIET = /^(¡?gracias|muchas gracias|gracias por ver( el v[ií]deo)?|¡?suscr[ií]bete( al canal)?|hasta la pr[oó]xima|gr[aà]cies|thank you|thanks( for watching)?|you|bye|merci|grazie|danke|vielen dank|obrigad[oa])[.!¡ ]*$/i;
   // limpia lo que devuelve Whisper: quita los créditos de subtítulos que se inventa y, si no se distinguió voz, los «Gracias.» sueltos
@@ -2795,7 +2802,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (cmd === 'send') pendingSend = true;
     if (said) {
       const before = text.value, take = curTake; finishChunk(said, true); setStatus('Listo ✓'); lastDict = take ? { before, take, out: text.value } : null; afterDictation(text.value.slice(before.length).trim());
-      if (take && !driving() && !pendingSend) snack('Listo ✓', '🔁 Reintentar', retryTake, 9000);
+      if (take && !driving() && !pendingSend) { const nz = noisyTake; setTimeout(() => { if (lastDict && lastDict.take === take && !recording && !busy) snack(nz ? 'Hay mucho ruido: acerca el micro a la boca' : 'Listo ✓', '🔁 Reintentar', retryTake, nz ? 12000 : 9000); }, 700); }   // tras el aviso de «Copiado»
+      else if (noisyTake && driving()) setStatus(t('Hay mucho ruido: acerca el micro a la boca'));
     }
     else if (cmd === 'send') doSend();
     else if (!cmd) setStatus('No se ha entendido nada. Prueba otra vez.', true);
@@ -2888,7 +2896,7 @@ document.addEventListener('DOMContentLoaded', () => {
       meterStop(true);
       const blob = new Blob(chunks, { type: mr.mimeType });
       if (!blob.size) { busy = false; setMic('idle'); setStatus('No se ha grabado nada: revisa el permiso del micrófono.', true); return; }
-      quietTake = !heardVoice;   // el medidor no distinguió voz: se transcribe igual, pero se filtran las «alucinaciones» de Whisper
+      noisyTake = noiseCheck(); quietTake = !heardVoice;   // el medidor no distinguió voz: se transcribe igual, pero se filtran las «alucinaciones» de Whisper
       busy = true; setMic('busy');
       if (model() === 'groq' || model() === 'pzcloud') {
         // a la nube va en WAV (16 kHz, mono): lleva la duración exacta. El WebM de Android no la indica y Groq la calcula mal
