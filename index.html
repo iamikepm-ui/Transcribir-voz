@@ -812,7 +812,7 @@
       <button class="btn primary" id="licGo">Activar</button>
     </div>
     <a class="wpriv" href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones</a>
-    <small class="wver">v2026.11.27-35</small>
+    <small class="wver">v2026.11.27-36</small>
   </div>
 </div>
 
@@ -1028,6 +1028,7 @@
     <h3>Datos</h3>
     <div class="group">
       <div class="opt" id="licRow" hidden><div class="lbl">Licencia<small id="licInfo"></small></div><a class="danger" id="licRenew" href="https://wa.me/" target="_blank" rel="noopener" style="color:var(--a1);text-decoration:none">Renovar</a></div>
+      <div class="opt col"><div class="lbl">Diagnóstico<small>Para ver por qué falla la voz en tu móvil. No incluye tus textos, contactos ni claves</small></div><pre id="diagOut" hidden style="white-space:pre-wrap;word-break:break-word;font:12px/1.45 ui-monospace,monospace;margin:8px 0;padding:10px;border-radius:12px;background:var(--glass);border:1px solid var(--line);user-select:text"></pre><div style="display:flex;gap:8px"><button class="btn ghost small" id="diagBtn">Ver diagnóstico</button><button class="btn ghost small" id="diagCopy" hidden>Copiar</button></div></div>
       <div class="opt"><div class="lbl">Historial de mensajes</div><button class="danger" id="delHist">Borrar</button></div>
       <div class="opt"><div class="lbl">Modelos de IA descargados<small id="storeInfo">Ocupan espacio en el móvil</small></div><button class="danger" id="delModels">Borrar</button></div>
     </div>
@@ -1042,7 +1043,7 @@
       <p>⚠️ Con el vehículo en marcha no manipules el móvil: usa la voz o el botón del casco, o detente en un lugar seguro. Respeta siempre las normas de tráfico.</p>
       <p>Consejo: menú ⋮ de Chrome → «Añadir a pantalla de inicio».</p>
       <p><a href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones de uso</a></p>
-      <p style="opacity:.6">PerezApp v2026.11.27-35</p>
+      <p style="opacity:.6">PerezApp v2026.11.27-36</p>
     </div>
   </div>
 </div>
@@ -1050,9 +1051,9 @@
 <div class="toast" id="toast"></div>
 <div class="snack" id="snack" role="status"><span id="snackMsg"></span><button id="snackBtn">Deshacer</button></div>
 
-<script src="i18n.js?v=2026.11.27-35" defer></script>
-<script src="licencia.js?v=2026.11.27-35" defer></script>
-<script src="format.js?v=2026.11.27-35" defer></script>
+<script src="i18n.js?v=2026.11.27-36" defer></script>
+<script src="licencia.js?v=2026.11.27-36" defer></script>
+<script src="format.js?v=2026.11.27-36" defer></script>
 <script>
 // se ejecuta cuando ya se han cargado i18n.js, licencia.js y format.js (defer): la pantalla se pinta antes
 document.addEventListener('DOMContentLoaded', () => {
@@ -2702,7 +2703,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   function getWorker() {
     if (worker) return worker;
-    worker = new Worker('worker.js?v=2026.11.27-35', { type: 'module' });
+    worker = new Worker('worker.js?v=2026.11.27-36', { type: 'module' });
     worker.onerror = () => { if (busy && !recording) { busy = false; setMic('idle'); bar.style.display = 'none'; setStatus('El modelo del móvil ha fallado. Prueba otra vez o usa la nube.', true); } };
     worker.onmessage = ({ data }) => {
       if (model() === 'groq' && !offlinePrep && data.kind !== 'tr' && /progress|ready|status/.test(data.type)) { bar.style.display = 'none'; return; }
@@ -2782,6 +2783,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function noiseCheck() {
     if (rmsLog.length < 40) return false;
     const a = rmsLog.slice().sort((x, y) => x - y), lo = a[Math.floor(a.length * 0.15)], hi = a[Math.floor(a.length * 0.9)];
+    diag.lvl = { lo, hi, db: 20 * Math.log10(hi / Math.max(lo, 0.3)) };
     return hi > 3 && 20 * Math.log10(hi / Math.max(lo, 0.3)) < 13;   // la voz apenas destaca sobre el ruido de fondo
   }
   const HALLU_ALWAYS = /(subt[ií]tulos?|subt[ií]tols|sous-titres|sottotitoli|legendas|subtitles)[^.]*amara\.org|untertitel(ung)?[^.]*zdf/i;
@@ -2796,6 +2798,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   function handleHeard(heard) {
     heard = cleanHeard(heard);
+    if (diag.take && curTake && curTake.t0) { diag.take.ms = Date.now() - curTake.t0; diag.take.words = (heard.match(/\S+/g) || []).length; }
     if (!heard) { setStatus('No se ha oído nada. Prueba otra vez.', true); return; }
     detectFrom(heard);
     const { text: said, cmd } = splitCommand(heard);
@@ -2820,9 +2823,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // Whisper Large v3 en Groq (gratis con clave). El audio va a Groq; la clave solo está en este móvil.
   var retryAlt = false, curTake = null, lastDict = null;
   async function cloudTranscribe(blob, mime, tries) {
-    const alt = retryAlt; retryAlt = false; curTake = { blob, mime };
+    const alt = retryAlt; retryAlt = false; curTake = { blob, mime, t0: Date.now() }; if (diag.take) diag.take.tries = (diag.take.tries || 0) + (alt ? 1 : 0);
     const key = store.get('groqKey', '');
-    const done = (msg, err) => { busy = false; setMic('idle'); if (msg) setStatus(msg, err); };
+    const done = (msg, err) => { busy = false; setMic('idle'); if (msg) setStatus(msg, err); if (err) diag.err = String(msg).slice(0, 120); };
     if (model() === 'pzcloud') return pzTranscribe(blob, mime, done);
     if (!key) { done('Falta la clave de Groq: ponla en Ajustes.', true); openSheet(true); return; }
     if (!navigator.onLine) { queueAudio(blob, mime, done); return; }
@@ -2841,6 +2844,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try { res = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', { method: 'POST', signal: ctl.signal, headers: { Authorization: 'Bearer ' + key }, body: fd }); }
         finally { clearTimeout(to); }
         data = await res.json().catch(() => ({}));
+        if (res.ok && diag.take) diag.take.model = m;
         if (res.ok || !(res.status === 413 || res.status === 429 || res.status >= 500)) break;
       }
       if (!res.ok && res.status !== 401 && cloud()) { setStatus('Transcribiendo en la nube…'); return pzTranscribe(blob, mime, done); }
@@ -2870,17 +2874,38 @@ document.addEventListener('DOMContentLoaded', () => {
       return { blob: new Blob([out.buffer], { type: 'audio/wav' }), peak };
     } catch { return null; }
   }
+  var diag = {};   // datos técnicos de la última grabación (solo en este móvil; sin textos ni claves)
   // el micrófono se deja abierto 30 s tras dictar: la siguiente vez graba al instante y no se pierde el principio
   let warm = null, warmT = 0;
   async function micStream() {
     clearTimeout(warmT);
     if (warm && warm.getTracks().length && warm.getTracks().every((t) => t.readyState === 'live')) return warm;
     warm = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
+    try { const tr = warm.getAudioTracks()[0]; diag.mic = { label: tr.label, settings: tr.getSettings() }; } catch {}
     return warm;
   }
   function dropMic() { clearTimeout(warmT); if (warm) warm.getTracks().forEach((t) => t.stop()); warm = null; }
   function releaseMic() { clearTimeout(warmT); warmT = setTimeout(() => { if (!recording) dropMic(); }, 30000); }
   document.addEventListener('visibilitychange', () => { if (document.hidden && !recording) dropMic(); });
+  function diagText() {
+    const L = [], n = navigator, c = n.connection || {}, m = diag.mic, st = (m && m.settings) || {}, k = diag.take, v = diag.lvl;
+    const yn = (x) => x === undefined ? '¿?' : x ? 'sí' : 'no', ua = n.userAgent.replace(/^Mozilla\/5\.0 /, '').slice(0, 150);
+    L.push('PerezApp ' + (document.querySelector('.wver') || {}).textContent, 'Navegador: ' + ua);
+    L.push('Pantalla: ' + innerWidth + '×' + innerHeight + ' @' + (devicePixelRatio || 1) + ' · app ' + ui() + ' · dictado ' + (dictPref() === 'auto' ? 'automático' : dictPref()) + ' · silencio ' + store.get('silence', 3) + ' s');
+    L.push('Modo: ' + (trial ? 'prueba gratis (Rápido)' : 'Preciso · ' + ({ groq: 'Groq con tu clave', pzcloud: 'nube PerezApp' }[model()] || 'modelo del móvil ' + model())) + ' · ' + (licensed ? 'con licencia' : 'sin licencia'));
+    L.push('Red: ' + (n.onLine ? 'conectado' : 'sin conexión') + (c.effectiveType ? ' ' + c.effectiveType : '') + (c.downlink ? ' · ' + c.downlink + ' Mbps' : '') + (c.rtt ? ' · ' + c.rtt + ' ms' : ''));
+    if (m) L.push('Micrófono: «' + (m.label || 'sin nombre') + '» · ' + (st.sampleRate || '?') + ' Hz · ' + (st.channelCount || '?') + ' canal · filtro de ruido ' + yn(st.noiseSuppression) + ' · volumen automático ' + yn(st.autoGainControl) + ' · anti-eco ' + yn(st.echoCancellation));
+    else L.push('Micrófono: aún no se ha usado en esta sesión (graba algo y vuelve a verlo)');
+    if (k) {
+      L.push('Última grabación: ' + k.dur.toFixed(1) + ' s · ' + Math.round(k.bytes / 1024) + ' KB · voz detectada: ' + yn(k.voice) + ' · pico ' + k.peak.toFixed(1));
+      if (v) L.push('Nivel: fondo ' + v.lo.toFixed(1) + ' · voz ' + v.hi.toFixed(1) + ' · diferencia ' + v.db.toFixed(0) + ' dB' + (k.noisy ? ' → AVISO DE RUIDO' : ' (bien: más de 13)'));
+      L.push('Transcripción: ' + (k.ms ? (k.ms / 1000).toFixed(1) + ' s' : 'sin resultado') + ' · ' + (k.model || '—') + ' · ' + k.words + ' palabras · reintentos ' + k.tries);
+    } else L.push('Última grabación: ninguna todavía');
+    if (diag.err) L.push('Último error: ' + diag.err);
+    return L.join('\n');
+  }
+  $('diagBtn').onclick = () => { const o = $('diagOut'); o.textContent = diagText(); o.hidden = false; $('diagCopy').hidden = false; $('diagBtn').textContent = t('Actualizar'); };
+  $('diagCopy').onclick = async () => { try { await navigator.clipboard.writeText($('diagOut').textContent); toast('✓ Copiado'); } catch { const r = document.createRange(); r.selectNodeContents($('diagOut')); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); toast('Selecciónalo y cópialo'); } };
   let recToken = 0;
   async function startAI() {
     const tok = ++recToken;
@@ -2896,7 +2921,7 @@ document.addEventListener('DOMContentLoaded', () => {
       meterStop(true);
       const blob = new Blob(chunks, { type: mr.mimeType });
       if (!blob.size) { busy = false; setMic('idle'); setStatus('No se ha grabado nada: revisa el permiso del micrófono.', true); return; }
-      noisyTake = noiseCheck(); quietTake = !heardVoice;   // el medidor no distinguió voz: se transcribe igual, pero se filtran las «alucinaciones» de Whisper
+      diag.lvl = null; noisyTake = noiseCheck(); quietTake = !heardVoice; diag.take = { dur: (Date.now() - recStart) / 1000, bytes: blob.size, noisy: noisyTake, voice: heardVoice, peak: peakLevel, ms: 0, words: 0, model: '', tries: 0 }; diag.err = diag.err || '';   // el medidor no distinguió voz: se transcribe igual, pero se filtran las «alucinaciones» de Whisper
       busy = true; setMic('busy');
       if (model() === 'groq' || model() === 'pzcloud') {
         // a la nube va en WAV (16 kHz, mono): lleva la duración exacta. El WebM de Android no la indica y Groq la calcula mal
