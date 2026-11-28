@@ -2,7 +2,7 @@
 // - Páginas y archivos de la app: primero la red (para tener siempre la última versión) y, si no hay o tarda más de 2,5 s, la copia guardada.
 // - Librerías de jsdelivr (motor de IA, versión fija): primero la copia guardada.
 // - Los modelos de Hugging Face los guarda el propio motor de IA (Transformers.js) en su caché.
-const SHELL = 'pz-shell-v4', CDN = 'pz-cdn-v1';
+const SHELL = 'pz-shell-v5', CDN = 'pz-cdn-v1';
 const FILES = ['./', 'index.html', 'i18n.js', 'licencia.js', 'format.js', 'worker.js', 'logo.svg', 'manifest.webmanifest',
   'pz-icon-192.png', 'pz-icon-512.png', 'pz-icon-maskable.png', 'pz-apple-touch-icon.png', 'privacidad.html'];
 
@@ -38,8 +38,22 @@ async function cacheFirst(req) {
   return res;
 }
 
+// «Compartir» un audio o un texto con PerezApp: se guarda y se abre la app para transcribirlo
+async function handleShare(req) {
+  try {
+    const fd = await req.formData(), cache = await caches.open('pz-share');
+    for (const k of await cache.keys()) await cache.delete(k);
+    const f = fd.get('audio');
+    if (f && f.size) await cache.put('shared-audio', new Response(f, { headers: { 'Content-Type': f.type || 'audio/ogg' } }));
+    const txt = ['title', 'text', 'url'].map((k) => fd.get(k)).filter((v) => typeof v === 'string' && v).join('\n').trim();
+    if (txt) await cache.put('shared-text', new Response(txt, { headers: { 'Content-Type': 'text/plain; charset=utf-8' } }));
+  } catch {}
+  return Response.redirect(new URL('./?shared=1', location).href, 303);
+}
+
 self.addEventListener('fetch', (e) => {
   const req = e.request;
+  if (req.method === 'POST' && new URL(req.url).pathname.endsWith('/share-target')) { e.respondWith(handleShare(req)); return; }
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   if (url.origin === location.origin) {

@@ -812,7 +812,7 @@
       <button class="btn primary" id="licGo">Activar</button>
     </div>
     <a class="wpriv" href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones</a>
-    <small class="wver">v2026.11.27-36</small>
+    <small class="wver">v2026.11.28-37</small>
   </div>
 </div>
 
@@ -883,6 +883,7 @@
       <li><b>«Corrígelo» · «Más formal» · «Más corto» · «Añade emojis»</b><small>Retocar el mensaje con la IA</small></li>
       <li><b>«Tradúcelo al inglés»</b><small>Traducir a otro idioma</small></li>
       <li><b>«Léelo» · «Deshacer» · «Borra todo» · «Cópialo»</b><small>Revisar sin mirar</small></li>
+      <li><b>«Emoji corazón» · «Emoji risa» · «Emoji pulgar arriba»</b><small>Añade un emoji (también beso, fuego, aplauso, coche, moto…)</small></li>
       <li><b>«Mi ubicación»</b><small>Añadir un enlace con dónde estás</small></li>
       <li><b>«Coma» · «Punto» · «Punto y aparte»</b><small>Puntuación (castellano y catalán)</small></li>
       <li><b>«Sí» · «No» · «Sigue» · «A Jordi»</b><small>Respuestas cuando te pregunta «¿Lo envío?»</small></li>
@@ -1038,12 +1039,13 @@
       <p><b>🎯 Preciso</b>: Whisper (OpenAI) o Cohere Transcribe, modelos abiertos de Hugging Face, en el móvil o en la nube. Detectan el idioma solos, ponen tildes y signos y aguantan bien el ruido del coche. En el móvil, la primera vez descargan el modelo (con wifi) y después funcionan sin cobertura.</p>
       <p><b>🌐 Traducir</b>: entre 7 idiomas, con la IA (Groq), el traductor integrado de Chrome u Opus-MT (español ↔ catalán) dentro del móvil. Revisa la traducción; puedes deshacerla.</p>
       <p><b>🚗 Modo conducción</b>: botón enorme y letra grande que se ajusta a la pantalla, también en horizontal en el soporte del coche. Cuando te callas, para solo, te lee el mensaje y te pregunta «¿Lo envío?».</p>
+      <p><b>🎧 Audios que te mandan</b>: en WhatsApp, mantén pulsado el audio → Compartir → PerezApp. Te lo escribo y, en modo conducción, te lo leo. Funciona con la app instalada en el móvil y con tu clave.</p>
       <p><b>📤 Enviar</b>: WhatsApp (botón verde), Telegram, SMS, correo, búsqueda en Google o «Más» para cualquier otra app del móvil. Los ✓✓ se ponen azules cuando lo copias o lo envías.</p>
       <p><b>🏍️ Manos libres</b>: en modo conducción no hace falta mirar ni tocar. Responde «sí» para abrir WhatsApp con el mensaje, «no» para guardarlo, «léelo» para oírlo otra vez o «sigue» para añadir más. Mientras dictas también valen «enviar», «borrar todo» y «deshacer». El último toque en «Enviar» de WhatsApp es tuyo, porque WhatsApp no deja que ninguna app envíe por ti.</p>
       <p>⚠️ Con el vehículo en marcha no manipules el móvil: usa la voz o el botón del casco, o detente en un lugar seguro. Respeta siempre las normas de tráfico.</p>
       <p>Consejo: menú ⋮ de Chrome → «Añadir a pantalla de inicio».</p>
       <p><a href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones de uso</a></p>
-      <p style="opacity:.6">PerezApp v2026.11.27-36</p>
+      <p style="opacity:.6">PerezApp v2026.11.28-37</p>
     </div>
   </div>
 </div>
@@ -1051,9 +1053,9 @@
 <div class="toast" id="toast"></div>
 <div class="snack" id="snack" role="status"><span id="snackMsg"></span><button id="snackBtn">Deshacer</button></div>
 
-<script src="i18n.js?v=2026.11.27-36" defer></script>
-<script src="licencia.js?v=2026.11.27-36" defer></script>
-<script src="format.js?v=2026.11.27-36" defer></script>
+<script src="i18n.js?v=2026.11.28-37" defer></script>
+<script src="licencia.js?v=2026.11.28-37" defer></script>
+<script src="format.js?v=2026.11.28-37" defer></script>
 <script>
 // se ejecuta cuando ya se han cargado i18n.js, licencia.js y format.js (defer): la pantalla se pinta antes
 document.addEventListener('DOMContentLoaded', () => {
@@ -1707,6 +1709,14 @@ document.addEventListener('DOMContentLoaded', () => {
     ca: [[/\s*\b(punt i a part|nova l[ií]nia|nou par[aà]graf)\b\s*/gi, '.\n'], [/\s*\b(punt i seguit|punt final)\b\s*/gi, '. '], [/\s*\bpunts suspensius\b\s*/gi, '... '], [/\s*\bdos punts\b\s*/gi, ': '], [/\s*\bpunt i coma\b\s*/gi, '; '],
          [/\s*\b(signe d')?interrogant\b\s*/gi, '? '], [/\s*\b(signe d')?exclamaci[oó]\b\s*/gi, '! '], [/\s*\bpunt\b\s*/gi, '. '], [/\s*\bcoma\b\s*/gi, ', ']],
   };
+  // «emoji corazón», «emoji risa»…: funciona en cualquier modo. Hace falta decir «emoji», así «me duele el corazón» se queda como está
+  const EMO = { 'corazón|corazon|cor|heart|coeur|cuore|herz|coração': '❤️', 'risa|riure|laugh|laughing|rire|risata|lachen|riso': '😂', 'sonrisa|somriure|smile|sourire|sorriso|lächeln': '😊', 'guiño|guinyada|wink|clin d.œil|occhiolino|zwinkern|piscadela': '😉',
+    'pulgar arriba|polze amunt|thumbs up|pouce|pollice|daumen hoch|joinha': '👍', 'beso|petó|kiss|bisou|bacio|kuss|beijo': '😘', 'llorar|plorar|cry|pleurer|piangere|weinen|chorar': '😢', 'enfado|enuig|angry|colère|arrabbiato|wütend|raiva': '😠', 'aplauso|aplaudiment|clap|applaudissement|applauso|applaus|palmas': '👏',
+    'fuego|foc|fire|feu|fuoco|feuer|fogo': '🔥', 'fiesta|festa|party|fête|feier': '🎉', 'ok|vale|d.acord|okay': '👌', 'gafas de sol|ulleres de sol|cool|sunglasses|lunettes de soleil|occhiali da sole|sonnenbrille|óculos de sol': '😎', 'abrazo|abraçada|hug|câlin|abbraccio|umarmung|abraço': '🤗',
+    'rezar|pregar|pray|prier|pregare|beten|rezando|gracias|gràcies': '🙏', 'coche|cotxe|car|voiture|auto|carro': '🚗', 'moto|motorbike|motorcycle|motocicleta': '🏍️', 'cerveza|cervesa|beer|bière|birra|bier|cerveja': '🍺', 'café|cafè|coffee|caffè|kaffee': '☕' };
+  const EMO_RE = new RegExp('\\b(?:emojis?|emoticon[eo]s?|emoticona)\\s+(?:de\\s+|d.\\s*)?(?:(?:un|una|el|la|l.)\\s+)?(' + Object.keys(EMO).join('|') + ')(?![\\p{L}])([.,!?]?)', 'giu');
+  const EMO_MAP = {}; for (const [k, v] of Object.entries(EMO)) for (const w of k.split('|')) EMO_MAP[w.replace(/\./g, "'")] = v;
+  const emojify = (s) => s.replace(EMO_RE, (m, w, pn) => { const e = EMO_MAP[w.toLowerCase().replace(/[’']/g, "'")] || EMO_MAP[w.toLowerCase().replace(/[’.]/g, "'")]; return e ? e + pn : m; }).replace(/\s+([.,!?])/g, '$1').replace(/ {2,}/g, ' ');
   const voiceCommands = (s) => { for (const [re, r] of (CMDS[lang] || [])) s = s.replace(re, r); return s; };
   function tidy(s, live) {
     s = s.replace(/[ \t]+/g, ' ').replace(/ +([,.;:?!…])/g, '$1').replace(/([,;:])(?=[a-zà-ÿ¿¡])/gi, '$1 ')
@@ -1755,7 +1765,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return null;
   }
   function finishChunk(raw, fromAI) { let s = raw.trim(); if (!s) return;
-    if (!text.value.trim() && on('optVoiceCmd')) { const m = matchRecipient(s); if (m) { toWho = m.f; s = m.rest.charAt(0).toUpperCase() + m.rest.slice(1); paintTo(); } } if (!fromAI && on('optPunct')) s = voiceCommands(s); bumpStat('w', (s.match(/[\p{L}\p{N}]+/gu) || []).length); append(tidy(s, !fromAI)); }
+    if (!text.value.trim() && on('optVoiceCmd')) { const m = matchRecipient(s); if (m) { toWho = m.f; s = m.rest.charAt(0).toUpperCase() + m.rest.slice(1); paintTo(); } } s = emojify(s); if (!fromAI && on('optPunct')) s = voiceCommands(s); bumpStat('w', (s.match(/[\p{L}\p{N}]+/gu) || []).length); append(tidy(s, !fromAI)); }
   function endSentence() { const v = text.value.replace(/\s+$/, ''); if (v && !/[.?!…:;,]$/.test(v) && !/https?:\/\/\S+$/.test(v)) setText(v + '.'); }
   // ---------- IA de texto en Groq: corregir, retocar y traducir ----------
   var trial = false;   // prueba gratis: solo modo Rápido (Google) o modelos del móvil; nada del servidor
@@ -2703,7 +2713,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   function getWorker() {
     if (worker) return worker;
-    worker = new Worker('worker.js?v=2026.11.27-36', { type: 'module' });
+    worker = new Worker('worker.js?v=2026.11.28-37', { type: 'module' });
     worker.onerror = () => { if (busy && !recording) { busy = false; setMic('idle'); bar.style.display = 'none'; setStatus('El modelo del móvil ha fallado. Prueba otra vez o usa la nube.', true); } };
     worker.onmessage = ({ data }) => {
       if (model() === 'groq' && !offlinePrep && data.kind !== 'tr' && /progress|ready|status/.test(data.type)) { bar.style.display = 'none'; return; }
@@ -2796,8 +2806,16 @@ document.addEventListener('DOMContentLoaded', () => {
     quietTake = false;
     return v;
   }
+  var importMode = false;
   function handleHeard(heard) {
     heard = cleanHeard(heard);
+    if (importMode) {   // audio recibido por WhatsApp: se escribe tal cual, sin órdenes de voz ni envío automático
+      importMode = false;
+      if (!heard) { setStatus('No se ha oído nada en ese audio.', true); return; }
+      detectFrom(heard); saveHist(); setText(heard); setStatus('Listo ✓'); stamp();
+      if (driving() || on('optReadBack')) speak(heard, lang);
+      return;
+    }
     if (diag.take && curTake && curTake.t0) { diag.take.ms = Date.now() - curTake.t0; diag.take.words = (heard.match(/\S+/g) || []).length; }
     if (!heard) { setStatus('No se ha oído nada. Prueba otra vez.', true); return; }
     detectFrom(heard);
@@ -2906,6 +2924,39 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   $('diagBtn').onclick = () => { const o = $('diagOut'); o.textContent = diagText(); o.hidden = false; $('diagCopy').hidden = false; $('diagBtn').textContent = t('Actualizar'); };
   $('diagCopy').onclick = async () => { try { await navigator.clipboard.writeText($('diagOut').textContent); toast('✓ Copiado'); } catch { const r = document.createRange(); r.selectNodeContents($('diagOut')); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); toast('Selecciónalo y cópialo'); } };
+  // audios que te llegan (WhatsApp → mantener pulsado → Compartir → PerezApp): se transcriben y, en conducción, te los leo
+  async function importAudio(file) {
+    if (trial) { toast('🔒 ' + t('Transcribir audios necesita tu clave de PerezApp'), 3500); return; }
+    if (recording || busy) { toast(t('Espera un momento…')); return; }
+    busy = true; setMic('busy'); importMode = true; setStatus('🎧 ' + t('Transcribiendo el audio recibido…'));
+    const fail = (m) => { busy = false; importMode = false; setMic('idle'); setStatus(m, true); };
+    try {
+      if (model() === 'groq' || model() === 'pzcloud') {
+        const wav = await toWav(file);
+        if (wav && wav.short) return fail(t('Ese audio es demasiado corto.'));
+        if (wav && wav.blob && wav.blob.size < 24e6) { cloudTranscribe(wav.blob, 'audio/wav'); return; }
+        if (file.size < 24e6) { cloudTranscribe(file, file.type || 'audio/ogg'); return; }
+        return fail(t('Ese audio es demasiado largo.'));
+      }
+      const ctx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+      const buf = await ctx.decodeAudioData(await file.arrayBuffer()); const audio = buf.getChannelData(0).slice(); ctx.close();
+      if (audio.length < 16000 * 0.4) return fail(t('Ese audio es demasiado corto.'));
+      const dl = whisperLang() || liveLang(); setLang(dl);
+      getWorker().postMessage({ type: 'transcribe', audio, wlang: LANGS[dl].w, clang: dl === 'ca' ? 'es' : dl, ...loadMsg() }, [audio.buffer]);
+    } catch (e) { fail(t('No se pudo leer el audio: {0}', e.message)); }
+  }
+  async function takeShared() {
+    if (!/(?:^|[?&])shared=1/.test(location.search)) return;
+    window.history.replaceState(null, '', location.pathname + location.hash);
+    try {
+      const cache = await caches.open('pz-share'), a = await cache.match('shared-audio'), tx = await cache.match('shared-text');
+      const txt = tx ? (await tx.text()).trim() : '', blob = a ? await a.blob() : null;
+      for (const k of await cache.keys()) await cache.delete(k);
+      for (let i = 0; i < 50 && !licensed; i++) await new Promise((r) => setTimeout(r, 200));
+      if (blob) importAudio(blob);
+      else if (txt) { setText(txt); toast('📥 ' + t('Texto recibido'), 2500); }
+    } catch {}
+  }
   let recToken = 0;
   async function startAI() {
     const tok = ++recToken;
@@ -3031,7 +3082,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (lastSel && Date.now() - lastSel.t < 20000 && text.value.trim() && (lastSel.s !== lastSel.e || lastSel.s < text.value.trimEnd().length)) insertAt = { s: lastSel.s, e: lastSel.e };
     lastSel = null;
     audioCtx();   // dentro del toque: así el medidor de voz funciona también en iPhone
-    recording = true; toHold = false; setMic('rec'); if (engine === 'live') beep(880); keepAwake(); runTimer(true); $('lTime').textContent = '0:00';
+    recording = true; toHold = false; importMode = false; setMic('rec'); if (engine === 'live') beep(880); keepAwake(); runTimer(true); $('lTime').textContent = '0:00';
     recStart = Date.now();
     { const v = store.get('silence', 3), secs = v === 'auto' ? (driving() ? 3 : 0) : +v;
       $('lHint').textContent = t(secs ? 'Paro solo cuando te calles' : 'Pulsa otra vez cuando acabes · o mantén pulsado mientras hablas'); }
@@ -3079,7 +3130,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (go === 'ultimo' && !recording && !busy) { const l = lastTo(); if (text.value.trim()) { saveHist(); setText(''); } if (l) { toWho = l; toHold = true; } refresh(); start(); }
       }, reduce ? 300 : 1000);
     }
-    setTimeout(autoDrive, 1500);
+    setTimeout(autoDrive, 1500); setTimeout(takeShared, 700);
   }
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === '127.0.0.1' || location.hostname === 'localhost')) navigator.serviceWorker.register('sw.js').catch(() => {});
   requestAnimationFrame(() => { setLang(lang); setEngine(engine); keepAwake(); });
