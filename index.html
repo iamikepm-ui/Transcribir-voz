@@ -812,7 +812,7 @@
       <button class="btn primary" id="licGo">Activar</button>
     </div>
     <a class="wpriv" href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones</a>
-    <small class="wver">v2026.11.28-38</small>
+    <small class="wver">v2026.11.28-39</small>
   </div>
 </div>
 
@@ -1045,7 +1045,7 @@
       <p>⚠️ Con el vehículo en marcha no manipules el móvil: usa la voz o el botón del casco, o detente en un lugar seguro. Respeta siempre las normas de tráfico.</p>
       <p>Consejo: menú ⋮ de Chrome → «Añadir a pantalla de inicio».</p>
       <p><a href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones de uso</a></p>
-      <p style="opacity:.6">PerezApp v2026.11.28-38</p>
+      <p style="opacity:.6">PerezApp v2026.11.28-39</p>
     </div>
   </div>
 </div>
@@ -1053,9 +1053,9 @@
 <div class="toast" id="toast"></div>
 <div class="snack" id="snack" role="status"><span id="snackMsg"></span><button id="snackBtn">Deshacer</button></div>
 
-<script src="i18n.js?v=2026.11.28-38" defer></script>
-<script src="licencia.js?v=2026.11.28-38" defer></script>
-<script src="format.js?v=2026.11.28-38" defer></script>
+<script src="i18n.js?v=2026.11.28-39" defer></script>
+<script src="licencia.js?v=2026.11.28-39" defer></script>
+<script src="format.js?v=2026.11.28-39" defer></script>
 <script>
 // se ejecuta cuando ya se han cargado i18n.js, licencia.js y format.js (defer): la pantalla se pinta antes
 document.addEventListener('DOMContentLoaded', () => {
@@ -1420,7 +1420,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const clean = (w) => w.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, ''), voc = store.get('vocab', '').split(/\s*,\s*/).filter(Boolean), have = new Set(voc.map(plain)), add = [];
     for (let i = 0; i < a.length; i++) {
       const x = clean(a[i]), y = clean(b[i]);
-      if (x && y && x !== y && y.length >= 3 && /^\p{Lu}/u.test(y) && !have.has(plain(y)) && lev(phon(x), phon(y)) <= 2) { add.push(y); have.add(plain(y)); }
+      if (x && y && plain(x) !== plain(y) && y.length >= 3 && /^\p{Lu}/u.test(y) && !have.has(plain(y)) && lev(phon(x), phon(y)) <= 2) { add.push(y); have.add(plain(y)); }
     }
     if (!add.length) return;
     const v = voc.concat(add).slice(-40).join(', '); store.set('vocab', v); $('optVocab').value = v;
@@ -2713,7 +2713,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   function getWorker() {
     if (worker) return worker;
-    worker = new Worker('worker.js?v=2026.11.28-38', { type: 'module' });
+    worker = new Worker('worker.js?v=2026.11.28-39', { type: 'module' });
     worker.onerror = () => { if (busy && !recording) { busy = false; setMic('idle'); bar.style.display = 'none'; setStatus('El modelo del móvil ha fallado. Prueba otra vez o usa la nube.', true); } };
     worker.onmessage = ({ data }) => {
       if (model() === 'groq' && !offlinePrep && data.kind !== 'tr' && /progress|ready|status/.test(data.type)) { bar.style.display = 'none'; return; }
@@ -2970,7 +2970,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const txt = tx ? (await tx.text()).trim() : '', blob = a ? await a.blob() : null;
       for (const k of await cache.keys()) await cache.delete(k);
       for (let i = 0; i < 50 && !licensed; i++) await new Promise((r) => setTimeout(r, 200));
-      if (blob) importAudio(blob);
+      if (blob && !licensed) toast('🔒 ' + t('Transcribir audios necesita tu clave de PerezApp'), 4000);
+      else if (blob) importAudio(blob);
       else if (txt) { setText(txt); toast('📥 ' + t('Texto recibido'), 2500); }
     } catch {}
   }
