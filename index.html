@@ -521,9 +521,19 @@
   .magic.carousel button.mid::before { opacity:1; }
 
   /* idioma del mensaje */
-  .dayrow { align-self:center; display:flex; align-items:center; gap:8px; max-width:100%; }
+  .dayrow { align-self:center; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:7px; width:100%; max-width:100%; box-sizing:border-box; }   /* el saludo arriba y el selector de idioma debajo */
+  @container (max-height:340px) { .dayrow .day { display:none; } }   /* recuadro bajo: solo el selector de idioma */
   .dayrow .day { align-self:auto; }
   .langpill { flex:none; display:flex; align-items:center; gap:5px; min-height:34px; padding:5px 12px; border-radius:999px; border:1px solid color-mix(in srgb,var(--a1) 55%,transparent); background:color-mix(in srgb,var(--a1) 16%,var(--panel)); color:var(--txt); font:inherit; font-size:12.5px; font-weight:800; backdrop-filter:blur(10px); box-shadow:0 1px 2px rgba(0,0,0,.15); cursor:pointer; }
+  .langseg { flex:none; display:flex; gap:2px; padding:3px; border-radius:999px; border:1px solid color-mix(in srgb,var(--a1) 45%,transparent); background:color-mix(in srgb,var(--a1) 10%,var(--panel)); backdrop-filter:blur(10px); }
+  .langseg button { border:0; background:transparent; color:var(--txt); font:inherit; font-size:12.5px; font-weight:800; min-height:30px; padding:4px 12px; border-radius:999px; cursor:pointer; opacity:.78; transition:background .15s, opacity .15s; }
+  .langseg button.on { background:linear-gradient(135deg,var(--a1),var(--a2)); color:#04210f; opacity:1; }
+  .langseg button:active { transform:scale(.96); }
+  .gloves .langseg button { min-height:38px; font-size:14px; padding:5px 15px; }
+  .dlang { display:none; justify-content:center; padding:2px 0 4px; }
+  .drive .dlang { display:flex; } .drive .dlang .langseg button { min-height:46px; font-size:17px; padding:6px 22px; }
+  @media (max-height:520px) { .drive .dlang { display:none; } }
+  @media (max-width:380px) { .langseg button { padding:4px 9px; font-size:12px; } }
   .gloves .langpill { min-height:40px; font-size:13.5px; padding:6px 14px; }
   .langpill:active { transform:scale(.95); }
   @media (max-width:380px) { .dayrow .day { font-size:11px; padding:5px 9px; } }
@@ -713,7 +723,7 @@
 
   <div class="chat" id="chat">
     <div class="scroll" id="scroll">
-      <div class="dayrow"><div class="day" id="sub"></div><button class="langpill" id="langPill" aria-label="Idioma del mensaje" title="Idioma del mensaje"></button></div>
+      <div class="dayrow"><div class="day" id="sub"></div><div class="langseg" role="group" aria-label="Idioma del mensaje"><button data-l="es">Castellano</button><button data-l="ca">Català</button><button data-l="more" id="langPill" aria-label="Otros idiomas" title="Otros idiomas">⋯</button></div></div>
       <div class="empty-hint" id="hint"><img src="logo.svg" alt=""><b>Pulsa el micro y habla</b><span>Tu mensaje aparecerá aquí, bien escrito y listo para enviar.</span><div class="hintrow"><button class="hintwrite" id="hintWrite">✏️ <span>Escribir</span></button><button class="hintwrite" id="hintVoice">🗣️ <span>Qué puedo decir</span></button></div><button class="trialchip" id="trialChip" hidden></button></div>
       <div class="bubble paper" id="bubble">
         <div class="tochip" id="toChip" hidden>👤 <span id="toName"></span><button id="toClear" aria-label="Quitar destinatario" title="Quitar destinatario">✕</button></div>
@@ -812,7 +822,7 @@
       <button class="btn primary" id="licGo">Activar</button>
     </div>
     <a class="wpriv" href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones</a>
-    <small class="wver">v2026.11.28-39</small>
+    <small class="wver">v2026.11.29-40</small>
   </div>
 </div>
 
@@ -920,6 +930,7 @@
     <div class="brand"><img class="logo" src="logo.svg" alt=""><div>Modo conducción<small>Coche y moto · manos libres</small></div></div>
     <button class="round" id="driveExit" aria-label="Salir del modo conducción"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
   </header>
+  <div class="dlang"><div class="langseg" role="group" aria-label="Idioma del mensaje"><button data-l="es">Castellano</button><button data-l="ca">Català</button><button data-l="more" aria-label="Otros idiomas">⋯</button></div></div>
   <div class="dtext empty" id="dtext" data-nobrand></div>
   <div class="dstatus" id="dstatus" aria-live="polite"></div>
   <div class="mic-wrap">
@@ -1045,7 +1056,7 @@
       <p>⚠️ Con el vehículo en marcha no manipules el móvil: usa la voz o el botón del casco, o detente en un lugar seguro. Respeta siempre las normas de tráfico.</p>
       <p>Consejo: menú ⋮ de Chrome → «Añadir a pantalla de inicio».</p>
       <p><a href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones de uso</a></p>
-      <p style="opacity:.6">PerezApp v2026.11.28-39</p>
+      <p style="opacity:.6">PerezApp v2026.11.29-40</p>
     </div>
   </div>
 </div>
@@ -1053,9 +1064,9 @@
 <div class="toast" id="toast"></div>
 <div class="snack" id="snack" role="status"><span id="snackMsg"></span><button id="snackBtn">Deshacer</button></div>
 
-<script src="i18n.js?v=2026.11.28-39" defer></script>
-<script src="licencia.js?v=2026.11.28-39" defer></script>
-<script src="format.js?v=2026.11.28-39" defer></script>
+<script src="i18n.js?v=2026.11.29-40" defer></script>
+<script src="licencia.js?v=2026.11.29-40" defer></script>
+<script src="format.js?v=2026.11.29-40" defer></script>
 <script>
 // se ejecuta cuando ya se han cargado i18n.js, licencia.js y format.js (defer): la pantalla se pinta antes
 document.addEventListener('DOMContentLoaded', () => {
@@ -1093,6 +1104,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const liveLang = () => dictPref() !== 'auto' ? dictPref() : ui();          // Google necesita saber el idioma
   const whisperLang = () => dictPref() !== 'auto' ? dictPref() : null;        // Whisper lo detecta solo
   if (!store.get('engineV3', false)) { store.set('engine', 'whisper'); store.set('engineV2', true); store.set('engineV3', true); }
+  if (!store.get('langV2', false)) { store.set('langV2', true); if (dictPref() === 'auto' && (ui() === 'es' || ui() === 'ca')) store.set('dictLang', ui()); }   // castellano o catalán fijo: así Whisper no se equivoca de idioma
   let engine = store.get('engine', 'whisper'), lang = dictPref() !== 'auto' ? dictPref() : ui();
   let recording = false, busy = false, history = [], licensed = !(window.PerezappLicense && window.PerezappLicense.enabled);
 
@@ -1270,12 +1282,19 @@ document.addEventListener('DOMContentLoaded', () => {
   $('optDictLang').onchange = () => setDictLang($('optDictLang').value);
   // ---------- idioma del mensaje (botón del chat) ----------
   const langName = (k) => k === 'auto' ? t('Automático') : k === 'es' ? 'Castellano' : LANGS[k].n;
-  function paintLangPill() { const k = dictPref(); $('langPill').textContent = (k === 'auto' ? '🌐 ' : '🗣️ ') + langName(k); $('langPill').setAttribute('aria-label', $('langPill').textContent + ' · ' + t('Idioma del mensaje')); }
+  function paintLangPill() {
+    const k = dictPref(), fixed = k === 'es' || k === 'ca';
+    document.querySelectorAll('.langseg button').forEach((b) => {
+      const l = b.dataset.l, on = l === 'more' ? !fixed : l === k;
+      b.classList.toggle('on', on); b.setAttribute('aria-pressed', on);
+      if (l === 'more') b.textContent = fixed ? '⋯' : k === 'auto' ? '🌐' : k.toUpperCase();
+    });
+  }
   function setDictLang(k) {
     store.set('dictLang', k); $('optDictLang').value = k;
     setLang(k !== 'auto' ? k : ui()); preloadAsr(); paintLangPill();
   }
-  $('langPill').onclick = () => {
+  function openLangList() {
     const list = $('lgList'); list.textContent = '';
     for (const k of ['auto', 'es', 'ca', 'en', 'fr', 'it', 'de', 'pt']) {
       const b = document.createElement('button'); b.innerHTML = '<b></b><span></span>';
@@ -1285,7 +1304,12 @@ document.addEventListener('DOMContentLoaded', () => {
       list.append(b);
     }
     $('lgRoot').classList.add('open');
-  };
+  }
+  document.querySelectorAll('.langseg button').forEach((b) => b.onclick = () => {
+    if (b.dataset.l === 'more') { openLangList(); return; }
+    if (recording || busy) { toast(t('Espera un momento…')); return; }
+    setDictLang(b.dataset.l); beep(b.dataset.l === 'ca' ? 660 : 880); toast(t('Idioma del mensaje: {0}', langName(b.dataset.l)));
+  });
   $('lgClose').onclick = $('lgScrim').onclick = () => $('lgRoot').classList.remove('open');
   paintLangPill();
 
@@ -1990,6 +2014,8 @@ document.addEventListener('DOMContentLoaded', () => {
     de: { fix: /^(korrigier(e|en)?( es)?)$/, formal: /^(förmlicher)$/, warm: /^(herzlicher|freundlicher)$/, short: /^(kürzer|kürz(e)? es)$/, emoji: /^(emojis hinzufügen|füge emojis hinzu)$/, clearer: /^(klarer)$/, copy: /^(kopier(e|en)? es)$/, newmsg: /^(neue nachricht)$/ },
     pt: { fix: /^(corrige(-o)?)$/, formal: /^(mais formal)$/, warm: /^(mais carinhoso|mais próximo)$/, short: /^(mais curto|encurta(-o)?)$/, emoji: /^(adiciona emojis|põe emojis)$/, clearer: /^(mais claro)$/, copy: /^(copia-o)$/, newmsg: /^(nova mensagem)$/ },
   };
+  // «En catalán», «Pasa a castellano», «Passa a català»…: cambia el idioma sin tocar. Solo si es toda la frase
+  const LANGSET = /^(?:(?:cambia(?:r)?|pasa(?:r)?|pon(?:er)?|habla(?:r)?|dicta(?:r)?|passa(?:r)?|canvia(?:r)?|posa(?:r)?|parla(?:r)?|switch|change|speak|talk|dictate|go)(?: a| al| en| to| in)?\s+|en\s+|in\s+)?(catal[aáà]n?|castellano|castell[aáà]|espa[nñ]ol|espanyol|catalan|spanish|castilian)$/;
   const TRCMD = /^(?:trad[uú]ce(?:lo)?|tradueix(?:-ho)?|translate(?: it)?|traduis(?:-le)?|traduci(?:lo)?|übersetze?(?: es)?|traduz(?:-o)?)\s+(?:al|a|en|to|into|in|ins|para o|para|em|à)?\s*(?:l')?([\p{L}]+)$/u;
   const LANGW = { en: /^(ingl[eé]s|english|angl[eè]s|anglais|inglese|englisch(e)?|ingl[eê]s)$/, ca: /^(catal[aá]n|catal[aà]|catalan|catalano|katalanisch(e)?|catal[aã]o)$/, es: /^(espa[ñn]ol|castellano|spanish|espanyol|castell[aà]|espagnol|spagnolo|spanisch(e)?|espanhol)$/,
     fr: /^(franc[eé]s|franc[eè]s|french|fran[cç]ais|francese|franz[oö]sisch(e)?|franc[eê]s)$/, it: /^(italiano|itali[aà]|italian|italien|italienisch(e)?)$/, de: /^(alem[aá]n|alemany|german|allemand|tedesco|deutsch(e)?|alem[aã]o)$/, pt: /^(portugu[eé]s|portugu[eè]s|portuguese|portugais|portoghese|portugiesisch(e)?|portugu[eê]s)$/ };
@@ -2008,6 +2034,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (via && SENDWORD.test(n0)) { sendVia = via; return 'send'; }
     const tm = TRCMD.exec(n0); if (tm) { for (const [code, re] of Object.entries(LANGW)) if (re.test(tm[1])) return 'tr:' + code; }
+    { const lm = LANGSET.exec(n0); if (lm) return 'lang:' + (/^catal/.test(lm[1]) ? 'ca' : 'es'); }
     for (const l of [lang, ui(), ...Object.keys(EDIT)]) for (const [k, re] of Object.entries(EDIT[l] || {})) if (re.test(n0)) return k;
     if (LOC.test(normCmd(x))) return 'loc';
     const n = normCmd(x), order = [lang, ui(), ...Object.keys(CMDS_VOICE)];
@@ -2041,6 +2068,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (cmd === 'loc') { addLocation(); }
     if (['fix', 'formal', 'warm', 'short', 'emoji', 'clearer'].includes(cmd)) { editPending = false; const act = cmd === 'clearer' ? 'clear' : cmd; magic(act, $('magic').querySelector('[data-act=' + act + ']'), false); return; }
     if (cmd === 'retry') { retryTake(); return; }
+    if (cmd && cmd.startsWith('lang:')) { const c = cmd.slice(5); if (recording) stop(); setDictLang(c); const nm = c === 'ca' ? 'Català' : 'Castellano'; beep(c === 'ca' ? 660 : 880); toast('🗣️ ' + nm); setStatus('🗣️ ' + nm); if (driving()) speak(nm, c); return; }
     if (cmd === 'copy') { copy(false); return; }
     if (cmd === 'newmsg') { if (text.value) { saveHist(); setText(''); } toWho = null; refresh(); say('clear'); return; }
     if (cmd && cmd.startsWith('tr:')) { editPending = false; const tgt = cmd.slice(3), src = DictadoFormat.detectLang(text.value) || lang; if (text.value.trim() && tgt !== src) translateTo(src, tgt); return; }
@@ -2713,7 +2741,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   function getWorker() {
     if (worker) return worker;
-    worker = new Worker('worker.js?v=2026.11.28-39', { type: 'module' });
+    worker = new Worker('worker.js?v=2026.11.29-40', { type: 'module' });
     worker.onerror = () => { if (busy && !recording) { busy = false; setMic('idle'); bar.style.display = 'none'; setStatus('El modelo del móvil ha fallado. Prueba otra vez o usa la nube.', true); } };
     worker.onmessage = ({ data }) => {
       if (model() === 'groq' && !offlinePrep && data.kind !== 'tr' && /progress|ready|status/.test(data.type)) { bar.style.display = 'none'; return; }
