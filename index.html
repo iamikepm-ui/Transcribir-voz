@@ -812,7 +812,7 @@
       <button class="btn primary" id="licGo">Activar</button>
     </div>
     <a class="wpriv" href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones</a>
-    <small class="wver">v2026.11.28-37</small>
+    <small class="wver">v2026.11.28-38</small>
   </div>
 </div>
 
@@ -1045,7 +1045,7 @@
       <p>⚠️ Con el vehículo en marcha no manipules el móvil: usa la voz o el botón del casco, o detente en un lugar seguro. Respeta siempre las normas de tráfico.</p>
       <p>Consejo: menú ⋮ de Chrome → «Añadir a pantalla de inicio».</p>
       <p><a href="privacidad.html" target="_blank" rel="noopener">Privacidad y condiciones de uso</a></p>
-      <p style="opacity:.6">PerezApp v2026.11.28-37</p>
+      <p style="opacity:.6">PerezApp v2026.11.28-38</p>
     </div>
   </div>
 </div>
@@ -1053,9 +1053,9 @@
 <div class="toast" id="toast"></div>
 <div class="snack" id="snack" role="status"><span id="snackMsg"></span><button id="snackBtn">Deshacer</button></div>
 
-<script src="i18n.js?v=2026.11.28-37" defer></script>
-<script src="licencia.js?v=2026.11.28-37" defer></script>
-<script src="format.js?v=2026.11.28-37" defer></script>
+<script src="i18n.js?v=2026.11.28-38" defer></script>
+<script src="licencia.js?v=2026.11.28-38" defer></script>
+<script src="format.js?v=2026.11.28-38" defer></script>
 <script>
 // se ejecuta cuando ya se han cargado i18n.js, licencia.js y format.js (defer): la pantalla se pinta antes
 document.addEventListener('DOMContentLoaded', () => {
@@ -2713,7 +2713,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   function getWorker() {
     if (worker) return worker;
-    worker = new Worker('worker.js?v=2026.11.28-37', { type: 'module' });
+    worker = new Worker('worker.js?v=2026.11.28-38', { type: 'module' });
     worker.onerror = () => { if (busy && !recording) { busy = false; setMic('idle'); bar.style.display = 'none'; setStatus('El modelo del móvil ha fallado. Prueba otra vez o usa la nube.', true); } };
     worker.onmessage = ({ data }) => {
       if (model() === 'groq' && !offlinePrep && data.kind !== 'tr' && /progress|ready|status/.test(data.type)) { bar.style.display = 'none'; return; }
@@ -2813,7 +2813,13 @@ document.addEventListener('DOMContentLoaded', () => {
       importMode = false;
       if (!heard) { setStatus('No se ha oído nada en ese audio.', true); return; }
       detectFrom(heard); saveHist(); setText(heard); setStatus('Listo ✓'); stamp();
-      if (driving() || on('optReadBack')) speak(heard, lang);
+      const det = (DictadoFormat.detectLang(heard) || lang);
+      if (driving()) { speakSeq([[heard, det], [t('¿Quieres responder?'), ui()]], replyListen); }   // manos libres: te lo lee y pregunta si respondes
+      else {
+        if (on('optReadBack')) speak(heard, det);
+        if (det !== ui() && hasKey() && navigator.onLine) snack('Está en otro idioma', '🌐 Traducir', () => translateTo(det, ui()), 14000);
+        else snack('Audio escrito ✓', '↩️ Responder', replyTo, 14000);
+      }
       return;
     }
     if (diag.take && curTake && curTake.t0) { diag.take.ms = Date.now() - curTake.t0; diag.take.words = (heard.match(/\S+/g) || []).length; }
@@ -2903,7 +2909,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return warm;
   }
   function dropMic() { clearTimeout(warmT); if (warm) warm.getTracks().forEach((t) => t.stop()); warm = null; }
-  function releaseMic() { clearTimeout(warmT); warmT = setTimeout(() => { if (!recording) dropMic(); }, 30000); }
+  function releaseMic() { clearTimeout(warmT); warmT = setTimeout(() => { if (!recording) dropMic(); }, 12000); }   // 12 s: en un coche con Bluetooth, el micro abierto deja el audio en «modo llamada»
   document.addEventListener('visibilitychange', () => { if (document.hidden && !recording) dropMic(); });
   function diagText() {
     const L = [], n = navigator, c = n.connection || {}, m = diag.mic, st = (m && m.settings) || {}, k = diag.take, v = diag.lvl;
@@ -2944,6 +2950,17 @@ document.addEventListener('DOMContentLoaded', () => {
       const dl = whisperLang() || liveLang(); setLang(dl);
       getWorker().postMessage({ type: 'transcribe', audio, wlang: LANGS[dl].w, clang: dl === 'ca' ? 'es' : dl, ...loadMsg() }, [audio.buffer]);
     } catch (e) { fail(t('No se pudo leer el audio: {0}', e.message)); }
+  }
+  // responder a un audio recibido: el audio queda en el historial y se empieza a dictar la respuesta
+  function replyTo() { if (recording || busy) return; if (text.value.trim()) saveHist(); setText(''); toWho = null; refresh(); start(); }
+  function replyListen() {
+    if (!driving() || recording) return;
+    $('drive').classList.add('asking'); setStatus('🗣️ ' + t('¿Respondes? Di «sí» o «no»'));
+    listenOnce((alts) => {
+      endAsk();
+      for (const a of alts) { const n = normCmd(a), k = matchAsk(a); if (k === 'yes' || k === 'send' || /^(?:responde|responder|contesta|contestar|respon|reply|answer|r[eé]ponds|rispondi|antworte)/.test(n)) { replyTo(); return; } if (k === 'no' || k === 'stop') { setStatus('Vale.'); return; } }
+      setStatus('Vale. Pulsa el micro cuando quieras responder.');
+    }, () => setStatus('Pulsa el micro cuando quieras responder.'));
   }
   async function takeShared() {
     if (!/(?:^|[?&])shared=1/.test(location.search)) return;
